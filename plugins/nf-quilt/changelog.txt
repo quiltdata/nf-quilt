@@ -1,4 +1,4 @@
-nf-quilt3 changelog
+nf-quilt changelog
 ===================
 0.1.0 - 30 Sep 2022
 - Cloned from nf-google

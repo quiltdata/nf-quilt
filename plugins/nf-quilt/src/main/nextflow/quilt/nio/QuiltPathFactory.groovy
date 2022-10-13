@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package nextflow.quilt3.nio
+package nextflow.nf-quilt.nio
 
 import java.nio.file.Path
 
 import groovy.transform.CompileStatic
 import nextflow.Global
 import nextflow.Session
-import nextflow.quilt3.QuiltOpts
-import nextflow.quilt3.jep.QuiltParser
+import nextflow.nf-quilt.QuiltOpts
+import nextflow.nf-quilt.jep.QuiltParser
 import nextflow.file.FileSystemPathFactory
 import nextflow.file.FileHelper
 /**

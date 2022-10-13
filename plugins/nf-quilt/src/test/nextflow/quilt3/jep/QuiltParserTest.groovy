@@ -1,5 +1,5 @@
-package nextflow.quilt3.jep
-import nextflow.quilt3.QuiltSpecification
+package nextflow.nf-quilt.jep
+import nextflow.nf-quilt.QuiltSpecification
 
 import spock.lang.Unroll
 import spock.lang.Ignore

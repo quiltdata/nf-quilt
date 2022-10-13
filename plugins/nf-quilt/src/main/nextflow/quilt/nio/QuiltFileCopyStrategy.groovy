@@ -16,7 +16,7 @@
 
 // https://github.com/LukeGoodsell/nextflow/blob/master/src/main/groovy/nextflow/executor/SimpleFileCopyStrategy.groovy
 
-package nextflow.quilt3.nio
+package nextflow.nf-quilt.nio
 
 import java.nio.file.Path
 

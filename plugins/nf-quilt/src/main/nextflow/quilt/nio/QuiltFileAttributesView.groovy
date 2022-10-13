@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package nextflow.quilt3.nio
+package nextflow.nf-quilt.nio
 
 import java.nio.file.attribute.BasicFileAttributeView
 import java.nio.file.attribute.BasicFileAttributes

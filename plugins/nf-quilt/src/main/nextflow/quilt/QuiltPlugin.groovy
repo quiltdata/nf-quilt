@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package nextflow.quilt3
+package nextflow.nf-quilt
 
 import groovy.transform.CompileStatic
 import nextflow.plugin.BasePlugin
 import nextflow.file.FileHelper
 import org.pf4j.PluginWrapper
-import nextflow.quilt3.nio.QuiltFileSystemProvider
+import nextflow.nf-quilt.nio.QuiltFileSystemProvider
 /**
  * Implement the plugin entry point for Quilt support
  *

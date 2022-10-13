@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package nextflow.quilt3.nio
+package nextflow.nf-quilt.nio
 
 import groovy.transform.CompileStatic
 import nextflow.util.PathSerializer

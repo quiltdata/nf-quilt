@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package nextflow.quilt3.nio
+package nextflow.nf-quilt.nio
 
 import static java.nio.file.StandardCopyOption.*
 import static java.nio.file.StandardOpenOption.*
@@ -50,7 +50,7 @@ import groovy.transform.Memoized
 import groovy.util.logging.Slf4j
 import nextflow.Global
 import nextflow.Session
-import nextflow.quilt3.jep.QuiltParser
+import nextflow.nf-quilt.jep.QuiltParser
 
 /**
  * Implements NIO File system provider for Quilt Blob Storage

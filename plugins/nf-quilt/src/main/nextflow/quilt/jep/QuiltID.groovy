@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package nextflow.quilt3.jep
+package nextflow.nf-quilt.jep
 
 import groovy.transform.CompileStatic
 import groovy.transform.Memoized

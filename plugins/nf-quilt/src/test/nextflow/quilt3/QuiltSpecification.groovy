@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-package nextflow.quilt3
-import nextflow.quilt3.nio.QuiltPath
+package nextflow.nf-quilt
+import nextflow.nf-quilt.nio.QuiltPath
 
 import java.nio.ByteBuffer
 import java.nio.channels.SeekableByteChannel
@@ -66,7 +66,7 @@ abstract class QuiltSpecification extends Specification {
             }
         }
         Plugins.init(root, 'dev', manager)
-        Plugins.startIfMissing('nf-quilt3')
+        Plugins.startIfMissing('nf-quilt')
     }
 
     def cleanupSpec() {

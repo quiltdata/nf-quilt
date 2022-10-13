@@ -15,10 +15,10 @@
  */
 
 // https://medium.com/geekculture/how-to-execute-python-modules-from-java-2384041a3d6d
-// package nextflow.quilt3.jep
+// package nextflow.nf-quilt.jep
 
-package nextflow.quilt3.jep
-import nextflow.quilt3.nio.QuiltPath
+package nextflow.nf-quilt.jep
+import nextflow.nf-quilt.nio.QuiltPath
 
 import jep.Interpreter;
 import groovy.transform.CompileStatic
@@ -117,7 +117,7 @@ class QuiltPackage {
     }
 
     String key_msg(prefix="") {
-        "--message 'nf-quilt3:${prefix}@${today()}'"
+        "--message 'nf-quilt:${prefix}@${today()}'"
     }
 
     String key_path() {

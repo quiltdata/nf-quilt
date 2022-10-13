@@ -15,6 +15,6 @@
 # limitations under the License.
 #
 
-nextflow.quilt3.nio.QuiltPathSerializer
-nextflow.quilt3.nio.QuiltPathFactory
-nextflow.quilt3.QuiltObserverFactory
+nextflow.nf-quilt.nio.QuiltPathSerializer
+nextflow.nf-quilt.nio.QuiltPathFactory
+nextflow.nf-quilt.QuiltObserverFactory
