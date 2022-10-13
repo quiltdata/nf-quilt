@@ -1,0 +1,195 @@
+/*
+ * Copyright 2020-2022, Seqera Labs
+ * Copyright 2013-2019, Centre for Genomic Regulation (CRG)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+plugins {
+    id "io.codearte.nexus-staging" version "0.21.2"
+    id 'java'
+    id 'idea'
+}
+
+// Add ability to test with upcoming versions of Groovy
+def groovyVer = System.getenv('CI_GROOVY_VERSION')
+if (groovyVer) {
+    def repo = groovyVer.startsWith('com.github.apache:') ? 'https://jitpack.io' : 'https://oss.jfrog.org/oss-snapshot-local/'
+    logger.lifecycle "Overriden Groovy dependency to use $groovyVer - repository: $repo"
+    allprojects {
+        repositories {
+            maven { url repo }
+        }
+
+        configurations.all {
+            resolutionStrategy.eachDependency { DependencyResolveDetails details ->
+                if (details.requested.group == 'org.codehaus.groovy') {
+                    if( groovyVer.contains(':') )
+                        details.useTarget(groovyVer)
+                    else
+                        details.useVersion(groovyVer)
+                    println ">> Overriding $details.requested with version: $groovyVer"
+                }
+            }
+        }
+    }
+}
+
+def projects(String...args) {
+    args.collect {project(it)}
+}
+
+group = 'io.nextflow'
+version = rootProject.file('VERSION').text.trim()
+
+allprojects {
+    apply plugin: 'java'
+    apply plugin: 'java-test-fixtures'
+    apply plugin: 'idea'
+    apply plugin: 'groovy'
+    apply plugin: 'java-library'
+
+    java {
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(11)
+        }
+    }
+
+    compileJava {
+        options.release = 8
+    }
+
+    tasks.withType(GroovyCompile) {
+        sourceCompatibility = '1.8'
+        targetCompatibility = '1.8'
+    }
+
+    idea {
+        module.inheritOutputDirs = true
+    }
+
+    repositories {
+        mavenCentral()
+        maven { url 'https://repo.eclipse.org/content/groups/releases' }
+        maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
+    }
+
+    configurations {
+        // see https://docs.gradle.org/4.1/userguide/dependency_management.html#sub:exclude_transitive_dependencies
+        all*.exclude group: 'org.codehaus.groovy', module: 'groovy-all'
+        all*.exclude group: 'org.codehaus.groovy', module: 'groovy-cli-picocli'
+        // groovydoc libs
+        groovyDoc.extendsFrom runtime
+    }
+
+    dependencies {
+        // see https://docs.gradle.org/4.1/userguide/dependency_management.html#sec:module_replacement
+        modules {
+            module("commons-logging:commons-logging") { replacedBy("org.slf4j:jcl-over-slf4j") }
+        }
+
+        // Documentation required libraries
+        groovyDoc 'org.fusesource.jansi:jansi:1.11'
+        groovyDoc "org.codehaus.groovy:groovy-groovydoc:3.0.13"
+        groovyDoc "org.codehaus.groovy:groovy-ant:3.0.13"
+    }
+
+    test {
+        useJUnitPlatform()
+    }
+
+    // this is required due to this IDEA bug
+    // https://youtrack.jetbrains.com/issue/IDEA-129282
+    sourceSets {
+        main {
+            output.resourcesDir = 'build/classes/main'
+        }
+    }
+
+    // Disable strict javadoc checks
+    // See http://blog.joda.org/2014/02/turning-off-doclint-in-jdk-8-javadoc.html
+    if (JavaVersion.current().isJava8Compatible()) {
+        tasks.withType(Javadoc) {
+            options.addStringOption('Xdoclint:none', '-quiet')
+        }
+    }
+
+    tasks.withType(Jar) {
+        duplicatesStrategy = DuplicatesStrategy.INCLUDE
+    }
+
+    // patched as described here
+    // http://forums.gradle.org/gradle/topics/gradle_task_groovydoc_failing_with_noclassdeffounderror
+    tasks.withType(Groovydoc) {
+        groovyClasspath = project.configurations.groovyDoc
+        includes = ["nextflow/**"]
+    }
+
+    // Required to run tests on Java 9 and higher in compatibility mode
+    if (JavaVersion.current() >= JavaVersion.VERSION_1_9) {
+        tasks.withType(Test) {
+            jvmArgs ([
+                    '--add-opens=java.base/java.lang=ALL-UNNAMED',
+                    '--add-opens=java.base/java.io=ALL-UNNAMED',
+                    '--add-opens=java.base/java.nio=ALL-UNNAMED',
+                    '--add-opens=java.base/java.nio.file.spi=ALL-UNNAMED',
+                    '--add-opens=java.base/java.net=ALL-UNNAMED',
+                    '--add-opens=java.base/java.util=ALL-UNNAMED',
+                    '--add-opens=java.base/java.util.concurrent.locks=ALL-UNNAMED',
+                    '--add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED',
+                    '--add-opens=java.base/sun.nio.ch=ALL-UNNAMED',
+                    '--add-opens=java.base/sun.nio.fs=ALL-UNNAMED',
+                    '--add-opens=java.base/sun.net.www.protocol.http=ALL-UNNAMED',
+                    '--add-opens=java.base/sun.net.www.protocol.https=ALL-UNNAMED',
+                    '--add-opens=java.base/sun.net.www.protocol.ftp=ALL-UNNAMED',
+                    '--add-opens=java.base/sun.net.www.protocol.file=ALL-UNNAMED',
+                    '--add-opens=java.base/jdk.internal.misc=ALL-UNNAMED',
+            ])
+        }
+    }
+}
+
+def getRuntimeConfigs() {
+    def names = subprojects
+            .findAll { prj -> prj.name in ['nextflow','nf-commons','nf-httpfs'] }
+            .collect { it.name }
+
+    FileCollection result = null
+    for( def it : names ) {
+        def cfg = project(it).configurations.getByName('runtimeClasspath')
+        if( result==null )
+            result = cfg
+        else
+            result += cfg
+        // this include the module actual jar file
+        // note: migrating to gradle 7 does not work any more
+        //result = result + cfg.getOutgoing().getArtifacts().getFiles()
+    }
+    return result
+}
+
+/*
+ * Save the runtime classpath
+ */
+task exportClasspath {
+    dependsOn allprojects.jar
+    doLast {
+        def home = System.getProperty('user.home')
+        def all = getRuntimeConfigs()
+        def libs = all.collect { File file ->  /*println file.canonicalPath.replace(home, '$HOME');*/ file.canonicalPath;  }
+        ['nextflow','nf-commons','nf-httfs'].each {libs << file("modules/$it/build/libs/${it}-${version}.jar").canonicalPath }
+        file('.launch.classpath').text = libs.unique().join(':')
+    }
+}
+
+
