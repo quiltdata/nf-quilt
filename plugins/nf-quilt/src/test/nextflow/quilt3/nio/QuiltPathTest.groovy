@@ -134,10 +134,10 @@ class QuiltPathTest extends QuiltSpecification {
 
         where:
         path                            | uri
-        '/alpha/so/me/file.txt'          | 'quilt3://alpha/so/me/file.txt'
-        '/alpha/'                       | 'quilt3://alpha'
-        '/alpha'                        | 'quilt3://alpha'
-        'some-file.txt'                 | 'quilt3:some-file.txt'
+        '/alpha/so/me/file.txt'          | 'quilt+s3://alpha/so/me/file.txt'
+        '/alpha/'                       | 'quilt+s3://alpha'
+        '/alpha'                        | 'quilt+s3://alpha'
+        'some-file.txt'                 | 'quilt+s3:some-file.txt'
     }
 
 

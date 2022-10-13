@@ -42,9 +42,9 @@ class QuiltPackageTest extends QuiltSpecification {
     QuiltPath qpath
     QuiltPackage pkg
 
-    static String pkg_url = 'quilt3://quilt-dev-null/test/nf-quilt/'
+    static String pkg_url = 'quilt+s3://quilt-dev-null/test/nf-quilt/'
     static String url = pkg_url + 'README.md?tophash=b744ee498f'
-    static String out_url = 'quilt3://quilt-ernest-staging/nf-quilt/test'
+    static String out_url = 'quilt+s3://quilt-ernest-staging/nf-quilt/test'
 
     def setup() {
         factory = new QuiltPathFactory()

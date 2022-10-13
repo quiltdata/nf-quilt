@@ -29,7 +29,7 @@ import spock.lang.Unroll
 
 class QuiltPathFactoryTest extends QuiltSpecification {
 
-    static String pkg_url = 'quilt3://quilt-example/examples/hurdat'
+    static String pkg_url = 'quilt+s3://quilt-example/examples/hurdat'
     static String url = pkg_url + '/scripts/build.py?tophash=f8d1478d93&summarize=pattern1&summarize=pattern2&metadata=filename.json'
 
     @Unroll
@@ -57,10 +57,10 @@ class QuiltPathFactoryTest extends QuiltSpecification {
 
         where:
         _ | PATH                                        | STR
-        _ | 'quilt3://reg/user/pkg/'                    | 'quilt3://reg/user/pkg/'
-        _ | 'quilt3://reg/user/pkg'                     | 'quilt3://reg/user/pkg/'
-        _ | 'quilt3://reg/pkg/name/opt/file/key'        | 'quilt3://reg/pkg/name/opt/file/key'
-        _ | 'quilt3://reg/user/pkg?tophash=hex'         | 'quilt3://reg/user/pkg/'
+        _ | 'quilt+s3://reg/user/pkg/'                    | 'quilt+s3://reg/user/pkg/'
+        _ | 'quilt+s3://reg/user/pkg'                     | 'quilt+s3://reg/user/pkg/'
+        _ | 'quilt+s3://reg/pkg/name/opt/file/key'        | 'quilt+s3://reg/pkg/name/opt/file/key'
+        _ | 'quilt+s3://reg/user/pkg?tophash=hex'         | 'quilt+s3://reg/user/pkg/'
     }
 
     def 'should create Channel from URL' () {

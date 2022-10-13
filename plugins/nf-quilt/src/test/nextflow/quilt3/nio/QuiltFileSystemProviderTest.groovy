@@ -34,10 +34,10 @@ class QuiltFileSystemProviderTest extends QuiltSpecification {
 
         where:
         uri                                 | expected
-        'quilt3://bucket'                   | '/bucket/'
-        'quilt3://bucket/'                  | '/bucket/'
-        'quilt3://bucket/this/and/that'     | '/bucket/this/and/that'
-        'quilt3://bucket/this/and/that/'    | '/bucket/this/and/that/'
+        'quilt+s3://bucket'                   | '/bucket/'
+        'quilt+s3://bucket/'                  | '/bucket/'
+        'quilt+s3://bucket/this/and/that'     | '/bucket/this/and/that'
+        'quilt+s3://bucket/this/and/that/'    | '/bucket/this/and/that/'
 
     }
 
@@ -66,8 +66,8 @@ class QuiltFileSystemProviderTest extends QuiltSpecification {
         def provider = new QuiltFileSystemProvider()
 
         expect:
-        provider.getBucketName(new URI('quilt3://bucket/alpha/bravo')) == 'bucket'
-        provider.getBucketName(new URI('quilt3://BUCKET/alpha/bravo')) == 'bucket'
+        provider.getBucketName(new URI('quilt+s3://bucket/alpha/bravo')) == 'bucket'
+        provider.getBucketName(new URI('quilt+s3://BUCKET/alpha/bravo')) == 'bucket'
 
         when:
         provider.getBucketName(new URI('s3://xxx'))
@@ -75,7 +75,7 @@ class QuiltFileSystemProviderTest extends QuiltSpecification {
         thrown(IllegalArgumentException)
 
         when:
-        provider.getBucketName(new URI('quilt3:/alpha/bravo'))
+        provider.getBucketName(new URI('quilt+s3:/alpha/bravo'))
         then:
         thrown(IllegalArgumentException)
 
