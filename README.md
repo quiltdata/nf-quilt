@@ -2,8 +2,8 @@
 
 Nextflow plugin for interacting with [Quilt](https://quiltdata.com/) packages as a FileSystem
 
-`nf-quilt` is a plugin developed by Quilt Data that enables you read and write directly to Quilt packages using `quilt` URLs
-wherever you currently use `s3`, `az` or `gs` URLs.
+`nf-quilt` is a plugin developed by Quilt Data that enables you read and write directly
+to Quilt packages using `quilt` URLs wherever you currently use `s3`, `az` or `gs` URLs.
 
 Inspired by the original `nf-quilt` plugin developed by Seqera labs
 
@@ -11,14 +11,10 @@ Inspired by the original `nf-quilt` plugin developed by Seqera labs
 
 To add the `nf-quilt` plugin to your workflow, you may need Nextflow 22.09 (or later) and Python 3.9 (or later).
 
-At the moment, you need to download this git repository, and have `nextflow` in an adjacent repository.
-
-We are working to release this an official Nextflow plugin.
-
 ### Quilt Configuration
 
 This plugin uses the `quilt3` CLI to call the Quilt API.
-You must install the `quilt3` module and ensure the CLI is in your path:
+You must install the `quilt3` Python module and ensure the CLI is in your path:
 
 ```bash
 pip3 install quilt3
@@ -38,7 +34,7 @@ Finally, run your Nextflow pipeline as usual, setting that URL as your output di
 
 Note that you won't need the '-plugins' option if you modify `nextflow.config`
 
-Add the following snippet to your `nextflow.config` to enable the plugin (or just that one 'id' if you already have other plugins):
+Add the following snippet to your `nextflow.config` to enable the plugin (or just  add that one 'id' if you already have other plugins):
 ```groovy
 plugins {
     id 'nf-quilt'
@@ -94,9 +90,15 @@ Follow these steps to package, upload and publish the plugin:
    * `github_access_token`: The GitHub access token required to upload and commit changes to the plugin repository.
    * `github_commit_email`: The email address associated with your GitHub account.
 
-2. Use the following command to package and create a release for your plugin on GitHub:
-    ```bash
-    ./gradlew :plugins:nf-quilt:upload
-    ```
+3. Use the following command to package and create a release for your plugin on GitHub:
+   ```bash
+   ./gradlew :plugins:nf-quilt:upload
+   ```
 
-3. Create a pull request against [nextflow-io/plugins](https://github.com/nextflow-io/plugins/blob/main/plugins.json) to make the plugin accessible to Nextflow.
+4. Fork the [nextflow-io/plugins](https://github.com/nextflow-io/plugins) repository to one you can write to
+
+5. Use the following command to publish your plugin to your fork:
+    ```bash
+    ./gradlew :plugins:publishIndex
+    ```
+6. Create a pull request to push your changes back to [nextflow-io/plugins](https://github.com/nextflow-io/plugins/blob/main/plugins.json)
