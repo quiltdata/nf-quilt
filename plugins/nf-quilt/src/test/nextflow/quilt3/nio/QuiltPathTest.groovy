@@ -1,5 +1,8 @@
 package nextflow.quilt.nio
 import nextflow.quilt.QuiltSpecification
+import nextflow.quilt.jep.QuiltParser
+
+import java.nio.file.Paths
 
 import spock.lang.Shared
 import spock.lang.Unroll
@@ -13,7 +16,7 @@ class QuiltPathTest extends QuiltSpecification {
     Map<String,QuiltFileSystem> cache = new HashMap<>()
 
     private QuiltPath pathify(String path) {
-        def url = QuiltPathFactory.PREFIX + path
+        def url = QuiltParser.PREFIX + path
         return Paths.get(new URI(url))
     }
 

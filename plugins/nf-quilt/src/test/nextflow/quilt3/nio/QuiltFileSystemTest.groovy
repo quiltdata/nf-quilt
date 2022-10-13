@@ -1,5 +1,6 @@
 package nextflow.quilt.nio
 import nextflow.quilt.QuiltSpecification
+import nextflow.quilt.jep.QuiltParser
 
 import java.nio.file.Paths
 
@@ -20,7 +21,7 @@ class QuiltFileSystemTest extends QuiltSpecification {
 
         when:
         def fs_path = fs.getPath(path)
-        def url = QuiltPathFactory.PREFIX + fullpath
+        def url = QuiltParser.PREFIX + fullpath
         def url_path = Paths.get(new URI(url))
 
         then:
@@ -30,11 +31,8 @@ class QuiltFileSystemTest extends QuiltSpecification {
 
         where:
         call| path                  | fullpath
-        1   | 'bucket/alpha/bravo' | 'bucket/alpha/bravo'
+        1   | 'bucket#package=alpha/bravo' | 'bucket/alpha/bravo'
         1   | 'file-name.txt'       | 'file-name.txt'
-        1   | 'alpha/bravo'         | 'alpha/bravo'
-        1   | '/alpha/bravo'        | '/bucket/alpha/bravo'
-        1   | '/alpha//bravo'       | '/bucket/alpha/bravo'
     }
 
     def 'should test basic properties' () {
@@ -49,7 +47,6 @@ class QuiltFileSystemTest extends QuiltSpecification {
         fs.getSeparator() == '/'
         fs.isOpen()
         fs.provider() == provider
-        fs.bucket == BUCKET_NAME
         !fs.isReadOnly()
         fs.supportedFileAttributeViews() == ['basic'] as Set
     }

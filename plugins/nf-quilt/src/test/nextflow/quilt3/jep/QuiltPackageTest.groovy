@@ -55,7 +55,7 @@ class QuiltPackageTest extends QuiltSpecification {
     @Unroll
     def 'should create unique Package for associated Paths' () {
         given:
-        def pkgPath = qpath.getPackage()
+        def pkgPath = qpath.getJustPackage()
         def pkg2 = pkgPath.pkg()
 
         expect:
@@ -76,12 +76,12 @@ class QuiltPackageTest extends QuiltSpecification {
         pkg != pkg2
         pkg.toString() != pkg2.toString()
 
-        !Files.exists(qpath2.installPath())
+        !Files.exists(qpath2.localPath())
     }
 
     def 'should create an install folder ' () {
         given:
-        Path installPath = pkg.installPath()
+        Path installPath = pkg.packageDest()
         String tmpDirsLocation = System.getProperty("java.io.tmpdir")
         expect:
         installPath.toString().startsWith(tmpDirsLocation)
@@ -92,23 +92,23 @@ class QuiltPackageTest extends QuiltSpecification {
         given:
         def qroot = factory.parseUri(pkg_url)
         expect:
-        qroot.isPackage()
+        qroot.isJustPackage()
         Files.readAttributes(qroot, BasicFileAttributes)
     }
 
     def 'should pre-install files and get attributes' () {
         expect:
         pkg.isInstalled()
-        Files.exists(qpath.installPath())
+        Files.exists(qpath.localPath())
         Files.readAttributes(qpath, BasicFileAttributes)
     }
 
     def 'should deinstall files' () {
         given:
-        Files.exists(qpath.installPath())
+        Files.exists(qpath.localPath())
         expect:
         qpath.deinstall()
-        !Files.exists(qpath.installPath())
+        !Files.exists(qpath.localPath())
         when:
         Files.readAttributes(qpath, BasicFileAttributes)
         then:
@@ -134,7 +134,7 @@ class QuiltPackageTest extends QuiltSpecification {
         def cleanDate = QuiltPackage.today()
         def qout = factory.parseUri(out_url)
         def opkg = qpath.pkg()
-        def outPath = Paths.get(opkg.installPath().toString(), "${cleanDate}.txt")
+        def outPath = Paths.get(opkg.packageDest().toString(), "${cleanDate}.txt")
         // remove path
         // re-install package
         // verify file exists
