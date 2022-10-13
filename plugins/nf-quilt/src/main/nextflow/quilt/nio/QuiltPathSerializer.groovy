@@ -1,5 +1,5 @@
 /*
- * Copyright 2022, Seqera Labs
+ * Copyright 2022, Quilt Data Inc
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,23 @@
  * limitations under the License.
  */
 
-rootProject.name = 'nf-quilt'
-include 'plugins'
-include('plugins:nf-quilt')
+package nextflow.quilt.nio
+
+import groovy.transform.CompileStatic
+import nextflow.util.PathSerializer
+import nextflow.util.SerializerRegistrant
+import org.pf4j.Extension
+
+/**
+ * Register the QuiltPath serializer
+ *
+ * @author Ernest Prabhakar <ernest@quiltdata.io>
+ */
+@Extension
+@CompileStatic
+class QuiltPathSerializer implements SerializerRegistrant  {
+    @Override
+    void register(Map<Class, Object> serializers) {
+        serializers.put(QuiltPath, PathSerializer)
+    }
+}

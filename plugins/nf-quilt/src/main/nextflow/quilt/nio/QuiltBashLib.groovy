@@ -1,5 +1,5 @@
 /*
- * Copyright 2022, Seqera Labs
+ * Copyright 2022, Quilt Data Inc
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,20 @@
  * limitations under the License.
  */
 
-rootProject.name = 'nf-quilt'
-include 'plugins'
-include('plugins:nf-quilt')
+package nextflow.quilt.nio
+
+import nextflow.Global
+import nextflow.Session
+import nextflow.executor.BashFunLib
+
+/**
+ * Quilt helper class
+ */
+class QuiltBashLib extends BashFunLib<QuiltBashLib> {
+
+    private String storageClass = 'STANDARD'
+
+    static String script() {
+      "quilt3 install"
+    }
+}

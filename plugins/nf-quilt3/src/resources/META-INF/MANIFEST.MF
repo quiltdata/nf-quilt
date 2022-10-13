@@ -1,6 +1,0 @@
-Manifest-Version: 1.0
-Plugin-Class: nextflow.quilt3.QuiltPlugin
-Plugin-Id: nf-quilt3
-Plugin-Version: 0.1.0
-Plugin-Provider: Quilt Data
-Plugin-Requires: >=22.09.0-edge

@@ -1,4 +1,4 @@
-PROJECT := nf-quilt3
+PROJECT := nf-quilt
 REPORT := ./plugins/$(PROJECT)/build/reports/tests/test/index.html
 BUCKET := quilt-ernest-staging
 PIPELINE := sarek
@@ -48,7 +48,7 @@ else
 endif
 
 fast:
-	./gradlew ${mm}test --fail-fast || open ./plugins/nf-quilt3/build/reports/tests/test/index.html
+	./gradlew ${mm}test --fail-fast || open ./plugins/nf-quilt/build/reports/tests/test/index.html
 
 #
 # Upload JAR artifacts to Maven Central
