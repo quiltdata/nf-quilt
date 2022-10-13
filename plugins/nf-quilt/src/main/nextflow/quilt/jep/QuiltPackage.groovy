@@ -15,10 +15,10 @@
  */
 
 // https://medium.com/geekculture/how-to-execute-python-modules-from-java-2384041a3d6d
-// package nextflow.nf-quilt.jep
+// package nextflow.quilt.jep
 
-package nextflow.nf-quilt.jep
-import nextflow.nf-quilt.nio.QuiltPath
+package nextflow.quilt.jep
+import nextflow.quilt.nio.QuiltPath
 
 import jep.Interpreter;
 import groovy.transform.CompileStatic

@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package nextflow.nf-quilt
+package nextflow.quilt
 
-import nextflow.nf-quilt.jep.QuiltPackage
-import nextflow.nf-quilt.nio.QuiltPath
+import nextflow.quilt.jep.QuiltPackage
+import nextflow.quilt.nio.QuiltPath
 
 import java.nio.file.FileSystems
 import java.nio.file.Files

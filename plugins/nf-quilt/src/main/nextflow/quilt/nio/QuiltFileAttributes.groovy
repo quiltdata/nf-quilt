@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package nextflow.nf-quilt.nio
+package nextflow.quilt.nio
 
 import static java.lang.String.format;
 import java.nio.file.Path

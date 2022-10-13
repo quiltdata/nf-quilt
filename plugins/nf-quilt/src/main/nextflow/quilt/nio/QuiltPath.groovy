@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package nextflow.nf-quilt.nio
+package nextflow.quilt.nio
 
-import nextflow.nf-quilt.jep.QuiltPackage
-import nextflow.nf-quilt.jep.QuiltParser
+import nextflow.quilt.jep.QuiltPackage
+import nextflow.quilt.jep.QuiltParser
 import java.nio.file.Files
 import java.nio.file.FileSystem
 import java.nio.file.LinkOption
@@ -32,8 +32,8 @@ import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import nextflow.Global
 import nextflow.Session
-import nextflow.nf-quilt.QuiltOpts
-import nextflow.nf-quilt.jep.QuiltParser
+import nextflow.quilt.QuiltOpts
+import nextflow.quilt.jep.QuiltParser
 /**
  * Implements Path interface for Quilt storage
  *

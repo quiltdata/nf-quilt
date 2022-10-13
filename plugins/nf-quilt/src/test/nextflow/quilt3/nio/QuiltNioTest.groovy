@@ -1,6 +1,6 @@
-package nextflow.nf-quilt.nio
-import nextflow.nf-quilt.QuiltSpecification
-import nextflow.nf-quilt.jep.QuiltParser
+package nextflow.quilt.nio
+import nextflow.quilt.QuiltSpecification
+import nextflow.quilt.jep.QuiltParser
 
 import java.nio.charset.Charset
 import java.nio.file.DirectoryNotEmptyException

@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-package nextflow.nf-quilt.jep
-import nextflow.nf-quilt.nio.QuiltPath
+package nextflow.quilt.jep
+import nextflow.quilt.nio.QuiltPath
 
 import groovy.transform.CompileStatic
 import groovy.transform.Memoized

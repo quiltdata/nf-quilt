@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-package nextflow.nf-quilt
-import nextflow.nf-quilt.nio.QuiltPath
+package nextflow.quilt
+import nextflow.quilt.nio.QuiltPath
 
 import java.nio.ByteBuffer
 import java.nio.channels.SeekableByteChannel

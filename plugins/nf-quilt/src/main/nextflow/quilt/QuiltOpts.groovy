@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package nextflow.nf-quilt
+package nextflow.quilt
 
 import groovy.json.JsonSlurper
 import groovy.transform.CompileStatic

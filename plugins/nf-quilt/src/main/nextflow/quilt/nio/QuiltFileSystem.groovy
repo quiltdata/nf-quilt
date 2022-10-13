@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package nextflow.nf-quilt.nio
+package nextflow.quilt.nio
 
 import java.nio.channels.Channels
 import java.nio.channels.SeekableByteChannel
@@ -35,8 +35,8 @@ import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import nextflow.Global
 import nextflow.Session
-import nextflow.nf-quilt.QuiltOpts
-import nextflow.nf-quilt.jep.QuiltParser
+import nextflow.quilt.QuiltOpts
+import nextflow.quilt.jep.QuiltParser
 /**
  * Implements FileSystem interface for Quilt registries
  * Each bucket/package pair (QuiltID) is a FileSystem
