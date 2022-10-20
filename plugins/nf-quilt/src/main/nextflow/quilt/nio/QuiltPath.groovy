@@ -71,7 +71,7 @@ public final class QuiltPath implements Path {
     }
 
     public String file_key() {
-        parsed.toString()
+        sub_paths()
     }
 
     Path localPath() {

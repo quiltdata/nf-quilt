@@ -42,9 +42,9 @@ class QuiltPackageTest extends QuiltSpecification {
     QuiltPath qpath
     QuiltPackage pkg
 
-    static String pkg_url = 'quilt+s3://quilt-dev-null/test/nf-quilt/'
-    static String url = pkg_url + 'README.md?tophash=b744ee498f'
-    static String out_url = 'quilt+s3://quilt-ernest-staging/nf-quilt/test'
+    static String pkg_url = 'quilt+s3://quilt-example#package=examples%2fsmart-report@d68a7e9'
+    static String url = pkg_url + '&path=README.md'
+    static String out_url = 'quilt+s3://quilt_dev_null#package=nf-quilt%2ftest'
 
     def setup() {
         factory = new QuiltPathFactory()
@@ -60,14 +60,14 @@ class QuiltPackageTest extends QuiltSpecification {
 
         expect:
         pkg != null
-        pkg.toString() == "quilt_dev_null_test_nf_quilt"
+        pkg.toString() == "quilt_example_examples_smart_report"
         pkgPath.toUriString() == pkg_url
         pkg == pkg2
     }
 
     def 'should distinguish Packages with same name in different Buckets ' () {
         given:
-        def url2 = url.replace('-dev','-dev2')
+        def url2 = url.replace('quilt-','quilted-')
         def qpath2 = factory.parseUri(url2)
         def pkg2 = qpath2.pkg()
 
@@ -98,16 +98,18 @@ class QuiltPackageTest extends QuiltSpecification {
 
     def 'should pre-install files and get attributes' () {
         expect:
+        pkg.install()
         pkg.isInstalled()
         Files.exists(qpath.localPath())
         Files.readAttributes(qpath, BasicFileAttributes)
     }
 
     def 'should deinstall files' () {
-        given:
-        Files.exists(qpath.localPath())
         expect:
+        Files.exists(qpath.localPath())
+        when:
         qpath.deinstall()
+        then:
         !Files.exists(qpath.localPath())
         when:
         Files.readAttributes(qpath, BasicFileAttributes)

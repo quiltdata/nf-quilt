@@ -74,7 +74,6 @@ class QuiltParser {
 
     QuiltParser(String bucket, String pkg, String path, Map<String,Object> options = [:]) {
         this.bucket = bucket
-        this.hash = "latest"
         this.paths = path ? path.split(SEP) : [] as String[]
         this.pkg_name = parsePkg(pkg)
         this.options = options

@@ -21,18 +21,18 @@ class QuiltFileSystemTest extends QuiltSpecification {
 
         when:
         def fs_path = fs.getPath(path)
-        def url = QuiltParser.PREFIX + fullpath
+        def url = QuiltParser.PREFIX + path
         def url_path = Paths.get(new URI(url))
 
         then:
         fs_path
         url_path
-        fs_path.toString() == url_path.toString()
+        fs_path.toString() == path
 
         where:
-        call| path                  | fullpath
-        1   | 'bucket#package=alpha/bravo' | 'bucket/alpha/bravo'
-        1   | 'file-name.txt'       | 'file-name.txt'
+        call| path
+        1   | 'file-name.txt'
+        1   | 'bucket#package=alpha%2fbravo'
     }
 
     def 'should test basic properties' () {

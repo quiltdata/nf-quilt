@@ -52,6 +52,7 @@ class QuiltPackage {
         pkg = new QuiltPackage(parsed)
         packages[pkgKey] = pkg
         try {
+            log.debug "Installing `${pkg}` ForParsed(${parsed}) "
             pkg.install()
         }
         catch (Exception e) {
@@ -60,10 +61,14 @@ class QuiltPackage {
         return pkg
     }
 
+    static protected List<Path> listDirectory(Path rootPath) {
+        Files.walk(rootPath).sorted(Comparator.reverseOrder()).collect(Collectors.toList())
+    }
+
     static protected boolean deleteDirectory(Path rootPath) {
         if (!Files.exists(rootPath)) return false
         try {
-            final List<Path> pathsToDelete = Files.walk(rootPath).sorted(Comparator.reverseOrder()).collect(Collectors.toList())
+            final List<Path> pathsToDelete = listDirectory(rootPath)
             for(Path path : pathsToDelete) {
                 Files.deleteIfExists(path);
             }
@@ -78,12 +83,25 @@ class QuiltPackage {
     }
 
     QuiltPackage(QuiltParser parsed) {
+        this.installed = false
         this.bucket = parsed.bucket()
         this.pkg_name = parsed.pkg_name()
         this.hash = parsed.hash()
         this.folder = Paths.get(installRoot.toString(), this.toString())
         assert this.folder
         this.setup()
+    }
+
+    List<String> relativeChildren() {
+        String root = this.folder.toString()
+        List<String> result = new ArrayList<String>()
+        final List<Path> children = listDirectory(this.folder)
+        for(Path path : children) {
+            def pathString = path.toString()
+            def relative = pathString.replace(root,'')
+            result.add(relative)
+        }
+        result
     }
 
     void reset() {

@@ -28,6 +28,8 @@ import nextflow.Session
  */
 class QuiltPathSerializerTest extends QuiltSpecification {
 
+    static String url = 'quilt+s3://bucket#package=pkg%2fname&path=sample.csv'
+
     def 'should serialize a Quilt path'() {
         given:
         Global.session = Mock(Session) {
@@ -35,11 +37,11 @@ class QuiltPathSerializerTest extends QuiltSpecification {
         }
 
         when:
-        def uri = URI.create("quilt+s3://bucket/pkg/name/sample.csv")
+        def uri = URI.create(url)
         def path = Paths.get(uri)
         then:
         path instanceof QuiltPath
         path.toUri() == uri
-        path.toUriString() == "quilt+s3://bucket/pkg/name/sample.csv"
+        path.toUriString() == url
     }
 }

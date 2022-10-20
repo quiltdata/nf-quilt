@@ -29,8 +29,8 @@ import spock.lang.Unroll
 
 class QuiltPathFactoryTest extends QuiltSpecification {
 
-    static String pkg_url = 'quilt+s3://quilt-example/examples/hurdat'
-    static String url = pkg_url + '/scripts/build.py?tophash=f8d1478d93&summarize=pattern1&summarize=pattern2&metadata=filename.json'
+    static String pkg_url = 'quilt+s3://quilt-example#package=examples/hurdat@f8d1478d93'
+    static String url = pkg_url + '&path=scripts/build.py'
 
     @Unroll
     def 'should decompose Quilt URLs' () {
@@ -41,9 +41,6 @@ class QuiltPathFactoryTest extends QuiltSpecification {
         qpath.bucket() == 'quilt-example'
         qpath.pkg_name() == 'examples/hurdat'
         qpath.file_key() == 'scripts/build.py'
-        qpath.option('tophash') == 'f8d1478d93'
-        qpath.option('metadata') == 'filename.json'
-        qpath.option('summarize') == 'pattern2' // should be a list
     }
 
     def 'should create quilt path #PATH' () {
@@ -57,10 +54,7 @@ class QuiltPathFactoryTest extends QuiltSpecification {
 
         where:
         _ | PATH                                        | STR
-        _ | 'quilt+s3://reg/user/pkg/'                    | 'quilt+s3://reg/user/pkg/'
-        _ | 'quilt+s3://reg/user/pkg'                     | 'quilt+s3://reg/user/pkg/'
-        _ | 'quilt+s3://reg/pkg/name/opt/file/key'        | 'quilt+s3://reg/pkg/name/opt/file/key'
-        _ | 'quilt+s3://reg/user/pkg?tophash=hex'         | 'quilt+s3://reg/user/pkg/'
+        _ | 'quilt+s3://reg#package=user/pkg'           | 'reg#package=user%2fpkg'
     }
 
     def 'should create Channel from URL' () {

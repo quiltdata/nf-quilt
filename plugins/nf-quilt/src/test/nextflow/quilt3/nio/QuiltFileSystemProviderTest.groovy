@@ -19,11 +19,4 @@ class QuiltFileSystemProviderTest extends QuiltSpecification {
         expect:
         provider.getScheme() == 'quilt+s3'
     }
-
-    def 'should return a Quilt ID' () {
-        given:
-        def fs = Mock(QuiltFileSystem)
-        fs.getQuiltID() >> 'bucket'
-        def provider = Spy(QuiltFileSystemProvider)
-    }
 }
