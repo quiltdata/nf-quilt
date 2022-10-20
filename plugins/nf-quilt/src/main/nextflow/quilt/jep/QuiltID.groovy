@@ -59,6 +59,6 @@ class QuiltID {
     }
 
     String toString() {
-        "${pkg_suffix}.${pkg_prefix}.${bucket}"
+        "${bucket}.${pkg_prefix}.${pkg_suffix}"
     }
 }

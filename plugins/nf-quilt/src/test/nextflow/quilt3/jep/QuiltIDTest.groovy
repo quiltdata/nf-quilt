@@ -22,20 +22,20 @@ class QuiltIDTest extends QuiltSpecification {
         when:
         def id = QuiltID.Fetch("bucket", "pkg")
         then:
-        id.toString() == "default.pkg.bucket"
+        id.toString() == "bucket.pkg.default"
     }
 
     def 'should default on missing pgk_name'() {
         when:
         def id = QuiltID.Fetch("bucket", null)
         then:
-        id.toString() == "default.null.bucket"
+        id.toString() == "bucket.null.default"
     }
 
     def 'should decompose pkg names'() {
         when:
         def id = QuiltID.Fetch("bucket", "pkg/name")
         then:
-        id.toString() == "name.pkg.bucket"
+        id.toString() == "bucket.pkg.name"
     }
 }
