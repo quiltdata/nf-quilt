@@ -207,6 +207,7 @@ public final class QuiltPath implements Path {
 
     @Override
     Path relativize(Path other) {
+        throw new UnsupportedOperationException("Operation 'relativize'[$other] is not supported by QuiltPath")
         String base = pkg().toString()
         String file = (other instanceof QuiltPath) ? ((QuiltPath)other).localPath() : other.toString()
         log.debug "relativize[$base] in [$file]"
@@ -234,8 +235,13 @@ public final class QuiltPath implements Path {
 
     @Override
     URI toUri() {
-        return new URI(toUriString())
+        new URI(toUriString())
     }
+
+    @Override
+	int hashCode() {
+		toString().hashCode()
+	}
 
     @Override
     Path toAbsolutePath() {

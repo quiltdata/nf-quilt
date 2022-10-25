@@ -106,11 +106,15 @@ class QuiltParser {
 
     QuiltParser appendPath(String tail) {
         String path2 = [path(),tail].join(SEP)
+        while (path2.startsWith(SEP)) {
+            path2 = path2.substring(1)
+        }
         new QuiltParser(bucket(), pkg_name(), path2, options)
     }
 
     QuiltParser dropPath() {
-        String path2 = paths[0..-2].join(SEP)
+        String[] subpath = (paths.size() > 1) ? paths[0..-2] as String[] : paths
+        String path2 = subpath.join(SEP)
         log.debug("dropPath: ${path()} -> ${path2}")
         new QuiltParser(bucket(), pkg_name(), path2, options)
     }

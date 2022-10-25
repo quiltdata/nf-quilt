@@ -62,7 +62,7 @@ public final class QuiltFileSystem extends FileSystem {
 
     @Override
     String toString() {
-        "QuiltFileSystem:${quiltIDS}"
+        quiltIDS
     }
 
     void copy(QuiltPath source, QuiltPath target) {

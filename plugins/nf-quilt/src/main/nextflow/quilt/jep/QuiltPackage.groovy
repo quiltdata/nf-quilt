@@ -163,7 +163,7 @@ class QuiltPackage {
 
     // usage: quilt3 install [-h] [--registry REGISTRY] [--top-hash TOP_HASH] [--dest DEST] [--dest-registry DEST_REGISTRY] [--path PATH] name
     Path install() {
-        if ('latest' == hash) {
+        if ('latest' == hash || hash == null || hash == "null") {
             call('install',pkg_name,key_registry(),key_dest())
         } else {
             call('install',pkg_name,key_registry(),key_hash(),key_dest())
