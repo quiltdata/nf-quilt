@@ -2,7 +2,7 @@ PROJECT := nf-quilt
 REPORT := ./plugins/$(PROJECT)/build/reports/tests/test/index.html
 BUCKET := quilt-ernest-staging
 PIPELINE := sarek
-QUILT_URI :=  quilt+s3://$(BUCKET)#package=$(PROJECT)/$(PIPELINE)&path=.
+QUILT_URI :=  quilt+s3://$(BUCKET)\#package=$(PROJECT)/$(PIPELINE)&path=.
 
 verify: compile
 	clear
@@ -12,16 +12,18 @@ clean:
 	./gradlew clean
 
 compile:
-	./gradlew compileGroovy
-	./gradlew exportClasspath
+	./gradlew compileGroovy exportClasspath
 	@echo "DONE `date`"
 
 check:
 	./gradlew check
 
-
 $(PIPELINE): compile
 	./launch.sh run nf-core/$(PIPELINE) -profile test,docker -plugins $(PROJECT) --outdir "$(QUILT_URI)"
+
+qtest: compile
+	./launch.sh run ./quilt.nf -profile standard -plugins $(PROJECT)
+
 #
 # Show dependencies try `make deps config=runtime`, `make deps config=google`
 #

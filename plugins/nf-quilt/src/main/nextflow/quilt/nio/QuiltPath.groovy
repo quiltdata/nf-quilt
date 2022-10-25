@@ -207,9 +207,9 @@ public final class QuiltPath implements Path {
 
     @Override
     Path relativize(Path other) {
-        throw new UnsupportedOperationException("Operation 'relativize'[$other] is not supported by QuiltPath")
-        String base = pkg().toString()
+        if (this == other) return null
         String file = (other instanceof QuiltPath) ? ((QuiltPath)other).localPath() : other.toString()
+        String base = pkg().toString()
         log.debug "relativize[$base] in [$file]"
         int i = file.indexOf(base)
         if (i<1) {
@@ -217,11 +217,9 @@ public final class QuiltPath implements Path {
         }
 
         String tail = file.substring(i + base.size())
-        if (tail.size() > 0 && tail[0] == '/') tail = tail.substring(1) // drop "/"
+        if (tail.size() > 0 && tail[0] == '/') tail = tail.substring(1) // drop leading "/"
         log.debug "tail[$i] -> $tail"
-        QuiltParser p = new QuiltParser(parsed.bucket(), parsed.pkg_name(), tail, parsed.options)
-        log.debug "QuiltParser:$p"
-        new QuiltPath(filesystem, p)
+        Paths.get(tail)
     }
 
     @Override
