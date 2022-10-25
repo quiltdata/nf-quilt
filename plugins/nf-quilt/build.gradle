@@ -61,7 +61,7 @@ ext{
 dependencies {
     // This dependency is exported to consumers, that is to say found on their compile classpath.
     compileOnly "io.nextflow:nextflow:$nextflowVersion"
-    compileOnly 'org.slf4j:slf4j-api:1.7.10'
+    compileOnly 'org.slf4j:slf4j-api:1.7.36'
     compileOnly 'org.pf4j:pf4j:3.4.1'
     // add here plugins depepencies
     compileOnly 'black.ninia:jep:4.0.3'
