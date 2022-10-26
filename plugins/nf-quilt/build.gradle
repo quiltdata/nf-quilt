@@ -64,10 +64,10 @@ dependencies {
     compileOnly 'org.slf4j:slf4j-api:2.0.3'
     compileOnly 'org.pf4j:pf4j:3.4.1'
     // add here plugins depepencies
-    compileOnly 'black.ninia:jep:4.0.3'
-    runtime 'black.ninia:jep:4.0.3'
-    implementation 'black.ninia:jep:4.0.3'
-    testImplementation 'black.ninia:jep:4.0.3'
+    compileOnly 'black.ninia:jep:4.1.0'
+    runtime 'black.ninia:jep:4.1.0'
+    implementation 'black.ninia:jep:4.1.0'
+    testImplementation 'black.ninia:jep:4.1.0'
     //testImplementation(testFixtures('black.ninia:jep:4.0.3'))
 
     // test configuration
