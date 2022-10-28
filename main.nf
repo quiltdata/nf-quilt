@@ -2,9 +2,7 @@
 nextflow.enable.dsl=2
 
 params.src = 'quilt+s3://quilt-example#package=examples/hurdat'
-params.pub = 'quilt+s3://quilt-ernest-staging#package=test/hurdat'
-//params.src = '/Users/quilt/Downloads/Packages/igv_demo'
-//params.pub = '/Users/quilt/Downloads/Packages/test_nf22'
+params.pub = '/var/tmp'
 params.out = 'output'
 
 pkg_files = Channel.fromPath(params.src)

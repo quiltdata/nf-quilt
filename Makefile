@@ -21,8 +21,8 @@ check:
 $(PIPELINE): compile
 	./launch.sh run nf-core/$(PIPELINE) -profile test,docker -plugins $(PROJECT) --outdir "$(QUILT_URI)"
 
-qtest: compile
-	./launch.sh run ./quilt.nf -profile standard -plugins $(PROJECT)
+pkg-test: compile
+	./launch.sh run ./main.nf -profile standard -plugins $(PROJECT) --params.pub "quilt+s3://$(BUCKET)#package=test/hurdat"
 
 #
 # Show dependencies try `make deps config=runtime`, `make deps config=google`
