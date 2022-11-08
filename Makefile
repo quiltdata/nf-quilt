@@ -28,10 +28,10 @@ pkg-test: compile
 # Show dependencies try `make deps config=runtime`, `make deps config=google`
 #
 deps:
-	./gradlew -q ${mm}dependencies --configuration ${config}
+	./gradlew -q ${mm}dependencies #--configuration ${config}
 
 deps-all:
-	./gradlew -q dependencyInsight --configuration ${config} --dependency ${module}
+	./gradlew -q dependencyInsight #--configuration ${config} --dependency ${module}
 
 #
 # Refresh SNAPSHOTs dependencies

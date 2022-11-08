@@ -16,6 +16,7 @@
 
 plugins {
     id "java"
+    id "groovy"
     id "io.nextflow.nf-build-plugin" version "1.0.1"
 }
 

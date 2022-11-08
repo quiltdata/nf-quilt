@@ -9,7 +9,7 @@ Inspired by the original `nf-quilt` plugin developed by Seqera labs
 
 ## Getting Started
 
-To add the `nf-quilt` plugin to your workflow, you may need Nextflow 22.09 (or later) and Python 3.9 (or later).
+To add the `nf-quilt` plugin to your workflow, you may need Nextflow 22.09 (or later) and Python 3.9 (or later).  Note this assumes you have already [installed groovy](https://groovy-lang.org/install.html).
 
 ### Quilt Configuration
 
@@ -63,19 +63,28 @@ make check
 
 1. Clone the Nextflow repository into a sibling directory, .e.g:
 
-    ```bash
-    git clone --depth 1 https://github.com/nextflow-io/nextflow ../nextflow
-    ```
+```bash
+git clone --depth 1 https://github.com/nextflow-io/nextflow ../nextflow
+```
 
 2. Compile the plugin alongside the Nextflow code:
-    ```bash
-    make compile
-    ```
+
+```bash
+make compile
+```
 
 3. Run Nextflow with the plugin, using `./launch.sh` as a drop-in replacement for the `nextflow` command, and adding the option `-plugins nf-quilt` to load the plugin:
-    ```bash
-    ./launch.sh run nextflow-io/hello -plugins nf-quilt
-    ```
+
+```bash
+./launch.sh run nextflow-io/hello -plugins nf-quilt
+```
+
+4. Use Makefile to run tests against your own writeable S3 Bucket
+
+```bash
+make pkg-test BUCKET=my-s3-bucket # default, simply copies a package
+make sarek BUCKET=my-s3-bucket # runs nf-core/sarek, or any other pipeline that uses `--outdir`
+```
 
 ## Package, upload and publish
 
