@@ -18,36 +18,48 @@ compile:
 check:
 	./gradlew check
 
-$(PIPELINE): compile
-	./launch.sh run nf-core/$(PIPELINE) -profile test,docker -plugins $(PROJECT) --outdir "$(QUILT_URI)"
+
+#
+# Create packages
+#
+
+# use 'make pkg-test BUCKET=my-s3-bucket' to publish test output to a Quilt package
 
 pkg-test: compile
 	./launch.sh run ./main.nf -profile standard -plugins $(PROJECT) --params.pub "quilt+s3://$(BUCKET)#package=test/hurdat"
 
+# use `make $(PIPELINE) BUCKET=my-s3-bucket` to publish `--outdir` to a Quilt package
+
+$(PIPELINE): compile
+	./launch.sh run nf-core/$(PIPELINE) -profile test,docker -plugins $(PROJECT) --outdir "$(QUILT_URI)"
+
 #
-# Show dependencies try `make deps config=runtime`, `make deps config=google`
+# Show dependencies
 #
+
 deps:
-	./gradlew -q ${mm}dependencies #--configuration ${config}
+	./gradlew -q ${mm}dependencies
+# 	echo "try 'make deps CONFIG=runtimeClasspath' or 'make deps CONFIG=groovyDoc'"
+# 	./gradlew -q ${mm}dependencies --configuration ${CONFIG}
 
 deps-all:
-	./gradlew -q dependencyInsight #--configuration ${config} --dependency ${module}
+	./gradlew -q dependencyInsight
+#	./gradlew -q ${mm}dependencies --configuration ${CONFIG}  --dependency ${module}
 
 #
 # Refresh SNAPSHOTs dependencies
 #
 refresh:
-	./gradlew --refresh-dependencies
+	./gradlew --refresh-dependencies dependencies
 
 #
 # Run all tests or selected ones
 #
 test:
-ifndef class
 	./gradlew ${mm}test
-else
+
+test-class:
 	./gradlew ${mm}test --tests ${class}
-endif
 
 fast:
 	./gradlew ${mm}test --fail-fast || open ./plugins/nf-quilt/build/reports/tests/test/index.html
