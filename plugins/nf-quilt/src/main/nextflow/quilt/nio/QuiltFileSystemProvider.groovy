@@ -300,7 +300,7 @@ class QuiltFileSystemProvider extends FileSystemProvider {
         final subPaths = pkg.relativeChildren()
         final dirPath = qPath.localPath()
         log.debug "QuiltFileSystemProvider.newDirectoryStream[${qPath.file_key()}]: ${qPath} <- ${dirPath}"
-        // REWRITE to iterate over children under ORIGINAL URL
+        // TODO: REWRITE to iterate over children under ORIGINAL URL
         Files.newDirectoryStream(dirPath, filter)
     }
 

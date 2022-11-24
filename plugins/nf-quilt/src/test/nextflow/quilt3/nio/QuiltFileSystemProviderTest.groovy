@@ -19,4 +19,11 @@ class QuiltFileSystemProviderTest extends QuiltSpecification {
         expect:
         provider.getScheme() == 'quilt+s3'
     }
+
+    // newDirectoryStream returns local path for read
+    // newDirectoryStream returns package path for write
+    // do we need a new schemea for 
+
 }
+
+
