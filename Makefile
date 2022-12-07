@@ -4,12 +4,12 @@ BUCKET := quilt-ernest-staging
 PIPELINE := sarek
 QUILT_URI :=  quilt+s3://$(BUCKET)\#package=$(PROJECT)/$(PIPELINE)&path=.
 
-verify: compile
-	clear
+verify: #compile
 	./gradlew check || open $(REPORT)
 
 clean:
 	./gradlew clean
+	rm -rf work/
 
 compile:
 	./gradlew compileGroovy exportClasspath

@@ -3,6 +3,7 @@ import nextflow.quilt.QuiltSpecification
 import nextflow.quilt.jep.QuiltParser
 
 import java.nio.file.Paths
+import groovy.util.logging.Slf4j
 
 import spock.lang.Shared
 import spock.lang.Unroll
@@ -11,6 +12,7 @@ import spock.lang.Ignore
  *
  * @author Paolo Di Tommaso <paolo.ditommaso@gmail.com>
  */
+@Slf4j
 class QuiltPathTest extends QuiltSpecification {
 
     static final String BKT = "bucket"
@@ -39,13 +41,13 @@ class QuiltPathTest extends QuiltSpecification {
         //path.directory == dir
 
         where:
-        objectName                      | expected                       | dir
-        'bucket#package=a%2fb&path=b.c' | 'bucket#package=a%2fb&path=b.c'  | false
-        'bucket#package=a%2fb%2fb.c'    | 'bucket#package=a%2fb&path=b.c'  | false // Postel's Law
-        'bucket#package=a%2fb&path=c'   | 'bucket#package=a%2fb&path=c'    | false
+        objectName                      | expected                          | dir
+        'bucket#package=a%2fb&path=b.c' | 'bucket#package=a%2fb&path=b.c'   | false
+        'bucket#package=a%2fb%2fb.c'    | 'bucket#package=a%2fb&path=b.c'   | false // Postel's Law
+        'bucket#package=a%2fb&path=c'   | 'bucket#package=a%2fb&path=c'     | false
         'bucket#package=a%2fb&path=c/f' | 'bucket#package=a%2fb&path=c%2ff' | true
-        '#path=b.c'                     | 'null#path=b.c'                | false
-        '#package=o%2fs&path=b.c'       | 'null#package=o%2fs&path=b.c'  | false
+        '#path=b.c'                     | 'null#path=b.c'                   | false
+        '#package=o%2fs&path=b.c'       | 'null#package=o%2fs&path=b.c'     | false
     }
 
     def 'should validate equals and hashCode'() {
@@ -73,7 +75,6 @@ class QuiltPathTest extends QuiltSpecification {
 
     }
 
-    @Ignore
     def 'should validate isAbsolute'() {
         when:
         def path1 = pathify('bucket#package=so%2fme&path=file-name.txt')
@@ -113,17 +114,15 @@ class QuiltPathTest extends QuiltSpecification {
     }
 
     @Unroll
-    @Ignore
     def 'should validate getFileName'() {
         expect:
         pathify(path).getFileName() == pathify(fileName)
 
         where:
         path                                   | fileName
-        'bucket#package=file.txt'              | 'file.txt'
-        'bucket#package=some%2fdata%2ffile.txt'| 'file.txt'
+        'bucket#path=file.txt'                 | 'file.txt'
+        'bucket#path=some%2fdata%2ffile.txt'   | 'file.txt'
         '#path=file-name.txt'                  | 'file-name.txt'
-        'bucket'                               | 'bucket'
     }
 
     @Unroll
@@ -137,7 +136,7 @@ class QuiltPathTest extends QuiltSpecification {
         path                                | parent
         'bucket#path=some%2fdata%2ffile.txt'| 'bucket#path=some%2fdata'
         'bucket#path=data%2ffile.txt'       | 'bucket#path=data'
-        '#path=file-name.txt'               | 'null#path=file-name.txt'
+        '#path=file-name.txt'               | 'null'
         'bucket'                            | 'bucket'
     }
 
@@ -174,19 +173,18 @@ class QuiltPathTest extends QuiltSpecification {
     }
 
     @Unroll
-    @Ignore
     def 'should validate subpath: #expected'() {
         expect:
         pathify(path).subpath(from, to) == pathify(expected)
         where:
         path                                             | from  | to    | expected
-        'bucket#package=some%2fbig%2fdata%2ffile.txt'    | 0     | 2     | 'bucket#package=some'
-        'bucket#package=some%2fbig%2fdata%2ffile.txt'    | 1     | 2     | 'some'
-        'bucket#package=some%2fbig%2fdata%2ffile.txt'    | 4     | 5     | 'file.txt'
+        'bucket#package=some%2fbig%2fdata%2ffile.txt'    | 0     | 1     | 'data'
+        'bucket#path=data%2ffile.txt'                    | 0     | 2     | 'data/file.txt'
+        'bucket#package=some%2fbig&path=data%2ffile.txt' | 1     | 2     | 'file.txt'
     }
 
     @Unroll
-    def 'should validate startsWith'() {
+    def 'should validate startsWith: #prefix'() {
         expect:
         pathify(path).startsWith(prefix) == expected
         pathify(path).startsWith(pathify(prefix)) == expected
@@ -201,6 +199,7 @@ class QuiltPathTest extends QuiltSpecification {
         'data%2ffile.txt'            | 'file.txt'          | false
     }
 
+    @Unroll
     def 'should validate endsWith'() {
         expect:
         pathify(path).endsWith(suffix) == expected
@@ -216,7 +215,7 @@ class QuiltPathTest extends QuiltSpecification {
         'data%2ffile.txt'| 'file.txt'        | true
     }
 
-    @Ignore
+    @Unroll
     def 'should validate normalise'() {
         expect:
         pathify(path).normalize() == pathify(expected)
@@ -224,34 +223,29 @@ class QuiltPathTest extends QuiltSpecification {
         path                              | expected
         'bucket#path=s/d/file.txt'        | 'bucket#path=s/d/file.txt'
         'bucket#path=some%2f..%2ffile.txt'| 'bucket#path=file.txt'
-        'bucket#path=some%2f..%2ffile.txt'| 'bucket#path=file.txt'
         'file.txt'                        | 'file.txt'
-
     }
 
     @Unroll
-    @Ignore
-    def 'should validate resolveSibling' () {
+    def 'should validate resolveSibling: #path' () {
         expect:
         pathify(base).resolveSibling(path) == pathify(expected)
-        pathify(base).resolveSibling(pathify(path)) == pathify(expected)
 
         where:
         base                        | path                          | expected
         'bucket#path=some%2fpath'   | 'file-name.txt'               | 'bucket#path=some%2ffile-name.txt'
         'bucket#path=data'          | 'other%2ffile-name.txt'       | 'bucket#path=other%2ffile-name.txt'
-        'bucket#path=data'          | '/other%2ffile-name.txt'      | '/other%2ffile-name.txt'
-        'bucket'                    | 'some%2ffile-name.txt'        | '/some%2ffile-name.txt'
+        'bucket'                    | 'some%2ffile-name.txt'        | 'bucket#path=some%2ffile-name.txt'
     }
 
     @Unroll
-    @Ignore
     def 'should validate relativize' () {
         expect:
-        pathify(path).relativize(pathify(other)) == pathify(expected)
+        pathify(path).relativize(pathify(other)).toString() == pathify(expected).toString()
         where:
-        path                            | other                                          | expected
-        'bucket#package=so%2fme'        | 'bucket#package=so%2fme%2fdata%2ffile.txt' | 'data%2ffile.txt'
-        'bucket#package=so%2fme%2fdata' | 'bucket#package=so%2fme%2fdata%2ffile.txt' | '%2ffile.txt'
+        path                              | other                                      | expected
+        'bucket#package=so%2fme'          | 'bucket#package=so%2fme%2fdata%2ffile.txt' | 'data%2ffile.txt'
+        'bucket#package=so%2fme%2fdata'   | 'bucket#package=so%2fme%2fdata%2ffile.txt' | 'file.txt'
+        'bucket#package=so%2fme&path=foo' | 'bucket#package=so%2fme&path=foo%2fbar'    | 'bar'
     }
 }

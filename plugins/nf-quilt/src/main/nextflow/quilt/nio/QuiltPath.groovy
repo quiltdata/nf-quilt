@@ -43,6 +43,13 @@ import nextflow.quilt.jep.QuiltParser
 @Slf4j
 @CompileStatic
 public final class QuiltPath implements Path {
+
+    static public QuiltPath ForFile(String filename) {
+        log.debug "ForFile: $filename"
+        String url = QuiltParser.PREFIX + filename
+        (QuiltPath) Paths.get(new URI(url))
+    }
+
     private final QuiltFileSystem filesystem
     private final QuiltParser parsed
     private final String[] paths
@@ -93,7 +100,9 @@ public final class QuiltPath implements Path {
 
     @Override
     boolean isAbsolute() {
-        filesystem && pkg_name() != ""
+        log.debug "isAbsolute[${pkg_name()}] : ${parsed}"
+
+        filesystem && pkg_name() != "" && pkg_name() != null
     }
 
     boolean isJustPackage() {
@@ -113,8 +122,9 @@ public final class QuiltPath implements Path {
 
     @Override
     Path getFileName() {
-        log.debug "QuiltFileSystem.getFileName`[${this}]: paths=$paths"
-        isJustPackage() ? this : new QuiltPath(filesystem, parsed.lastPath()) // IF DIRECTORY
+        log.debug "getFileName`[${this}]: paths=$paths"
+        String filename = isJustPackage() ? "" : parsed.lastPath()
+        ForFile(filename)
     }
 
     @Override
@@ -136,9 +146,9 @@ public final class QuiltPath implements Path {
 
     @Override
     Path subpath(int beginIndex, int endIndex) {
-        throw new UnsupportedOperationException("Operation 'subpath' is not supported by QuiltPath")
-        //final sub = sub_paths[beginIndex,endIndex].join(SEP)
-        //new QuiltPath(filesystem, pkg_name, sub, options)
+        String sub = parsed.path(beginIndex,endIndex)
+        log.debug "QuiltParser.subpath: $sub"
+        ForFile(sub)
     }
 
     @Override
@@ -168,8 +178,7 @@ public final class QuiltPath implements Path {
 
     @Override
     Path normalize() {
-        log.debug "`normalize` should elide '..' paths"
-        return this
+        new QuiltPath(filesystem, parsed.normalized())
     }
 
     @Override
@@ -186,30 +195,24 @@ public final class QuiltPath implements Path {
 
     @Override
     QuiltPath resolve(String other) {
-        log.debug "$this: `resolve[$other]`"
         new QuiltPath(filesystem, parsed.appendPath(other))
     }
 
     @Override
     Path resolveSibling(Path other) {
         throw new UnsupportedOperationException("Operation 'resolveSibling'[$other] is not supported by QuiltPath")
-        //new QuiltPath(filesystem, pkg_name, other.toString(), options)
     }
 
     @Override
     Path resolveSibling(String other) {
-        throw new UnsupportedOperationException("Operation 'resolveSibling'[$other] is not supported by QuiltPath")
-        //new QuiltPath(filesystem, pkg_name, other, options)
+        new QuiltPath(filesystem, parsed.dropPath().appendPath(other))
     }
-
-// Oct-12 06:46:17.554 [Actor Thread 5] DEBUG nextflow.file.FilePorter - Unable to determine stage file integrity: source=quilt-example#package=examples%2fhurdat; target=/Users/quilt/Documents/GitHub/nf-quilt/work/stage/84/946926f92c10a0acd210d79b3b9edd
-// Operation 'relativize'[/var/folders/rr/hp1w0hxd07lgq1y8k9dmnrwr0000gq/T/QuiltPackage2346698145953900107/quilt_example_examples_hurdat/scripts/build.py] is not supported by QuiltPath
 
     @Override
     Path relativize(Path other) {
         if (this == other) return null
         String file = (other instanceof QuiltPath) ? ((QuiltPath)other).localPath() : other.toString()
-        String base = pkg().toString()
+        String base = [pkg().toString(),parsed.path()].join(QuiltParser.SEP)
         log.debug "relativize[$base] in [$file]"
         int i = file.indexOf(base)
         if (i<1) {

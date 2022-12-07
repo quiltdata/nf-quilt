@@ -306,9 +306,9 @@ class QuiltFileSystemProvider extends FileSystemProvider {
 
     @Override
     void createDirectory(Path dir, FileAttribute<?>... attrs) throws IOException {
-        final path = asQuiltPath(dir)
-        log.debug "Calling `createDirectory`: ${dir}"
-        path.pkg()
+        final path = asQuiltPath(dir).localPath()
+        log.debug "Calling createDirectory[${path}]: ${dir} "
+        Files.createDirectories(path)
     }
 
     @Override

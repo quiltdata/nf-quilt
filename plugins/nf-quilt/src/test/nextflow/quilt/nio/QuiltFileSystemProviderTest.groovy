@@ -22,7 +22,7 @@ class QuiltFileSystemProviderTest extends QuiltSpecification {
 
     // newDirectoryStream returns local path for read
     // newDirectoryStream returns package path for write
-    // do we need a new schemea for 
+    // do we need a new schema for quilt+local?
 
 }
 
