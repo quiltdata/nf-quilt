@@ -40,14 +40,21 @@ class QuiltParserTest extends QuiltSpecification {
         parser.path() == "pipeline_info/execution_trace_2022-10-13_01-01-31.txt"
       }
 
-    def 'should drop appropriate path segments when asked'() {
+    def 'should modify path segments appropriately'() {
         when:
         def parser = QuiltParser.ForUriString(rel_url)
         then:
         parser.path() == "sub/../path"
         parser.appendPath("child").path() == "sub/../path/child"
-        parser.dropPath().path() == "sub/.."
         parser.normalized().path() == "path"
+        def p1 = parser.dropPath()
+        p1.path() == "sub/.."
+        def p2 = p1.dropPath()
+        p2.path() == "sub"
+        def p3 = p2.dropPath()
+        p3.path() == ""
+        def p4 = p3.dropPath()
+        p4.path() == ""
     }
 
     def 'should decompose URIs'() {

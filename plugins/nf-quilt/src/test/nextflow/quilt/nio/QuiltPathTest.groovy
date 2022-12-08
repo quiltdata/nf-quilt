@@ -128,7 +128,7 @@ class QuiltPathTest extends QuiltSpecification {
     @Unroll
     def 'should validate getParent: #path'() {
         given:
-        def parent_path = (parent ? pathify(parent) : null)
+        def parent_path = pathify(parent)
         expect:
         pathify(path).getParent() == parent_path
 
@@ -136,7 +136,7 @@ class QuiltPathTest extends QuiltSpecification {
         path                                | parent
         'bucket#path=some%2fdata%2ffile.txt'| 'bucket#path=some%2fdata'
         'bucket#path=data%2ffile.txt'       | 'bucket#path=data'
-        '#path=file-name.txt'               | 'null'
+        'bucket#path=file-name.txt'         | 'bucket#path=/'
         'bucket'                            | 'bucket'
     }
 
