@@ -65,6 +65,7 @@ dependencies {
     compileOnly 'org.pf4j:pf4j:3.8.0'
     // add here plugins depepencies
     compileOnly 'black.ninia:jep:4.1.0'
+    compileOnly 'org.slf4j:slf4j-simple:2.0.5'
     runtime 'black.ninia:jep:4.1.0'
     implementation 'black.ninia:jep:4.1.0'
     testImplementation 'black.ninia:jep:4.1.0'
