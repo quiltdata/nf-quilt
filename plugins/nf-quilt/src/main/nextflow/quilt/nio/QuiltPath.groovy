@@ -34,6 +34,7 @@ import nextflow.Global
 import nextflow.Session
 import nextflow.quilt.QuiltOpts
 import nextflow.quilt.jep.QuiltParser
+
 /**
  * Implements Path interface for Quilt storage
  *
