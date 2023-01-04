@@ -296,17 +296,19 @@ class QuiltFileSystemProvider extends FileSystemProvider {
     @Override
     DirectoryStream<Path> newDirectoryStream(Path obj, DirectoryStream.Filter<? super Path> filter) throws IOException {
         final qPath = asQuiltPath(obj)
+        final pkg = qPath.pkg()
+        final subPaths = pkg.relativeChildren()
         final dirPath = qPath.localPath()
         log.debug "QuiltFileSystemProvider.newDirectoryStream[${qPath.file_key()}]: ${qPath} <- ${dirPath}"
-        // REWRITE to iterate over children under ORIGINAL URL
+        // TODO: REWRITE to iterate over children under ORIGINAL URL
         Files.newDirectoryStream(dirPath, filter)
     }
 
     @Override
     void createDirectory(Path dir, FileAttribute<?>... attrs) throws IOException {
-        final path = asQuiltPath(dir)
-        log.debug "Calling `createDirectory`: ${dir}"
-        path.pkg()
+        final path = asQuiltPath(dir).localPath()
+        log.debug "Calling createDirectory[${path}]: ${dir} "
+        Files.createDirectories(path)
     }
 
     @Override

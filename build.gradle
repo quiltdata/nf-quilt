@@ -94,6 +94,7 @@ allprojects {
 
     dependencies {
         // see https://docs.gradle.org/4.1/userguide/dependency_management.html#sec:module_replacement
+        implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.13.4.2'
         modules {
             module("commons-logging:commons-logging") { replacedBy("org.slf4j:jcl-over-slf4j") }
         }

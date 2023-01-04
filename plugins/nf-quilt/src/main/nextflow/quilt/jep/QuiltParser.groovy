@@ -74,7 +74,6 @@ class QuiltParser {
 
     QuiltParser(String bucket, String pkg, String path, Map<String,Object> options = [:]) {
         this.bucket = bucket
-        this.hash = "latest"
         this.paths = path ? path.split(SEP) : [] as String[]
         this.pkg_name = parsePkg(pkg)
         this.options = options
@@ -107,19 +106,40 @@ class QuiltParser {
 
     QuiltParser appendPath(String tail) {
         String path2 = [path(),tail].join(SEP)
+        while (path2.startsWith(SEP)) {
+            path2 = path2.substring(1)
+        }
         new QuiltParser(bucket(), pkg_name(), path2, options)
     }
 
     QuiltParser dropPath() {
-        String path2 = paths[0..-2].join(SEP)
-        log.debug("dropPath: ${path()} -> ${path2}")
+        String[] subpath = ((paths.size() > 1) ? paths[0..-2] : []) as String[] 
+        String path2 = subpath.join(SEP)
         new QuiltParser(bucket(), pkg_name(), path2, options)
     }
 
-    QuiltParser lastPath() {
-        String path2 = paths.size() > 0 ? paths[-1] : path()
-        log.debug("lastPath: ${path()} -> ${path2}")
+    QuiltParser normalized() {
+        boolean skip = false
+        def norm = { String x ->
+            if (x == "..") {
+                skip = true
+                false
+            } else if(skip) {
+                skip = false
+                false                
+            } else {
+                true
+            }
+        }
+        String[] rnorms = paths.reverse().findAll(norm)
+        log.debug("normalized: ${paths} -> ${rnorms}")
+        String path2 = rnorms.reverse().join(SEP)
+        log.debug("normalized: -> ${path2}")
         new QuiltParser(bucket(), pkg_name(), path2, options)
+    }
+
+    String lastPath() {
+        paths.size() > 0 ? paths[-1] : ''
     }
 
     QuiltID quiltID() {
@@ -148,6 +168,11 @@ class QuiltParser {
 
     String path() {
         paths.join(SEP)
+    }
+
+    String path(int beginIndex, int endIndex) {
+        String[] sub = paths[beginIndex..(endIndex-1)]
+        sub.join(SEP)
     }
 
     String[] paths() {
