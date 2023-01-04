@@ -128,7 +128,7 @@ class QuiltPathTest extends QuiltSpecification {
     @Unroll
     def 'should validate getParent: #path'() {
         given:
-        def parent_path = pathify(parent)
+        def parent_path = (parent ? pathify(parent) : null)
         expect:
         pathify(path).getParent() == parent_path
 

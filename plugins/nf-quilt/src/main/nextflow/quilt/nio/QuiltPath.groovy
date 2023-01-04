@@ -124,7 +124,8 @@ public final class QuiltPath implements Path {
     @Override
     Path getFileName() {
         log.debug "getFileName`[${this}]: paths=$paths"
-        isJustPackage() ? null : ForFile(parsed.lastPath())
+        String filename = isJustPackage() ? "" : parsed.lastPath()
+        ForFile(filename)
     }
 
     @Override

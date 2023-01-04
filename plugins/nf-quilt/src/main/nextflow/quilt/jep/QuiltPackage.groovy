@@ -92,7 +92,7 @@ class QuiltPackage {
         this.setup()
     }
 
-    List<String> relativeChildren(String subpath) {
+/*    List<String> relativeChildren(String subpath) {
         Path subfolder = folder.resolve(subpath)
         String base = subfolder.toString() + '/'
         List<String> result = new ArrayList<String>()
@@ -100,6 +100,14 @@ class QuiltPackage {
         log.debug "relativeChildren[${base}] $children"
         for(String pathString : children) {
             def relative = pathString.replace(base,'')
+*/
+    List<String> relativeChildren() {
+        String root = this.folder.toString()
+        List<String> result = new ArrayList<String>()
+        final List<Path> children = listDirectory(this.folder)
+        for(Path path : children) {
+            def pathString = path.toString()
+            def relative = pathString.replace(root,'')
             result.add(relative)
         }
         result

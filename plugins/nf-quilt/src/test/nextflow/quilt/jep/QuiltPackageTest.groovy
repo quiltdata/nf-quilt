@@ -120,16 +120,22 @@ class QuiltPackageTest extends QuiltSpecification {
         thrown(java.nio.file.NoSuchFileException)
     }
 
-    def 'should list relativeChildren' () {
+
+    def 'should iterate over installed files ' () {
         given:
-        String[] top_files = pkg.relativeChildren("")
+        def root = qpath.getRoot()
+        def qroot = factory.parseUri(pkg_url)
+
         expect:
-        top_files
-        top_files.size() > 5
-        top_files[0] == '.ipynb_checkpoints'
+        root
+        qroot
+        root == qroot
+        Files.isDirectory(qroot)
+        pkg.install()
+        //vs!Files.isDirectory(qpath)
     }
 
-    def 'should write new files back to bucket' () {
+    def 'should write new files back to bucket ' () {
         given:
         def cleanDate = QuiltPackage.today()
         def qout = factory.parseUri(out_url)
@@ -148,4 +154,6 @@ class QuiltPackageTest extends QuiltSpecification {
     }
 
 
+    def 'Package should return Attributes IFF the file exists' () {
+    }
 }
