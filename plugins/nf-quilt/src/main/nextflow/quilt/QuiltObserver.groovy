@@ -77,7 +77,7 @@ class QuiltObserver implements TraceObserver {
     }
 
     @Override
-    void onFilePublish(Path path, Path dest) {
+    void onFilePublish(Path path, Path source=null) {
         log.debug "onFilePublish.Path[$path]"
         if( path instanceof QuiltPath ) {
             QuiltPath qPath = (QuiltPath)path

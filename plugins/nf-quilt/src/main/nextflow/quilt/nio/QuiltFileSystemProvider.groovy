@@ -249,10 +249,10 @@ class QuiltFileSystemProvider extends FileSystemProvider {
     * @return
     * @throws IOException
     */
-    protected void notifyFilePublish(QuiltPath destination) {
+    protected void notifyFilePublish(QuiltPath destination, Path source=null) {
         final sess = Global.session
         if (sess instanceof Session) {
-            sess.notifyFilePublish(destination)
+            sess.notifyFilePublish((Path)destination, source)
         }
     }
 

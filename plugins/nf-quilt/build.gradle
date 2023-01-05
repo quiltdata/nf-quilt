@@ -55,7 +55,7 @@ sourceSets {
 }
 
 ext{
-    nextflowVersion = '22.10.4'
+    nextflowVersion = '22.12.0-edge'
 }
 
 dependencies {
