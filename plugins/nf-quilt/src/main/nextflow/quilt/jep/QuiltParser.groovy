@@ -118,6 +118,17 @@ class QuiltParser {
         new QuiltParser(bucket(), pkg_name(), path2, options)
     }
 
+    QuiltParser lastPath() {
+        String path2 = paths.size() > 0 ? paths[-1] : ''
+        new QuiltParser(bucket(), pkg_name(), path2, options)
+    }
+
+
+    QuiltParser subPath(int beginIndex, int endIndex) {
+        String path2 = path(beginIndex, endIndex)
+        new QuiltParser(bucket(), pkg_name(), path2, options)
+    }
+
     QuiltParser normalized() {
         boolean skip = false
         def norm = { String x ->
@@ -136,10 +147,6 @@ class QuiltParser {
         String path2 = rnorms.reverse().join(SEP)
         log.debug("normalized: -> ${path2}")
         new QuiltParser(bucket(), pkg_name(), path2, options)
-    }
-
-    String lastPath() {
-        paths.size() > 0 ? paths[-1] : ''
     }
 
     QuiltID quiltID() {

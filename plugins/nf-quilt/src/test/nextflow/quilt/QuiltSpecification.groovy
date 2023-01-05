@@ -89,7 +89,7 @@ abstract class QuiltSpecification extends Specification {
     }
 
     boolean existsPath(String path) {
-        assert url
+        assert path
         log.debug "Check path string exists '$path'"
         Files.exists(Paths.get(path))
     }

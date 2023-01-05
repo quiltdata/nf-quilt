@@ -249,10 +249,10 @@ class QuiltFileSystemProvider extends FileSystemProvider {
     * @return
     * @throws IOException
     */
-    protected void notifyFilePublish(QuiltPath destination) {
+    protected void notifyFilePublish(QuiltPath destination, Path source=null) {
         final sess = Global.session
         if (sess instanceof Session) {
-            sess.notifyFilePublish(destination)
+            sess.notifyFilePublish((Path)destination, source)
         }
     }
 
@@ -296,12 +296,23 @@ class QuiltFileSystemProvider extends FileSystemProvider {
     @Override
     DirectoryStream<Path> newDirectoryStream(Path obj, DirectoryStream.Filter<? super Path> filter) throws IOException {
         final qPath = asQuiltPath(obj)
-        final pkg = qPath.pkg()
-        final subPaths = pkg.relativeChildren()
-        final dirPath = qPath.localPath()
-        log.debug "QuiltFileSystemProvider.newDirectoryStream[${qPath.file_key()}]: ${qPath} <- ${dirPath}"
-        // TODO: REWRITE to iterate over children under ORIGINAL URL
-        Files.newDirectoryStream(dirPath, filter)
+        //final dirPath = qPath.localPath()
+        //Files.newDirectoryStream(dirPath, filter)
+
+        log.debug "QuiltFileSystemProvider.newDirectoryStream[${qPath.file_key()}]: ${qPath}"
+
+        return new DirectoryStream<Path>() {
+            @Override
+            public void close() throws IOException {
+                // nothing to do here
+            }
+
+            @Override
+            public Iterator<Path> iterator() {
+                return new QuiltPathIterator(qPath, filter)
+            }
+        };
+
     }
 
     @Override

@@ -34,6 +34,7 @@ import nextflow.Global
 import nextflow.Session
 import nextflow.quilt.QuiltOpts
 import nextflow.quilt.jep.QuiltParser
+
 /**
  * Implements Path interface for Quilt storage
  *
@@ -43,13 +44,6 @@ import nextflow.quilt.jep.QuiltParser
 @Slf4j
 @CompileStatic
 public final class QuiltPath implements Path {
-
-    static public QuiltPath ForFile(String filename) {
-        log.debug "ForFile: $filename"
-        String url = QuiltParser.PREFIX + filename
-        (QuiltPath) Paths.get(new URI(url))
-    }
-
     private final QuiltFileSystem filesystem
     private final QuiltParser parsed
     private final String[] paths
@@ -123,8 +117,7 @@ public final class QuiltPath implements Path {
     @Override
     Path getFileName() {
         log.debug "getFileName`[${this}]: paths=$paths"
-        String filename = isJustPackage() ? "" : parsed.lastPath()
-        ForFile(filename)
+        isJustPackage() ? this : new QuiltPath(filesystem, parsed.lastPath()) // IF DIRECTORY
     }
 
     @Override
@@ -146,9 +139,8 @@ public final class QuiltPath implements Path {
 
     @Override
     Path subpath(int beginIndex, int endIndex) {
-        String sub = parsed.path(beginIndex,endIndex)
-        log.debug "QuiltParser.subpath: $sub"
-        ForFile(sub)
+        QuiltParser p2 = parsed.subPath(beginIndex,endIndex)
+        new QuiltPath(filesystem, p2)
     }
 
     @Override

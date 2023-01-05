@@ -31,6 +31,7 @@ pkg-test: compile
 # use `make $(PIPELINE) BUCKET=my-s3-bucket` to publish `--outdir` to a Quilt package
 
 $(PIPELINE): compile
+	./launch.sh pull nf-core/$(PIPELINE)
 	./launch.sh run nf-core/$(PIPELINE) -profile test,docker -plugins $(PROJECT) --outdir "$(QUILT_URI)"
 
 #

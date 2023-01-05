@@ -90,9 +90,12 @@ class QuiltPackageTest extends QuiltSpecification {
 
     def 'should get attributes for package folder' () {
         given:
+        def root = qpath.getRoot()
         def qroot = factory.parseUri(pkg_url)
         expect:
+        root == qroot
         qroot.isJustPackage()
+        Files.isDirectory(qroot)
         Files.readAttributes(qroot, BasicFileAttributes)
     }
 
@@ -116,6 +119,7 @@ class QuiltPackageTest extends QuiltSpecification {
         then:
         thrown(java.nio.file.NoSuchFileException)
     }
+
 
     def 'should iterate over installed files ' () {
         given:
@@ -152,5 +156,4 @@ class QuiltPackageTest extends QuiltSpecification {
 
     def 'Package should return Attributes IFF the file exists' () {
     }
-
 }

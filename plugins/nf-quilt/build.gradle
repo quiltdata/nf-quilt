@@ -25,7 +25,7 @@ group = 'io.nextflow'
 // THE VERSION FOR PLUGINS IS DEFINED IN THE `/resources/META-INF/MANIFEST.NF` file
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(11)
+        languageVersion = JavaLanguageVersion.of(17)
     }
 }
 
@@ -64,6 +64,7 @@ dependencies {
     compileOnly 'org.slf4j:slf4j-api:2.0.6'
     compileOnly 'org.pf4j:pf4j:3.8.0'
     // add here plugins depepencies
+    compileOnly 'org.slf4j:slf4j-simple:2.0.5'
     compileOnly 'black.ninia:jep:4.1.1'
     runtime 'black.ninia:jep:4.1.1'
     implementation 'black.ninia:jep:4.1.1'

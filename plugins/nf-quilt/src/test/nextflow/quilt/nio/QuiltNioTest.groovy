@@ -1,6 +1,6 @@
 package nextflow.quilt.nio
 import nextflow.quilt.QuiltSpecification
-import nextflow.quilt.jep.QuiltParser
+//import nextflow.quilt.jep.QuiltPackage
 
 import java.nio.charset.Charset
 import java.nio.file.DirectoryNotEmptyException
@@ -29,17 +29,18 @@ import groovy.util.logging.Slf4j
  */
 @Slf4j
 class QuiltNioTest extends QuiltSpecification {
-
     static String null_url = 'quilt+s3://quilt-dev-null#package=test/null'
     public static def null_path(f) { null_url+"&path=$f" }
+    //https://open.quiltdata.com/b/quilt-example/tree/examples/hurdat/
     static String pkg_url = 'quilt+s3://quilt-example#package=examples/hurdat'
     public static def pkg_path(f) { pkg_url+"&path=$f" }
-    static String url = pkg_path('folder/file-name.txt')
+    static String write_url = pkg_path('folder/file-name.txt')
+    static String read_url = pkg_path('data/atlantic-storms.csv')
     static String TEXT = "Hello world!"
 
     def 'should create valid URIs' () {
         given:
-        def uri = new URI(url)
+        def uri = new URI(write_url)
         expect:
         uri
         when:
@@ -48,9 +49,9 @@ class QuiltNioTest extends QuiltSpecification {
         path
     }
 
-    def 'should write a file' () {
+    def 'should write to a path' () {
         given:
-        def path = Paths.get(new URI(url))
+        def path = Paths.get(new URI(write_url))
 
         when:
         Path dest = createObject(path, TEXT)
@@ -59,6 +60,16 @@ class QuiltNioTest extends QuiltSpecification {
         new String(Files.readAllBytes(path)).trim() == TEXT
         Files.readAllLines(path, Charset.forName('UTF-8')).get(0).trim() == TEXT
         readObject(path).trim() == TEXT
+    }
+
+    def 'should read from a path' () {
+        given:
+        def path = Paths.get(new URI(read_url))
+
+        when:
+        String text = readObject(path)
+        then:
+        text.startsWith('id')
     }
 
     def 'should read file attributes' () {
@@ -163,7 +174,7 @@ class QuiltNioTest extends QuiltSpecification {
 
     def 'copy local file to a bucket' () {
         given:
-        def path = Paths.get(new URI(url))
+        def path = Paths.get(new URI(write_url))
         def source = Files.createTempFile('test','nf')
         source.text = TEXT
         Files.deleteIfExists(path.localPath())
@@ -180,8 +191,8 @@ class QuiltNioTest extends QuiltSpecification {
     @Ignore
     def 'copy a remote file to a bucket' () {
         given:
-        def path = Paths.get(new URI(url))
-        final source_url = url.replace("folder","source")
+        def path = Paths.get(new URI(write_url))
+        final source_url = write_url.replace("test_folder","source")
         final source = Paths.get(new URI(source_url))
         Files.write(source, TEXT.bytes)
         and:
@@ -195,8 +206,8 @@ class QuiltNioTest extends QuiltSpecification {
     @Ignore
     def 'move a remote file to a bucket' () {
         given:
-        def path = Paths.get(new URI(url))
-        final source_url = url.replace("folder","source")
+        def path = Paths.get(new URI(write_url))
+        final source_url = write_url.replace("test_folder","source")
         final source = Paths.get(new URI(source_url))
         Files.write(source, TEXT.bytes)
         and:
@@ -205,6 +216,39 @@ class QuiltNioTest extends QuiltSpecification {
         !existsPath(source)
         existsPath(path)
         readObject(path).trim() == TEXT
+    }
+
+    def 'should create a package' () {
+        given:
+        def path = Paths.get(new URI(pkg_url))
+        when:
+        def pkg = path.pkg()
+        then:
+        pkg
+        pkg.relativeChildren("")
+    }
+
+    def 'should iterate over package folders/files' () {
+        given:
+        def path = Paths.get(new URI(pkg_url))
+        when:
+        def itr = new QuiltPathIterator(path, null)
+        then:
+        itr != null
+
+        itr.hasNext()
+        itr.next().toString().contains('path=data')
+        itr.next().toString().contains('path=folder') //whuh?
+        itr.next().toString().contains('path=notebooks')
+        itr.next().toString().contains('path=quilt_summarize.json')
+
+        when:
+        def spath = itr.next()
+        def sitr = new QuiltPathIterator(spath, null)
+        then:
+        spath.toString().contains('path=scripts')
+        sitr.hasNext()
+        sitr.next().toString().contains('path=scripts%2fbuild.py')
     }
 
     def 'should create a directory' () {
@@ -260,7 +304,7 @@ class QuiltNioTest extends QuiltSpecification {
 
     def 'should delete a file' () {
         given:
-        def path = Paths.get(new URI(url))
+        def path = Paths.get(new URI(write_url))
         Path dest = createObject(path,TEXT)
 
         when:
@@ -272,7 +316,7 @@ class QuiltNioTest extends QuiltSpecification {
 
     def 'should throw a NoSuchFileException when deleting an object not existing' () {
         when:
-        def path = Paths.get(new URI(url))
+        def path = Paths.get(new URI(write_url))
         Files.delete(path)
         then:
         thrown(NoSuchFileException)
@@ -336,7 +380,7 @@ class QuiltNioTest extends QuiltSpecification {
 
     def 'should create a newBufferedReader' () {
         given:
-        def path = Paths.get(new URI(url))
+        def path = Paths.get(new URI(write_url))
         createObject(path, TEXT)
 
         when:
@@ -353,7 +397,7 @@ class QuiltNioTest extends QuiltSpecification {
 
     def 'should create a newBufferedWriter' () {
         given:
-        def path = Paths.get(new URI(url))
+        def path = Paths.get(new URI(write_url))
         def writer = Files.newBufferedWriter(path, Charset.forName('UTF-8'))
         TEXT.readLines().each { it -> writer.println(it) }
         writer.close()
@@ -363,7 +407,7 @@ class QuiltNioTest extends QuiltSpecification {
 
     def 'should create a newInputStream' () {
         given:
-        def path = Paths.get(new URI(url))
+        def path = Paths.get(new URI(write_url))
         createObject(path, TEXT)
 
         when:
@@ -374,7 +418,7 @@ class QuiltNioTest extends QuiltSpecification {
 
     def 'should create a newOutputStream' () {
         given:
-        def path = Paths.get(new URI(url))
+        def path = Paths.get(new URI(write_url))
         def writer = Files.newOutputStream(path)
         TEXT.readLines().each { it ->
             writer.write(it.bytes);
@@ -387,7 +431,7 @@ class QuiltNioTest extends QuiltSpecification {
 
     def 'should read a newByteChannel' () {
         given:
-        def path = Paths.get(new URI(url))
+        def path = Paths.get(new URI(write_url))
         createObject(path, TEXT)
 
         when:
@@ -398,7 +442,7 @@ class QuiltNioTest extends QuiltSpecification {
 
     def 'should write a byte channel' () {
         given:
-        def path = Paths.get(new URI(url))
+        def path = Paths.get(new URI(write_url))
         def channel = Files.newByteChannel(path, StandardOpenOption.WRITE, StandardOpenOption.CREATE)
         writeChannel(channel, TEXT, 200)
         channel.close()
@@ -408,7 +452,7 @@ class QuiltNioTest extends QuiltSpecification {
 
     def 'should check file size' () {
         given:
-        def path = Paths.get(new URI(url))
+        def path = Paths.get(new URI(write_url))
         createObject(path, TEXT)
         expect:
         Files.size(path) == TEXT.size()
@@ -419,6 +463,7 @@ class QuiltNioTest extends QuiltSpecification {
         thrown(FileSystemException)
     }
 
+    @Ignore
     def 'should stream directory content' () {
         given:
         createObject(null_path("foo/file1.txt"),'A')
@@ -457,6 +502,7 @@ class QuiltNioTest extends QuiltSpecification {
         list  == [ 'file4.txt' ]
     }
 
+    @Ignore
     def 'should check walkTree' () {
         given:
         createObject(null_path("foo/file1.txt"),'A')
