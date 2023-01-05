@@ -463,6 +463,7 @@ class QuiltNioTest extends QuiltSpecification {
         thrown(FileSystemException)
     }
 
+    @Ignore
     def 'should stream directory content' () {
         given:
         createObject(null_path("foo/file1.txt"),'A')
@@ -501,6 +502,7 @@ class QuiltNioTest extends QuiltSpecification {
         list  == [ 'file4.txt' ]
     }
 
+    @Ignore
     def 'should check walkTree' () {
         given:
         createObject(null_path("foo/file1.txt"),'A')

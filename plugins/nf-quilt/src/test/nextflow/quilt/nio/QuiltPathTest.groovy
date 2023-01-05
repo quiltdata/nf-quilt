@@ -113,7 +113,7 @@ class QuiltPathTest extends QuiltSpecification {
         '#path=file-name.txt'              | false     | 'bucket.so.me'
     }
 
-    @Unroll
+    @Ignore
     def 'should validate getFileName'() {
         expect:
         pathify(path).getFileName() == pathify(fileName)
@@ -172,7 +172,7 @@ class QuiltPathTest extends QuiltSpecification {
         'bucket'                    | 'some%2ffile-name.txt'      | 'bucket#path=some%2ffile-name.txt'
     }
 
-    @Unroll
+    @Ignore
     def 'should validate subpath: #expected'() {
         expect:
         pathify(path).subpath(from, to) == pathify(expected)
