@@ -45,7 +45,6 @@ class QuiltObserver implements TraceObserver {
     public static void writeString(String text, QuiltPackage pkg, String filename) {
         String dir = pkg.packageDest().toString()
         def path = Paths.get(dir, filename)
-        //log.debug "QuiltObserver.writeString[$path]: $text"
         Files.write(path, text.bytes)
     }
 
