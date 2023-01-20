@@ -51,19 +51,12 @@ class QuiltObserver implements TraceObserver {
     private Session session
     private Map config
     private Map quilt_config
-    private Set<QuiltPackage> pkgs
+    private Set<QuiltPackage> pkgs = new HashSet<>()
 
     static String now(){
         def date = new Date()
         def sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
         return sdf.format(date)
-    }
-
-    Set<QuiltPackage> ensurePkgs() {
-        if ( !this.pkgs ) {
-            this.pkgs = new HashSet<>()
-        }
-        this.pkgs
     }
 
     @Override
@@ -72,7 +65,7 @@ class QuiltObserver implements TraceObserver {
         this.session = session
         this.config = session.config
         this.quilt_config = session.config.navigate('quilt') as Map
-        ensurePkgs()
+        this.pkgs
     }
 
     @Override
@@ -81,7 +74,7 @@ class QuiltObserver implements TraceObserver {
         if( path instanceof QuiltPath ) {
             QuiltPath qPath = (QuiltPath)path
             QuiltPackage pkg = qPath.pkg()
-            ensurePkgs().add(pkg)
+            this.pkgs.add(pkg)
             log.debug "onFilePublish.QuiltPath[$qPath]: pkgs=${pkgs}"
         }
     }
