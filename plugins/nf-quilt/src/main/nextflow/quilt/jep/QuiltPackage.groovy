@@ -56,7 +56,7 @@ class QuiltPackage {
             pkg.install()
         }
         catch (Exception e) {
-            log.debug "Package `${parsed.toUriString()}` does not yet exist"
+            log.warning "Package `${parsed.toUriString()}` does not yet exist"
         }
         return pkg
     }
