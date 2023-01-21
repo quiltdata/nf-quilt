@@ -178,7 +178,7 @@ class QuiltParser {
     }
 
     String path(int beginIndex, int endIndex) {
-        String[] sub = paths[beginIndex..(endIndex-1)]
+        String[] sub = paths[beginIndex..<endIndex]
         sub.join(SEP)
     }
 
