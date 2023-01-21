@@ -37,12 +37,12 @@ class QuiltID {
         }
         if (!pkg_name || pkg_name.size()<QuiltParser.MIN_SIZE) {
             pkg_name = DEFAULT_PACKAGE.join(QuiltParser.SEP)
-            log.warning "QuiltID.Fetch: setting missing package to $pkg_name"
+            log.warn "QuiltID.Fetch: setting missing package to $pkg_name"
         }
         String[] split = pkg_name.split(QuiltParser.SEP)
         if (split.size()<QuiltParser.MIN_SIZE || split[1].size()<QuiltParser.MIN_SIZE) {
             split += DEFAULT_PACKAGE[1] as String
-            log.warning "QuiltID.Fetch: setting missing suffix to $split[1]"
+            log.warn "QuiltID.Fetch: setting missing suffix to $split[1]"
         }
         String key = "${bucket}/${split[0]}/${split[1]}"
         if (!ids.containsKey(key)) {
