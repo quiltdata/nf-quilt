@@ -158,7 +158,7 @@ class QuiltParser {
     }
 
     String bucket() {
-        bucket ? bucket.toLowerCase() : null
+        bucket?.toLowerCase()
     }
 
     String pkg_name() {
@@ -191,7 +191,7 @@ class QuiltParser {
     }
 
     String options(String key) {
-        options ? options.get(key) : null
+        options?.get(key)
     }
 
     String toPackageString() {
