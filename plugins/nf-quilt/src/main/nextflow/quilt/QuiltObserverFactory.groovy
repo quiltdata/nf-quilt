@@ -34,6 +34,6 @@ class QuiltObserverFactory implements TraceObserverFactory {
     @Override
     Collection<TraceObserver> create(Session session) {
         log.debug "`create` ${this}"
-        [new QuiltObserver()]
+        (Collection<TraceObserver>) [new QuiltObserver()]
     }
 }
