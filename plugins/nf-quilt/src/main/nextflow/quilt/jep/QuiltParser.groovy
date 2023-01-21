@@ -67,8 +67,8 @@ class QuiltParser {
     }
 
     static private Map<String,Object> parseQuery(String query) {
-        if (!query) return [:]
-        final queryParams = query?.split('&') // safe operator for urls without query params
+        if (!query) return [:] // skip for urls without query params
+        final queryParams = query.split('&') 
         queryParams.collectEntries { param -> param.split('=').collect { URLDecoder.decode(it) }}
     }
 
