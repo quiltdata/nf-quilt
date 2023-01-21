@@ -36,8 +36,8 @@ import java.lang.ProcessBuilder
 @CompileStatic
 class QuiltPackage {
     private static final Map<String,QuiltPackage> packages = [:]
-    private static final String installPrefix = "QuiltPackage"
-    public static final Path installRoot = Files.createTempDirectory(installPrefix)
+    private static final String INSTALL_PREFIX = "QuiltPackage"
+    public static final Path INSTALL_ROOT = Files.createTempDirectory(INSTALL_PREFIX)
 
     private final String bucket
     private final String pkg_name
@@ -87,7 +87,7 @@ class QuiltPackage {
         this.bucket = parsed.bucket()
         this.pkg_name = parsed.pkg_name()
         this.hash = parsed.hash()
-        this.folder = Paths.get(installRoot.toString(), this.toString())
+        this.folder = Paths.get(INSTALL_ROOT.toString(), this.toString())
         assert this.folder
         this.setup()
     }
