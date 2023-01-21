@@ -32,7 +32,6 @@ class QuiltPathFactoryTest extends QuiltSpecification {
     static String pkg_url = 'quilt+s3://quilt-example#package=examples/hurdat@f8d1478d93'
     static String url = pkg_url + '&path=scripts/build.py'
 
-    @Unroll
     def 'should decompose Quilt URLs' () {
         given:
         def qpath = QuiltPathFactory.Parse(url)
