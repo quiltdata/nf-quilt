@@ -52,7 +52,6 @@ class QuiltPackageTest extends QuiltSpecification {
         pkg = qpath.pkg()
     }
 
-    @Unroll
     def 'should create unique Package for associated Paths' () {
         given:
         def pkgPath = qpath.getJustPackage()
