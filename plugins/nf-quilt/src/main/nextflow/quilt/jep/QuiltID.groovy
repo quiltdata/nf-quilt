@@ -24,8 +24,11 @@ import groovy.util.logging.Slf4j
 @CompileStatic
 class QuiltID {
     public static String[] DEFAULT_PACKAGE=["null","default"]
-
     private static final Map<String,QuiltID> ids = [:]
+
+    private final String bucket
+    private final String pkgPrefix
+    private final String pkgSuffix
 
     static public QuiltID Fetch(String bucket, String pkg_name) {
         if (!bucket) {
@@ -48,17 +51,13 @@ class QuiltID {
         ids[key]
     }
 
-    private final String bucket
-    private final String pkg_prefix
-    private final String pkg_suffix
-
-    QuiltID(String bucket, String pkg_prefix, String pkg_suffix) {
+    QuiltID(String bucket, String pkgPrefix, String pkgSuffix) {
         this.bucket = bucket
-        this.pkg_prefix = pkg_prefix
-        this.pkg_suffix = pkg_suffix
+        this.pkgPrefix = pkgPrefix
+        this.pkgSuffix = pkgSuffix
     }
 
     String toString() {
-        "${bucket}.${pkg_prefix}.${pkg_suffix}"
+        "${bucket}.${pkgPrefix}.${pkgSuffix}"
     }
 }
