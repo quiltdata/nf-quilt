@@ -131,7 +131,7 @@ class QuiltParser {
 
     QuiltParser normalized() {
         boolean skip = false
-        def norm = { String x ->
+        String[] rnorms = paths.reverse().findAll { String x ->
             if (x == "..") {
                 skip = true
                 false
@@ -142,7 +142,7 @@ class QuiltParser {
                 true
             }
         }
-        String[] rnorms = paths.reverse().findAll(norm)
+
         log.debug("normalized: ${paths} -> ${rnorms}")
         String path2 = rnorms.reverse().join(SEP)
         log.debug("normalized: -> ${path2}")
