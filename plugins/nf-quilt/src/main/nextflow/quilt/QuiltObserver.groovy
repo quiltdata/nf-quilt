@@ -139,7 +139,7 @@ ${meta['workflow']['stats']['processes']}
     static void printMap(Map map, String title) {
         log.info "\n\n\n# $title"
         map.each{
-            key, value -> print "\n## $key\n\n$value";
+            key, value -> log.info "\n## $key\n\n$value";
         }
     }
 
