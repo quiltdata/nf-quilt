@@ -42,9 +42,9 @@ class QuiltID {
             log.warning "QuiltID.Fetch: setting missing suffix to $split[1]"
         }
         String key = "${bucket}/${split[0]}/${split[1]}"
-        def id = ids.get(key)
-        if (id) return id
-        ids[key] = new QuiltID(bucket, split[0], split[1])
+        if (!ids.containsKey(key)) {
+            ids[key] = new QuiltID(bucket, split[0], split[1])
+        }
         ids[key]
     }
 
