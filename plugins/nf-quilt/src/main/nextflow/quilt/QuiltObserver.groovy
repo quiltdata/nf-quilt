@@ -55,7 +55,7 @@ class QuiltObserver implements TraceObserver {
 
     static String now(){
         def date = new Date()
-        def sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+        def sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss")
         return sdf.format(date)
     }
 
