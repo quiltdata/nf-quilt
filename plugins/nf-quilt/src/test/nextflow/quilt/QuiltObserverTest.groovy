@@ -20,8 +20,7 @@ import nextflow.quilt.QuiltObserver
 
 import java.nio.file.Path
 import java.nio.file.Paths
-import nextflow.Global
-import nextflow.Session
+import spock.lang.Unroll
 
 /**
  *
@@ -29,13 +28,21 @@ import nextflow.Session
  */
 class QuiltObserverTest extends QuiltSpecification {
 
-    static String path = '/var/tmp/output/quilt-example#package=examples%2fhurdat'
-
-    def 'should generate solid string for now'() {
+    def 'should generate solid string for timestamp'() {
         when:
         def now = QuiltObserver.now()
         then:
         now
         now.contains('T')
     }
+
+    def 'should extract Quilt path from appropriate UNIX Path'() {
+        given:
+        def pkg = Paths.get('/var/tmp/output/quilt-example#package=examples%2fhurdat')
+        def unpkg = Paths.get('/var/tmp/output/quilt-example/examples/hurdat')
+        expect:
+        null == QuiltObserver.asQuiltPath(unpkg)
+        'quilt-example#package=examples%2fhurdat' == QuiltObserver.asQuiltPath(pkg).toString()
+    }
+
 }

@@ -16,8 +16,10 @@
 
 package nextflow.quilt
 
+import nextflow.quilt.jep.QuiltParser
 import nextflow.quilt.jep.QuiltPackage
 import nextflow.quilt.nio.QuiltPath
+import nextflow.quilt.nio.QuiltPathFactory
 
 import java.nio.file.FileSystems
 import java.nio.file.Files
@@ -42,21 +44,33 @@ import nextflow.trace.TraceObserver
 @Slf4j
 @CompileStatic
 class QuiltObserver implements TraceObserver {
+    private Session session
+    private Map config
+    private Map quilt_config
+    private Set<QuiltPackage> pkgs = new HashSet<>()
+
     public static void writeString(String text, QuiltPackage pkg, String filename) {
         String dir = pkg.packageDest().toString()
         def path = Paths.get(dir, filename)
         Files.write(path, text.bytes)
     }
 
-    private Session session
-    private Map config
-    private Map quilt_config
-    private Set<QuiltPackage> pkgs = new HashSet<>()
-
-    static String now(){
+    public static String now(){
         def date = new Date()
         def sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss")
         return sdf.format(date)
+    }
+
+    public static QuiltPath asQuiltPath(Path path){
+        if( path instanceof QuiltPath ) {
+            return (QuiltPath) path
+        }
+        String strPath = path.getFileName().toString()
+        if (strPath.contains('#package')) {
+            String url = "${QuiltParser.SCHEME}://${strPath}"
+            return QuiltPathFactory.Parse(url)
+        }
+        return null
     }
 
     @Override
@@ -71,11 +85,14 @@ class QuiltObserver implements TraceObserver {
     @Override
     void onFilePublish(Path path) { //, Path source=null
         log.debug "onFilePublish.Path[$path]"
-        if( path instanceof QuiltPath ) {
-            QuiltPath qPath = (QuiltPath)path
+        QuiltPath qPath = asQuiltPath(path)
+
+        if( qPath ) {
             QuiltPackage pkg = qPath.pkg()
             this.pkgs.add(pkg)
             log.debug "onFilePublish.QuiltPath[$qPath]: pkgs=${pkgs}"
+        } else {
+            log.warn "onFilePublish.QuiltPath missing: $path"
         }
     }
 
