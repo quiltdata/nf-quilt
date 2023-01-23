@@ -67,8 +67,8 @@ class QuiltParser {
     }
 
     static private Map<String,Object> parseQuery(String query) {
-        if (!query) return [:]
-        final queryParams = query?.split('&') // safe operator for urls without query params
+        if (!query) return [:] // skip for urls without query params
+        final queryParams = query.split('&') 
         queryParams.collectEntries { param -> param.split('=').collect { URLDecoder.decode(it) }}
     }
 
@@ -131,7 +131,7 @@ class QuiltParser {
 
     QuiltParser normalized() {
         boolean skip = false
-        def norm = { String x ->
+        String[] rnorms = paths.reverse().findAll { String x ->
             if (x == "..") {
                 skip = true
                 false
@@ -142,7 +142,7 @@ class QuiltParser {
                 true
             }
         }
-        String[] rnorms = paths.reverse().findAll(norm)
+
         log.debug("normalized: ${paths} -> ${rnorms}")
         String path2 = rnorms.reverse().join(SEP)
         log.debug("normalized: -> ${path2}")
@@ -158,7 +158,7 @@ class QuiltParser {
     }
 
     String bucket() {
-        bucket ? bucket.toLowerCase() : null
+        bucket?.toLowerCase()
     }
 
     String pkg_name() {
@@ -178,7 +178,7 @@ class QuiltParser {
     }
 
     String path(int beginIndex, int endIndex) {
-        String[] sub = paths[beginIndex..(endIndex-1)]
+        String[] sub = paths[beginIndex..<endIndex]
         sub.join(SEP)
     }
 
@@ -191,7 +191,7 @@ class QuiltParser {
     }
 
     String options(String key) {
-        options ? options.get(key) : null
+        options?.get(key)
     }
 
     String toPackageString() {

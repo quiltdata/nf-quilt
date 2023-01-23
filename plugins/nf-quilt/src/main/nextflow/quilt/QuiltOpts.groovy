@@ -65,8 +65,7 @@ class QuiltOpts {
         //
         // If not using the default, the profile needs to be set in the nextflow config file.
 
-        final config = fromSession(session)
-        return config
+        return fromSession(session)
     }
 
 }

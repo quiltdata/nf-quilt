@@ -95,8 +95,7 @@ public final class QuiltPath implements Path {
     @Override
     boolean isAbsolute() {
         log.debug "isAbsolute[${pkg_name()}] : ${parsed}"
-
-        filesystem && pkg_name() != "" && pkg_name() != null
+        filesystem && pkg_name()
     }
 
     boolean isJustPackage() {

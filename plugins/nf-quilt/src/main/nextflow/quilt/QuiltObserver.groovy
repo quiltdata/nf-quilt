@@ -45,26 +45,18 @@ class QuiltObserver implements TraceObserver {
     public static void writeString(String text, QuiltPackage pkg, String filename) {
         String dir = pkg.packageDest().toString()
         def path = Paths.get(dir, filename)
-        //log.debug "QuiltObserver.writeString[$path]: $text"
         Files.write(path, text.bytes)
     }
 
     private Session session
     private Map config
     private Map quilt_config
-    private Set<QuiltPackage> pkgs
+    private Set<QuiltPackage> pkgs = new HashSet<>()
 
     static String now(){
         def date = new Date()
         def sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
         return sdf.format(date)
-    }
-
-    Set<QuiltPackage> ensurePkgs() {
-        if ( !this.pkgs ) {
-            this.pkgs = new HashSet<>()
-        }
-        this.pkgs
     }
 
     @Override
@@ -73,7 +65,7 @@ class QuiltObserver implements TraceObserver {
         this.session = session
         this.config = session.config
         this.quilt_config = session.config.navigate('quilt') as Map
-        ensurePkgs()
+        this.pkgs
     }
 
     @Override
@@ -82,7 +74,7 @@ class QuiltObserver implements TraceObserver {
         if( path instanceof QuiltPath ) {
             QuiltPath qPath = (QuiltPath)path
             QuiltPackage pkg = qPath.pkg()
-            ensurePkgs().add(pkg)
+            this.pkgs.add(pkg)
             log.debug "onFilePublish.QuiltPath[$qPath]: pkgs=${pkgs}"
         }
     }
@@ -147,7 +139,7 @@ ${meta['workflow']['stats']['processes']}
     static void printMap(Map map, String title) {
         log.info "\n\n\n# $title"
         map.each{
-            key, value -> print "\n## $key\n\n$value";
+            key, value -> log.info "\n## $key\n\n$value";
         }
     }
 

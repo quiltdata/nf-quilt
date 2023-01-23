@@ -119,7 +119,7 @@ public final class QuiltFileSystem extends FileSystem {
             BasicFileAttributes attrs = Files.readAttributes(installedPath, BasicFileAttributes)
             return new QuiltFileAttributes(path,path.toString(),attrs)
         }
-        catch (java.nio.file.NoSuchFileException e) {
+        catch (NoSuchFileException e) {
             log.debug "No attributes yet for: ${installedPath}"
         }
         return null

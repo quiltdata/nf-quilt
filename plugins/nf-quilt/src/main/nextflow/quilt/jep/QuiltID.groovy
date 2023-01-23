@@ -24,8 +24,11 @@ import groovy.util.logging.Slf4j
 @CompileStatic
 class QuiltID {
     public static String[] DEFAULT_PACKAGE=["null","default"]
-
     private static final Map<String,QuiltID> ids = [:]
+
+    private final String bucket
+    private final String pkgPrefix
+    private final String pkgSuffix
 
     static public QuiltID Fetch(String bucket, String pkg_name) {
         if (!bucket) {
@@ -34,31 +37,27 @@ class QuiltID {
         }
         if (!pkg_name || pkg_name.size()<QuiltParser.MIN_SIZE) {
             pkg_name = DEFAULT_PACKAGE.join(QuiltParser.SEP)
-            log.error "QuiltID.Fetch: setting missing package to $pkg_name"
+            log.warn "QuiltID.Fetch: setting missing package to $pkg_name"
         }
         String[] split = pkg_name.split(QuiltParser.SEP)
         if (split.size()<QuiltParser.MIN_SIZE || split[1].size()<QuiltParser.MIN_SIZE) {
             split += DEFAULT_PACKAGE[1] as String
-            log.error "QuiltID.Fetch: setting missing suffix to $split[1]"
+            log.warn "QuiltID.Fetch: setting missing suffix to $split[1]"
         }
         String key = "${bucket}/${split[0]}/${split[1]}"
-        def id = ids.get(key)
-        if (id) return id
-        ids[key] = new QuiltID(bucket, split[0], split[1])
+        if (!ids.containsKey(key)) {
+            ids[key] = new QuiltID(bucket, split[0], split[1])
+        }
         ids[key]
     }
 
-    private final String bucket
-    private final String pkg_prefix
-    private final String pkg_suffix
-
-    QuiltID(String bucket, String pkg_prefix, String pkg_suffix) {
+    QuiltID(String bucket, String pkgPrefix, String pkgSuffix) {
         this.bucket = bucket
-        this.pkg_prefix = pkg_prefix
-        this.pkg_suffix = pkg_suffix
+        this.pkgPrefix = pkgPrefix
+        this.pkgSuffix = pkgSuffix
     }
 
     String toString() {
-        "${bucket}.${pkg_prefix}.${pkg_suffix}"
+        "${bucket}.${pkgPrefix}.${pkgSuffix}"
     }
 }
