@@ -113,14 +113,15 @@ Follow these steps to package, upload and publish the plugin:
    * `github_commit_email`: The email address associated with your GitHub account.
 
 3. Use the following command to package and create a release for your plugin on GitHub:
-   ```bash
-   ./gradlew :plugins:nf-quilt:upload
-   ```
+```bash
+./gradlew :plugins:nf-quilt:upload
+```
 
 4. Fork the [nextflow-io/plugins](https://github.com/nextflow-io/plugins) repository to one you can write to
 
 5. Use the following command to publish your plugin to your fork:
-    ```bash
-    ./gradlew :plugins:publishIndex
-    ```
+ ```bash
+ ./gradlew :plugins:publishIndex
+ ```
+ 
 6. Create a pull request to push your changes back to [nextflow-io/plugins](https://github.com/nextflow-io/plugins/blob/main/plugins.json)
