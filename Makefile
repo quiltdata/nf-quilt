@@ -16,8 +16,7 @@ compile:
 	@echo "DONE `date`"
 
 check:
-	./gradlew check
-
+	./gradlew check --warning-mode all
 
 coverage: compile
 	./gradlew cloverInstrumentCodeForTest
