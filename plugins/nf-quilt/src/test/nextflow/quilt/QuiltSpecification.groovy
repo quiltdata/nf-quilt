@@ -168,7 +168,10 @@ abstract class QuiltSpecification extends Specification {
         result.resolve(_) >> { mockQuiltPath("${path}/${it[0]}") }
         result.toAbsolutePath() >> result
         result.asBoolean() >> true
-        result.getParent() >> { def p=path.lastIndexOf('/'); p!=-1 ? mockQuiltPath("${path.substring(0,p)}", true) : null }
+        result.getParent() >> {
+            def p = path.lastIndexOf('/')
+            return ( p != -1 ) ? mockQuiltPath("${path.substring(0,p)}", true) : null 
+        }
         result.getFileName() >> { Paths.get(tokens[-1]) }
         result.getName() >> tokens[1]
         return result
