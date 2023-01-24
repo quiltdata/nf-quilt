@@ -36,7 +36,7 @@ class QuiltParserTest extends QuiltSpecification {
         def parser = QuiltParser.ForUriString(test_url)
         then:
         parser.bucket() == "quilt-ernest-staging"
-        parser.pkg_name() == "nf-quilt/sarek"
+        parser.packageName() == "nf-quilt/sarek"
         parser.path() == "pipeline_info/execution_trace_2022-10-13_01-01-31.txt"
       }
 
@@ -62,7 +62,7 @@ class QuiltParserTest extends QuiltSpecification {
         def parser = QuiltParser.ForBarePath(bare)
         then:
         parser.bucket() == bucket
-        parser.pkg_name() == pkg
+        parser.packageName() == pkg
         parser.path() == path
         parser.hash() == hash
         parser.tag() == tag

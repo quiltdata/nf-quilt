@@ -35,8 +35,8 @@ class QuiltOpts {
 
     static Map<String,String> env = System.getenv()
 
-    private String registry
-    private String profile
+    protected String registry
+    protected String profile
 
     String getProjectId() { projectId }
 

@@ -15,6 +15,7 @@
  */
 
 package nextflow.quilt.jep
+import nextflow.quilt.jep.QuiltParser
 
 import groovy.transform.CompileStatic
 import groovy.transform.Memoized
@@ -23,32 +24,32 @@ import groovy.util.logging.Slf4j
 @Slf4j
 @CompileStatic
 class QuiltID {
-    public static String[] DEFAULT_PACKAGE=["null","default"]
+    public static final String[] DefaultPackage=["null","default"]
     private static final Map<String,QuiltID> ids = [:]
 
     private final String bucket
     private final String pkgPrefix
     private final String pkgSuffix
 
-    static public QuiltID Fetch(String bucket, String pkg_name) {
+    static public QuiltID fetch(String bucket, String packageName) {
         if (!bucket) {
-            log.error "null == QuiltID.Fetch($bucket, $pkg_name)"
+            log.error "null == QuiltID.fetch($bucket, $packageName)"
             return null
         }
-        if (!pkg_name || pkg_name.size()<QuiltParser.MIN_SIZE) {
-            pkg_name = DEFAULT_PACKAGE.join(QuiltParser.SEP)
-            log.warn "QuiltID.Fetch: setting missing package to $pkg_name"
+        if (!packageName || packageName.size()<QuiltParser.MIN_SIZE) {
+            packageName = DefaultPackage.join(QuiltParser.SEP)
+            log.warn "QuiltID.fetch: setting missing package to $packageName"
         }
-        String[] split = pkg_name.split(QuiltParser.SEP)
+        String[] split = packageName.split(QuiltParser.SEP)
         if (split.size()<QuiltParser.MIN_SIZE || split[1].size()<QuiltParser.MIN_SIZE) {
-            split += DEFAULT_PACKAGE[1] as String
-            log.warn "QuiltID.Fetch: setting missing suffix to $split[1]"
+            split += DefaultPackage[1] as String
+            log.warn "QuiltID.fetch: setting missing suffix to $split[1]"
         }
         String key = "${bucket}/${split[0]}/${split[1]}"
         if (!ids.containsKey(key)) {
             ids[key] = new QuiltID(bucket, split[0], split[1])
         }
-        ids[key]
+        return ids[key]
     }
 
     QuiltID(String bucket, String pkgPrefix, String pkgSuffix) {

@@ -42,8 +42,8 @@ class QuiltPackageTest extends QuiltSpecification {
     QuiltPath qpath
     QuiltPackage pkg
 
-    static String pkg_url = 'quilt+s3://quilt-example#package=examples%2fsmart-report@d68a7e9'
-    static String url = pkg_url + '&path=README.md'
+    static String packageURL = 'quilt+s3://quilt-example#package=examples%2fsmart-report@d68a7e9'
+    static String url = packageURL + '&path=README.md'
     static String out_url = 'quilt+s3://quilt_dev_null#package=nf-quilt%2ftest'
 
     def setup() {
@@ -60,7 +60,7 @@ class QuiltPackageTest extends QuiltSpecification {
         expect:
         pkg != null
         pkg.toString() == "quilt_example_examples_smart_report"
-        pkgPath.toUriString() == pkg_url
+        pkgPath.toUriString() == packageURL
         pkg == pkg2
     }
 
@@ -90,7 +90,7 @@ class QuiltPackageTest extends QuiltSpecification {
     def 'should get attributes for package folder' () {
         given:
         def root = qpath.getRoot()
-        def qroot = factory.parseUri(pkg_url)
+        def qroot = factory.parseUri(packageURL)
         expect:
         root == qroot
         qroot.isJustPackage()
@@ -123,7 +123,7 @@ class QuiltPackageTest extends QuiltSpecification {
     def 'should iterate over installed files ' () {
         given:
         def root = qpath.getRoot()
-        def qroot = factory.parseUri(pkg_url)
+        def qroot = factory.parseUri(packageURL)
 
         expect:
         root

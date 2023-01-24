@@ -59,8 +59,8 @@ public final class QuiltPath implements Path {
         parsed.bucket()
     }
 
-    public String pkg_name() {
-        parsed.pkg_name()
+    public String packageName() {
+        parsed.packageName()
     }
 
     public String sub_paths() {
@@ -94,8 +94,8 @@ public final class QuiltPath implements Path {
 
     @Override
     boolean isAbsolute() {
-        log.debug "isAbsolute[${pkg_name()}] : ${parsed}"
-        filesystem && pkg_name()
+        log.debug "isAbsolute[${packageName()}] : ${parsed}"
+        filesystem && packageName()
     }
 
     boolean isJustPackage() {
@@ -104,8 +104,8 @@ public final class QuiltPath implements Path {
 
     QuiltPath getJustPackage() {
         if ( isJustPackage() ) return this
-        QuiltParser pkg_parsed = QuiltParser.ForBarePath(parsed.toPackageString())
-        new QuiltPath(filesystem, pkg_parsed)
+        QuiltParser packageParsed = QuiltParser.ForBarePath(parsed.toPackageString())
+        new QuiltPath(filesystem, packageParsed)
     }
 
     @Override
@@ -133,7 +133,7 @@ public final class QuiltPath implements Path {
     @Override
     Path getName(int index) {
         throw new UnsupportedOperationException("Operation 'getName' is not supported by QuiltPath")
-        //new QuiltPath(filesystem, pkg_name, sub_paths[0,index], options)
+        //new QuiltPath(filesystem, packageName, sub_paths[0,index], options)
     }
 
     @Override
@@ -181,7 +181,7 @@ public final class QuiltPath implements Path {
         if( other.isAbsolute() )
             return that
         throw new UnsupportedOperationException("Operation 'resolve'[$that] is not supported by QuiltPath[$this]")
-        //new QuiltPath(filesystem, pkg_name, other.toString(), options)
+        //new QuiltPath(filesystem, packageName, other.toString(), options)
     }
 
     @Override

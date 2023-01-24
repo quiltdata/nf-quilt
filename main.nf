@@ -5,7 +5,7 @@ params.src = 'quilt+s3://quilt-example#package=examples/hurdat'
 params.pub = '/var/tmp'
 params.out = 'output'
 
-pkg_files = Channel.fromPath(params.src)
+packageFiles = Channel.fromPath(params.src)
 
 process transfer {
     publishDir params.pub, mode: 'copy', overwrite: true
@@ -24,5 +24,5 @@ process transfer {
 }
 
 workflow {
-  pkg_files | transfer | view { it }
+  packageFiles | transfer | view { it }
 }

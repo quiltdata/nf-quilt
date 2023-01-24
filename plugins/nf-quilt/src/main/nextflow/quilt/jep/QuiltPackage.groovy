@@ -40,7 +40,7 @@ class QuiltPackage {
     public static final Path INSTALL_ROOT = Files.createTempDirectory(INSTALL_PREFIX)
 
     private final String bucket
-    private final String pkg_name
+    private final String packageName
     private final String hash
     private final Path folder
     private boolean installed
@@ -85,7 +85,7 @@ class QuiltPackage {
     QuiltPackage(QuiltParser parsed) {
         this.installed = false
         this.bucket = parsed.bucket()
-        this.pkg_name = parsed.pkg_name()
+        this.packageName = parsed.packageName()
         this.hash = parsed.hash()
         this.folder = Paths.get(INSTALL_ROOT.toString(), this.toString())
         assert this.folder
@@ -168,9 +168,9 @@ class QuiltPackage {
     // usage: quilt3 install [-h] [--registry REGISTRY] [--top-hash TOP_HASH] [--dest DEST] [--dest-registry DEST_REGISTRY] [--path PATH] name
     Path install() {
         if ('latest' == hash || hash == null || hash == "null") {
-            call('install',pkg_name,key_registry(),key_dest())
+            call('install',packageName,key_registry(),key_dest())
         } else {
-            call('install',pkg_name,key_registry(),key_hash(),key_dest())
+            call('install',packageName,key_registry(),key_hash(),key_dest())
         }
         installed = true
         packageDest()
@@ -188,7 +188,7 @@ class QuiltPackage {
     boolean push(String msg = "update", String meta = "[]") {
         log.debug "`push` $this"
         try {
-            call('push',pkg_name,key_dir(),key_registry(),key_meta(meta),key_msg(msg))
+            call('push',packageName,key_dir(),key_registry(),key_meta(meta),key_msg(msg))
         }
         catch (Exception e) {
             log.error "Failed `push` ${this}: ${e}"
@@ -199,7 +199,7 @@ class QuiltPackage {
 
     @Override
     String toString() {
-        "${bucket}_${pkg_name}".replaceAll(/[-\/]/,'_')
+        "${bucket}_${packageName}".replaceAll(/[-\/]/,'_')
     }
 
 }

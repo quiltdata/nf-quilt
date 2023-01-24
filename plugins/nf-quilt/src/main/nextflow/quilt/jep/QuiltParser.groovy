@@ -40,7 +40,7 @@ class QuiltParser {
     public static final String P_PATH = 'path'
 
     private final String bucket
-    private final String pkg_name
+    private final String packageName
     private String[] paths
     private String hash
     private String tag
@@ -75,7 +75,7 @@ class QuiltParser {
     QuiltParser(String bucket, String pkg, String path, Map<String,Object> options = [:]) {
         this.bucket = bucket
         this.paths = path ? path.split(SEP) : [] as String[]
-        this.pkg_name = parsePkg(pkg)
+        this.packageName = parsePkg(pkg)
         this.options = options
     }
 
@@ -109,24 +109,24 @@ class QuiltParser {
         while (path2.startsWith(SEP)) {
             path2 = path2.substring(1)
         }
-        new QuiltParser(bucket(), pkg_name(), path2, options)
+        new QuiltParser(bucket(), packageName(), path2, options)
     }
 
     QuiltParser dropPath() {
         String[] subpath = ((paths.size() > 1) ? paths[0..-2] : []) as String[] 
         String path2 = subpath.join(SEP)
-        new QuiltParser(bucket(), pkg_name(), path2, options)
+        new QuiltParser(bucket(), packageName(), path2, options)
     }
 
     QuiltParser lastPath() {
         String path2 = paths.size() > 0 ? paths[-1] : ''
-        new QuiltParser(bucket(), pkg_name(), path2, options)
+        new QuiltParser(bucket(), packageName(), path2, options)
     }
 
 
     QuiltParser subPath(int beginIndex, int endIndex) {
         String path2 = path(beginIndex, endIndex)
-        new QuiltParser(bucket(), pkg_name(), path2, options)
+        new QuiltParser(bucket(), packageName(), path2, options)
     }
 
     QuiltParser normalized() {
@@ -146,11 +146,11 @@ class QuiltParser {
         log.debug("normalized: ${paths} -> ${rnorms}")
         String path2 = rnorms.reverse().join(SEP)
         log.debug("normalized: -> ${path2}")
-        new QuiltParser(bucket(), pkg_name(), path2, options)
+        new QuiltParser(bucket(), packageName(), path2, options)
     }
 
     QuiltID quiltID() {
-        QuiltID.Fetch(bucket(), pkg_name())
+        QuiltID.fetch(bucket(), packageName())
     }
 
     String quiltIDS() {
@@ -161,8 +161,8 @@ class QuiltParser {
         bucket?.toLowerCase()
     }
 
-    String pkg_name() {
-        pkg_name
+    String packageName() {
+        packageName
     }
 
     String hash() {
@@ -196,8 +196,8 @@ class QuiltParser {
 
     String toPackageString() {
         String str = "${bucket()}"
-        if ( pkg_name ) {
-            String pkg = pkg_name
+        if ( packageName ) {
+            String pkg = packageName
             if ( hash ) { pkg += "@$hash" }
             if ( tag ) { pkg += ":$tag" }
             str += "#package=${pkg.replace('/','%2f')}"
@@ -208,7 +208,7 @@ class QuiltParser {
     String toString() {
         String str = toPackageString()
         if (! hasPath() ) return str
-        str += ( pkg_name ) ? "&" : "#"
+        str += ( packageName ) ? "&" : "#"
         str += "path=${path().replace('/','%2f')}"
     }
 
