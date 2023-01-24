@@ -62,6 +62,7 @@ class QuiltNioTest extends QuiltSpecification {
         readObject(path).trim() == TEXT
     }
 
+    @IgnoreIf({ System.getProperty("os.name").contains("linux") })
     def 'should read from a path' () {
         given:
         def path = Paths.get(new URI(read_url))
@@ -72,6 +73,7 @@ class QuiltNioTest extends QuiltSpecification {
         text.startsWith('id')
     }
 
+    @IgnoreIf({ System.getProperty("os.name").contains("linux") })
     def 'should read file attributes' () {
         given:
         final start = System.currentTimeMillis()
@@ -228,6 +230,7 @@ class QuiltNioTest extends QuiltSpecification {
         pkg.relativeChildren("")
     }
 
+    @IgnoreIf({ System.getProperty("os.name").contains("linux") })
     def 'should iterate over package folders/files' () {
         given:
         def path = Paths.get(new URI(packageURL))

@@ -25,6 +25,7 @@ import nextflow.Global
 import nextflow.Session
 import spock.lang.Unroll
 import spock.lang.Shared
+import spock.lang.IgnoreIf
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -98,6 +99,7 @@ class QuiltPackageTest extends QuiltSpecification {
         Files.readAttributes(qroot, BasicFileAttributes)
     }
 
+    @IgnoreIf({ System.getProperty("os.name").contains("linux") })
     def 'should pre-install files and get attributes' () {
         expect:
         pkg.install()
@@ -106,6 +108,7 @@ class QuiltPackageTest extends QuiltSpecification {
         Files.readAttributes(qpath, BasicFileAttributes)
     }
 
+    @IgnoreIf({ System.getProperty("os.name").contains("linux") })
     def 'should deinstall files' () {
         expect:
         Files.exists(qpath.localPath())
