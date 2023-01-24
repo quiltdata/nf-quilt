@@ -99,7 +99,6 @@ class QuiltObserver implements TraceObserver {
     @Override
     void onFlowComplete() {
         log.debug "`onFlowComplete` ${pkgs}"
-        getMetadata() // For debugging
         // publish pkgs to repository
         this.pkgs.each { pkg -> publish(pkg) }
     }
@@ -112,8 +111,8 @@ class QuiltObserver implements TraceObserver {
 ## workflow
 ### scriptFile: ${meta['workflow']['scriptFile']}
 ### sessionId: ${meta['workflow']['sessionId']}
-- start: ${meta['workflow']['start']}
-- complete: ${meta['workflow']['complete']}
+- start: ${meta['time_start']}
+- complete: ${meta['time_complete']}
 
 ## processes
 ${meta['workflow']['stats']['processes']}
@@ -130,10 +129,11 @@ ${meta['workflow']['stats']['processes']}
             meta = getMetadata()
             msg = "${meta['config']['runName']}: ${meta['workflow']['commandLine']}"
             text = readme(meta,msg)
-            jsonMeta = JsonOutput.toJson(meta['workflow'])
+            //meta.remove('config')
+            jsonMeta = JsonOutput.toJson(meta)
         }
         catch (Exception e) {
-            log.error "publish: QuiltObserver not initialized[$e]"
+            log.error "publish: cannot generate metadata (QuiltObserver uninitialized?)[$e]"
         }
         writeString(text, pkg, 'README.md')
         writeString("$meta", pkg, 'quilt_metadata.txt')
@@ -145,19 +145,10 @@ ${meta['workflow']['stats']['processes']}
         'nextflow','commandLine','scriptFile','projectDir','homeDir','workDir','launchDir','manifest','configFiles'
     ]
 
-     void clearOffset(Map period) {
-        log.debug "clearOffset[]"
-        log.debug "$period"
-
-        Map offset = period['offset']
-        log.debug "offset:$offset"
-        offset.remove('availableZoneIds')
-    }
-
     static void printMap(Map map, String title) {
-        log.info "\n\n\n# $title"
+        log.debug "\n\n\n# $title"
         map.each{
-            key, value -> log.info "\n## ${key}: ${value}";
+            key, value -> log.debug "\n## ${key}: ${value}";
         }
     }
 
@@ -172,12 +163,14 @@ ${meta['workflow']['stats']['processes']}
         params.remove('genomes')
         printMap(params, "params")
         Map wf = session.getWorkflowMetadata().toMap()
+        String start = wf['start']
+        String complete = wf['complete']
         bigKeys.each { k -> wf[k] = "${wf[k]}" }
         wf.remove('container')
+        wf.remove('start')
+        wf.remove('complete')
         printMap(wf, "workflow")
-        //clearOffset(wf.get('complete') as Map)
-        //clearOffset(wf['start'] as Map)
         log.info "\npublishing: ${wf['runName']}"
-        [params: params, config: cf, workflow: wf]
+        [params: params, config: cf, workflow: wf, time_start: start, time_complete: complete]
     }
 }
