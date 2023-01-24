@@ -46,14 +46,15 @@ import nextflow.quilt.jep.QuiltParser
  */
 
 
-// cf. https://cloud.google.com/java/docs/reference/google-cloud-nio/latest/com.google.cloud.storage.contrib.nio.CloudStorageFileSystem
+// cf. https://cloud.google.com/java/docs/reference/google-cloud-nio/latest/
+//     com.google.cloud.storage.contrib.nio.CloudStorageFileSystem
 // https://github.com/nextflow-io/nextflow-s3fs/tree/master/src/main/java/com/upplication/s3fs
 @Slf4j
 @CompileStatic
 public final class QuiltFileSystem extends FileSystem {
 
-    protected final String quiltIDS;
-    protected final QuiltFileSystemProvider provider
+    private final String quiltIDS;
+    private final QuiltFileSystemProvider provider
 
     public QuiltFileSystem(String quiltIDS, QuiltFileSystemProvider provider) {
       this.quiltIDS = quiltIDS;
@@ -62,7 +63,7 @@ public final class QuiltFileSystem extends FileSystem {
 
     @Override
     String toString() {
-        quiltIDS
+        return quiltIDS
     }
 
     void copy(QuiltPath source, QuiltPath target) {
@@ -152,17 +153,15 @@ public final class QuiltFileSystem extends FileSystem {
         new QuiltPath(this, p)
     }
 
-    protected String toUriString(Path path) {
+    String toUriString(Path path) {
         return path instanceof QuiltPath ? ((QuiltPath)path).toUriString() : null
     }
 
-    protected String getBashLib(Path path) {
-        throw new UnsupportedOperationException("Operation 'getBashLib' is not supported by QuiltFileSystem")
+    String getBashLib(Path path) {
         return path instanceof QuiltPath ? QuiltBashLib.script() : null
     }
 
-    protected String getUploadCmd(String source, Path target) {
-        throw new UnsupportedOperationException("Operation 'getUploadCmd' is not supported by QuiltFileSystem")
+    String getUploadCmd(String source, Path target) {
         return target instanceof QuiltPath ?  QuiltFileCopyStrategy.uploadCmd(source, target) : null
     }
 

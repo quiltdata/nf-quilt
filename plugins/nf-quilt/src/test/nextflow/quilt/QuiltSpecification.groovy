@@ -165,7 +165,7 @@ abstract class QuiltSpecification extends Specification {
         result.toString() >> file
         result.getFileSystem() >> fs
         result.toUri() >> uri
-        result.resolve(_) >> { mockQuiltPath("$path/${it[0]}") }
+        result.resolve(_) >> { mockQuiltPath("${path}/${it[0]}") }
         result.toAbsolutePath() >> result
         result.asBoolean() >> true
         result.getParent() >> { def p=path.lastIndexOf('/'); p!=-1 ? mockQuiltPath("${path.substring(0,p)}", true) : null }

@@ -77,7 +77,8 @@ class QuiltFileSystemProvider extends FileSystemProvider {
 
     static private QuiltPath asQuiltPath(Path path ) {
         if( path !instanceof QuiltPath )
-            throw new IllegalArgumentException("Not a valid Quilt blob storage path object: `$path` [${path?.class?.name?:'-'}]" )
+            String pathClass = path?.class?.name ?: '-'
+            throw new IllegalArgumentException("Not a valid Quilt blob storage path object: `${path}` [${pathClass}]" )
         return (QuiltPath)path
     }
 

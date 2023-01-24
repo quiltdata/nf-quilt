@@ -347,7 +347,7 @@ class QuiltNioTest extends QuiltSpecification {
 
         when:
         def file = dir.resolve('this/and/that')
-        Path dest = createObject(file, 'Hello world')
+        createObject(file, 'Hello world')
         then:
         !Files.isDirectory(file)
         Files.isRegularFile(file)

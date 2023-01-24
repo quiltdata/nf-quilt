@@ -25,9 +25,7 @@ import nextflow.executor.BashFunLib
  */
 class QuiltBashLib extends BashFunLib<QuiltBashLib> {
 
-    private String storageClass = 'STANDARD'
-
     static String script() {
-      "quilt3 install"
+      return "quilt3 install"
     }
 }

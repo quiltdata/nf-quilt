@@ -16,14 +16,12 @@
 
 package nextflow.quilt.jep
 import nextflow.quilt.nio.QuiltPath
-
 import groovy.transform.CompileStatic
 import groovy.transform.Memoized
 import groovy.util.logging.Slf4j
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
-
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.lang.ProcessBuilder
@@ -57,9 +55,9 @@ class QuiltParser {
     }
 
     static public QuiltParser ForURI(URI uri) {
-        log.debug("ForURI[${uri.scheme}] for $uri")
+        log.debug("ForURI[${uri.scheme}] for ${uri}")
         if (uri.scheme != SCHEME)
-            throw new IllegalArgumentException("Scheme[$uri] URI:${uri.scheme}] != SCHEME:${SCHEME}")
+            throw new IllegalArgumentException("Scheme[${uri}] URI:${uri.scheme}] != SCHEME:${SCHEME}")
         def options = parseQuery(uri.fragment)
         String pkg = options.get(P_PKG)
         String path = options.get(P_PATH)
@@ -215,6 +213,5 @@ class QuiltParser {
     String toUriString() {
         PREFIX + toString()
     }
-
 
 }

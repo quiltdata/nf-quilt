@@ -26,7 +26,7 @@ class QuiltParserTest extends QuiltSpecification {
 
     def 'should error on invalid schema'() {
         when:
-        def parser = QuiltParser.ForUriString("quilt3://bucket/")
+        QuiltParser.ForUriString("quilt3://bucket/")
         then:
         thrown(IllegalArgumentException)
     }

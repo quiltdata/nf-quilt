@@ -137,7 +137,7 @@ class QuiltPackageTest extends QuiltSpecification {
     def 'should write new files back to bucket ' () {
         given:
         def cleanDate = QuiltPackage.today()
-        def qout = factory.parseUri(out_url)
+        //def qout = factory.parseUri(out_url)
         def opkg = qpath.pkg()
         def outPath = Paths.get(opkg.packageDest().toString(), "${cleanDate}.txt")
         // remove path
