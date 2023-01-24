@@ -83,8 +83,8 @@ class QuiltObserver implements TraceObserver {
     }
 
     @Override
-    void onFilePublish(Path path) { //, Path source=null
-        log.debug "onFilePublish.Path[$path]"
+    void onFilePublish(Path path, Path source) { //
+        log.debug "onFilePublish.Path[$path].Source[$source]"
         QuiltPath qPath = asQuiltPath(path)
 
         if( qPath ) {
@@ -99,6 +99,7 @@ class QuiltObserver implements TraceObserver {
     @Override
     void onFlowComplete() {
         log.debug "`onFlowComplete` ${pkgs}"
+        getMetadata() // For debugging
         // publish pkgs to repository
         this.pkgs.each { pkg -> publish(pkg) }
     }
@@ -156,7 +157,7 @@ ${meta['workflow']['stats']['processes']}
     static void printMap(Map map, String title) {
         log.info "\n\n\n# $title"
         map.each{
-            key, value -> log.info "\n## $key\n\n$value";
+            key, value -> log.info "\n## ${key}: ${value}";
         }
     }
 
