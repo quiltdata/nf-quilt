@@ -3,13 +3,13 @@
 Nextflow plugin for interacting with [Quilt](https://quiltdata.com/) packages as a FileSystem
 
 `nf-quilt` is a plugin developed by Quilt Data that enables you read and write directly
-to Quilt packages using `quilt` URLs wherever you currently use `s3`, `az` or `gs` URLs.
+to Quilt packages using `quilt+` URLs wherever you currently use `s3`, `az` or `gs` URLs.
 
 Inspired by the original `nf-quilt` plugin developed by Seqera labs
 
 ## Getting Started
 
-To add the `nf-quilt` plugin to your workflow, you may need Nextflow 22.12 (or later) and Python 3.9 (or later).  Note this assumes you have already [installed groovy](https://groovy-lang.org/install.html).
+To add the `nf-quilt` plugin to your workflow, you may need Nextflow 23.01 (or later) and Python 3.9 (or later).  Note this assumes you have already [installed groovy](https://groovy-lang.org/install.html).
 
 ### Quilt Configuration
 
@@ -18,34 +18,47 @@ You must install the `quilt3` Python module and ensure the CLI is in your path:
 
 ```bash
 pip3 install quilt3
-which quilt3 #e.g., /usr/local/bin/quilt3
+which quilt3 # e.g., /usr/local/bin/quilt3
 ```
 
-### Reading and Writing Quilt URLs
+### Loading the nf-quilt plugin
 
-Next, create a Quilt URL for the S3 bucket where you want to store (and eventually read) your results.
-You must also specify a package name containing exactly one '/', such as `instrument/experiment`
-Finally, run your Nextflow pipeline as usual, setting that URL as your output directory, .e.g.:
-
-```
-./launch.sh run nf-core/sarek -profile test,docker -plugins nf-quilt --outdir quilt+s3://raw-bucket#package=nf-quilt/sarek&path=.
-```
-### Pipeline Configuration
-
-Note that you won't need the '-plugins' option if you modify `nextflow.config`
-
-Add the following snippet to your `nextflow.config` to enable the plugin (or just  add that one 'id' if you already have other plugins):
+Once this plugin is officially published on `nextflow-io/plugins`, 
+you can enable it by modifying `nextflow.config`.
+Add the following snippet, or just add that one 'id' if you already have other plugins):
 ```groovy
 plugins {
     id 'nf-quilt'
 }
 ```
 
-In the future, you will be able to use that package as input to future jobs, e.g.:
+You can instead add `-plugins nf-quilt` as an argument to `launch.sh`.
+
+If the plug-in is not yet published, you will need to run it directly from git
+as described under "Development."
+
+### Reading and Writing Quilt URLs
+
+Next, create a Quilt URL for the S3 bucket where you want to store (and eventually read) your results.
+You must specify a package name containing exactly one '/', such as `instrument/experiment`
+e.g. "quilt+s3://raw-bucket#package=nf-quilt/sarek"
+
+Note your command-line environment must have 
+[AWS credentials](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html) 
+that allow you to read/write that bucket.
+
+Finally, run your Nextflow pipeline as usual, setting that URL as your output directory, .e.g.:
+
+```
+./launch.sh run nf-core/sarek -profile test,docker --outdir quilt+s3://raw-bucket#package=nf-quilt/sarek&path=.
+```
+
+You can also use Quilt packages as input to nextflow jobs, e.g.:
 
 ```
 nextflow run my/analysis --indir quilt+s3://raw-bucket#package=experiment/instrument --outdir quilt+s3://prod-bucket#package=experiment/analysis
 ```
+
 
 # Development
 
