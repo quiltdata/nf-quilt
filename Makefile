@@ -26,7 +26,7 @@ check:
 # use 'make pkg-test BUCKET=my-s3-bucket' to publish test output to a Quilt package
 
 pkg-test: compile
-	./launch.sh run ./main.nf -profile standard -plugins $(PROJECT) --params.pub "quilt+s3://$(BUCKET)#package=test/hurdat"
+	./launch.sh run ./main.nf -profile standard -plugins $(PROJECT) --pub "quilt+s3://$(BUCKET)#package=test/hurdat"
 
 # use `make $(PIPELINE) BUCKET=my-s3-bucket` to publish `--outdir` to a Quilt package
 

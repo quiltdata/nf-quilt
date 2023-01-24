@@ -3,7 +3,7 @@
 Nextflow plugin for interacting with [Quilt](https://quiltdata.com/) packages as a FileSystem
 
 `nf-quilt` is a plugin developed by Quilt Data that enables you read and write directly
-to Quilt packages using `quilt` URLs wherever you currently use `s3`, `az` or `gs` URLs.
+to Quilt packages using `quilt+` URLs wherever you currently use `s3`, `az` or `gs` URLs.
 
 Inspired by the original `nf-quilt` plugin developed by Seqera labs
 
@@ -41,7 +41,7 @@ plugins {
 }
 ```
 
-In the future, you will be able to use that package as input to future jobs, e.g.:
+You can also use that package as input to future jobs, e.g.:
 
 ```
 nextflow run my/analysis --indir quilt+s3://raw-bucket#package=experiment/instrument --outdir quilt+s3://prod-bucket#package=experiment/analysis
