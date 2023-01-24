@@ -19,6 +19,9 @@ check:
 	./gradlew check
 
 
+coverage: compile
+	./gradlew cloverInstrumentCodeForTest
+
 #
 # Create packages
 #
