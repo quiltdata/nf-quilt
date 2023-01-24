@@ -147,7 +147,7 @@ class QuiltPackage {
         "--registry s3://${bucket}"
     }
 
-    Object call(String... args) {
+    int call(String... args) {
         def command = ['quilt3']
         command.addAll(args)
         def cmd = command.join(" ")
@@ -159,7 +159,10 @@ class QuiltPackage {
         Process p = pb.start();
         String result = new String(p.getInputStream().readAllBytes());
         int exitCode = p.waitFor();
-        log.debug "`call.exitCode` ${exitCode}: ${result}"
+        if (exitCode > 0) {
+            log.warn "`call.exitCode` ${exitCode}: ${result}"
+        }
+        exitCode
     }
 
     // usage: quilt3 install [-h] [--registry REGISTRY] [--top-hash TOP_HASH] [--dest DEST] [--dest-registry DEST_REGISTRY] [--path PATH] name
