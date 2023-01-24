@@ -99,7 +99,7 @@ class QuiltPackageTest extends QuiltSpecification {
         Files.readAttributes(qroot, BasicFileAttributes)
     }
 
-    @IgnoreIf({ System.getProperty("os.name").contains("linux") })
+    @IgnoreIf({ System.getProperty("os.name").contains("ux") })
     def 'should pre-install files and get attributes' () {
         expect:
         pkg.install()
@@ -108,7 +108,7 @@ class QuiltPackageTest extends QuiltSpecification {
         Files.readAttributes(qpath, BasicFileAttributes)
     }
 
-    @IgnoreIf({ System.getProperty("os.name").contains("linux") })
+    @IgnoreIf({ System.getProperty("os.name").contains("ux") })
     def 'should deinstall files' () {
         expect:
         Files.exists(qpath.localPath())
