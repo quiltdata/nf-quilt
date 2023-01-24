@@ -56,8 +56,10 @@ class QuiltParser {
 
     static public QuiltParser ForURI(URI uri) {
         log.debug("ForURI[${uri.scheme}] for ${uri}")
-        if (uri.scheme != SCHEME)
-            throw new IllegalArgumentException("Scheme[${uri}] URI:${uri.scheme}] != SCHEME:${SCHEME}")
+        if (uri.scheme != SCHEME) {
+            String msg =  "Scheme[${uri}] URI:${uri.scheme}] != SCHEME:${SCHEME}"
+            throw new IllegalArgumentException(msg)
+        }
         def options = parseQuery(uri.fragment)
         String pkg = options.get(P_PKG)
         String path = options.get(P_PATH)

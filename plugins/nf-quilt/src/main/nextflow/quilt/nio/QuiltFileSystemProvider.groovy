@@ -76,17 +76,20 @@ class QuiltFileSystemProvider extends FileSystemProvider {
     }
 
     static private QuiltPath asQuiltPath(Path path ) {
-        if( path !instanceof QuiltPath )
-            String pathClass = path?.class?.name ?: '-'
-            throw new IllegalArgumentException("Not a valid Quilt blob storage path object: `${path}` [${pathClass}]" )
+        if( path !instanceof QuiltPath ) {
+            String pathClassName = path?.class?.name ?: '-'
+            throw new IllegalArgumentException( "Not a valid Quilt blob storage path object: `${path}` [${pathClassName}]" )            
+        }
         return (QuiltPath)path
     }
 
     static private QuiltFileSystem getQuiltFilesystem(Path path ) {
         final qPath = asQuiltPath(path)
         final fs = qPath.getFileSystem()
-        if( fs !instanceof QuiltFileSystem )
-            throw new IllegalArgumentException("Not a valid Quilt file system: `$fs` [${path?.class?.name?:'-'}]" )
+        if( fs !instanceof QuiltFileSystem ) {
+            String pathClassName = path?.class?.name ?: '-'
+            throw new IllegalArgumentException( "Not a valid Quilt file system: `$fs` [${pathClassName}]" )
+        }
         return (QuiltFileSystem)fs
     }
 
