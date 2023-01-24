@@ -39,7 +39,10 @@ jobs:
     - name: Setup Gradle
       uses: gradle/gradle-build-action@v2
     
-    - name: Gradle Test
+    - name: Setup Gradle Coverage
+      run: make coverage
+
+    - name: Run Gradle Tests
       run: ./gradlew check
 
     # Clover
