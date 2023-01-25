@@ -64,7 +64,7 @@ public final class QuiltPath implements Path {
     }
 
     public QuiltPackage pkg() {
-        isAbsolute() ? QuiltPackage.ForParsed(parsed) : null
+        isAbsolute() ? QuiltPackage.forParsed(parsed) : null
     }
 
     public String file_key() {

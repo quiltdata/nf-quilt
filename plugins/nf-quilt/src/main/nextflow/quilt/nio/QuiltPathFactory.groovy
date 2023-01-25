@@ -21,7 +21,6 @@ import java.nio.file.Path
 import groovy.transform.CompileStatic
 import nextflow.Global
 import nextflow.Session
-import nextflow.quilt.QuiltOpts
 import nextflow.quilt.jep.QuiltParser
 import nextflow.file.FileSystemPathFactory
 import nextflow.file.FileHelper

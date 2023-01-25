@@ -33,10 +33,15 @@ class QuiltOpts {
 
     static Map<String,String> env = System.getenv()
 
-    protected String registry
-    protected String profile
+    static QuiltOpts createOpts(Session session) {
+        // Typically the credentials picked up are the "AWS Credentials"
+        // as described at:
+        //   https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html
+        //
+        // If not using the default, the profile needs to be set in the nextflow config file.
 
-    String getProjectId() { projectId }
+        return fromSession(session)
+    }
 
     @Memoized
     static QuiltOpts fromSession(Session session) {
@@ -56,14 +61,9 @@ class QuiltOpts {
         return result
     }
 
-    static QuiltOpts create(Session session) {
-        // Typically the credentials picked up are the "AWS Credentials"
-        // as described at:
-        //   https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html
-        //
-        // If not using the default, the profile needs to be set in the nextflow config file.
+    protected String registry
+    protected String profile
 
-        return fromSession(session)
-    }
+    String getProjectId() { return projectId }
 
 }

@@ -24,5 +24,5 @@ process transfer {
 }
 
 workflow {
-    packageFiles | transfer | view { it }
+    packageFiles | transfer | view { file -> file }
 }

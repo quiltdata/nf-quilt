@@ -15,8 +15,6 @@
  */
 package nextflow.quilt.jep
 
-import nextflow.quilt.jep.QuiltParser
-
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 
@@ -24,32 +22,33 @@ import groovy.util.logging.Slf4j
 @CompileStatic
 class QuiltID {
 
-    public static final String[] DefaultPackage = ['null', 'default']
-    private static final Map<String,QuiltID> ids = [:]
+    private static final String[] DEFAULT_PACKAGE = ['null', 'default']
+    private static final Map<String,QuiltID> QIDS = [:]
 
     private final String bucket
     private final String pkgPrefix
     private final String pkgSuffix
 
-    static public QuiltID fetch(String bucket, String packageName) {
+    static QuiltID fetch(String bucket, String packageName) {
         if (!bucket) {
             log.error "null == QuiltID.fetch($bucket, $packageName)"
             return null
         }
+        String pkgName = packageName
         if (!packageName || packageName.size() < QuiltParser.MIN_SIZE) {
-            packageName = DefaultPackage.join(QuiltParser.SEP)
+            pkgName = DEFAULT_PACKAGE.join(QuiltParser.SEP)
             log.warn "QuiltID.fetch: setting missing package to $packageName"
         }
-        String[] split = packageName.split(QuiltParser.SEP)
+        String[] split = pkgName.split(QuiltParser.SEP)
         if (split.size() < QuiltParser.MIN_SIZE || split[1].size() < QuiltParser.MIN_SIZE) {
-            split += DefaultPackage[1] as String
+            split += DEFAULT_PACKAGE[1] as String
             log.warn "QuiltID.fetch: setting missing suffix to $split[1]"
         }
         String key = "${bucket}/${split[0]}/${split[1]}"
-        if (!ids.containsKey(key)) {
-            ids[key] = new QuiltID(bucket, split[0], split[1])
+        if (!QIDS.containsKey(key)) {
+            QIDS[key] = new QuiltID(bucket, split[0], split[1])
         }
-        return ids[key]
+        return QIDS[key]
     }
 
     QuiltID(String bucket, String pkgPrefix, String pkgSuffix) {
@@ -59,7 +58,7 @@ class QuiltID {
     }
 
     String toString() {
-        "${bucket}.${pkgPrefix}.${pkgSuffix}"
+        return "${bucket}.${pkgPrefix}.${pkgSuffix}"
     }
 
 }

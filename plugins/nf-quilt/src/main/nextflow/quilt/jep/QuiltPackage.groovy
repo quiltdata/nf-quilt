@@ -24,13 +24,13 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.stream.Collectors
 import java.text.SimpleDateFormat
-import java.util.Date
+import java.util.Locale
 
 @Slf4j
 @CompileStatic
 class QuiltPackage {
 
-    private static final Map<String,QuiltPackage> packages = [:]
+    private static final Map<String,QuiltPackage> PKGS = [:]
     private static final String INSTALL_PREFIX = 'QuiltPackage'
     public static final Path INSTALL_ROOT = Files.createTempDirectory(INSTALL_PREFIX)
 
@@ -40,14 +40,20 @@ class QuiltPackage {
     private final Path folder
     private boolean installed
 
-    static public QuiltPackage ForParsed(QuiltParser parsed) {
+    static String today() {
+        Date dateObj =  new Date()
+        return new SimpleDateFormat('yyyy-MM-dd', Locale.getDefault()).format(dateObj)
+    }
+
+    static QuiltPackage forParsed(QuiltParser parsed) {
         def pkgKey = parsed.toPackageString()
-        def pkg = packages.get(pkgKey)
-        if (pkg) return pkg
+        def pkg = PKGS.get(pkgKey)
+        if (pkg) { return pkg }
+
         pkg = new QuiltPackage(parsed)
-        packages[pkgKey] = pkg
+        PKGS[pkgKey] = pkg
         try {
-            log.debug "Installing `${pkg}` ForParsed(${parsed}) "
+            log.debug "Installing `${pkg}` forParsed(${parsed}) "
             pkg.install()
         }
         catch (Exception e) {
@@ -57,24 +63,21 @@ class QuiltPackage {
     }
 
     static protected List<Path> listDirectory(Path rootPath) {
-        Files.walk(rootPath).sorted(Comparator.reverseOrder()).collect(Collectors.toList())
+        return Files.walk(rootPath).sorted(Comparator.reverseOrder()).collect(Collectors.toList())
     }
 
     static protected boolean deleteDirectory(Path rootPath) {
-        if (!Files.exists(rootPath)) return false
+        if (!Files.exists(rootPath)) { return false }
         try {
             final List<Path> pathsToDelete = listDirectory(rootPath)
             for (Path path : pathsToDelete) {
                 Files.deleteIfExists(path)
             }
         }
-        catch (java.nio.file.NoSuchFileException e) { }
+        catch (java.nio.file.NoSuchFileException e) { 
+            log.debug "deleteDirectory: ignore non-existent files"
+        }
         return true
-    }
-
-    static public String today() {
-        Date dateObj =  new Date()
-        new SimpleDateFormat('yyyy-MM-dd').format(dateObj)
     }
 
     QuiltPackage(QuiltParser parsed) {
@@ -98,7 +101,7 @@ class QuiltPackage {
             def relative = pathString.replace(base, '')
             result.add(relative)
         }
-        result
+        return result
     }
 
     void reset() {
@@ -111,35 +114,35 @@ class QuiltPackage {
     }
 
     String key_dest() {
-        "--dest ${packageDest()}"
+        return "--dest ${packageDest()}"
     }
 
     String key_dir() {
-        "--dir ${packageDest()}"
+        return "--dir ${packageDest()}"
     }
 
     String key_force() {
-        '--force true'
+        return '--force true'
     }
 
     String key_hash() {
-        "--top-hash $hash"
+        return "--top-hash $hash"
     }
 
     String key_meta(String meta='[]') {
-        "--meta '$meta'"
+        return "--meta '$meta'"
     }
 
     String key_msg(prefix='') {
-        "--message 'nf-quilt:${prefix}@${today()}'"
+        return "--message 'nf-quilt:${prefix}@${today()}'"
     }
 
     String key_path() {
-        "--path=${packageDest()}"
+        return "--path=${packageDest()}"
     }
 
     String key_registry() {
-        "--registry s3://${bucket}"
+        return "--registry s3://${bucket}"
     }
 
     int call(String... args) {
@@ -157,10 +160,11 @@ class QuiltPackage {
         if (exitCode > 0) {
             log.warn "`call.exitCode` ${exitCode}: ${result}"
         }
-        exitCode
+        return exitCode
     }
 
-    // usage: quilt3 install [-h] [--registry REGISTRY] [--top-hash TOP_HASH] [--dest DEST] [--dest-registry DEST_REGISTRY] [--path PATH] name
+    // usage: quilt3 install [-h] [--registry REGISTRY] [--top-hash TOP_HASH] 
+    // [--dest DEST] [--dest-registry DEST_REGISTRY] [--path PATH] name
     Path install() {
         if ('latest' == hash || hash == null || hash == 'null') {
             call('install', packageName, key_registry(), key_dest())
@@ -168,15 +172,15 @@ class QuiltPackage {
             call('install', packageName, key_registry(), key_hash(), key_dest())
         }
         installed = true
-        packageDest()
+        return packageDest()
     }
 
     boolean isInstalled() {
-        installed
+        return installed
     }
 
     Path packageDest() {
-        folder
+        return folder
     }
 
     // https://docs.quiltdata.com/v/version-5.0.x/examples/gitlike#install-a-package
@@ -194,7 +198,7 @@ class QuiltPackage {
 
     @Override
     String toString() {
-        "${bucket}_${packageName}".replaceAll(/[-\/]/, '_')
+        return "${bucket}_${packageName}".replaceAll(/[-\/]/, '_')
     }
 
 }
