@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 package nextflow.quilt.jep
-import nextflow.quilt.jep.QuiltParser /* groovylint-disable-line UnnecessaryGroovyImport */
+
+import nextflow.quilt.jep.QuiltParser /* groovylint-disable-line ImportFromSamePackage */
 
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j

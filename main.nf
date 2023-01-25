@@ -1,4 +1,6 @@
 #!/usr/bin/env nextflow
+/* groovylint-disable CompileStatic */
+
 nextflow.enable.dsl = 2
 
 params.src = 'quilt+s3://quilt-example#package=examples/hurdat'
