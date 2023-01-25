@@ -21,6 +21,7 @@ import nextflow.quilt.QuiltObserver
 import java.nio.file.Path
 import java.nio.file.Paths
 import spock.lang.Unroll
+import groovy.transform.CompileStatic
 
 /**
  *

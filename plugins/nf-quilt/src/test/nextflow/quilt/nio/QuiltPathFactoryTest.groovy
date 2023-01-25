@@ -21,6 +21,7 @@ import nextflow.Channel
 import nextflow.Global
 import nextflow.Session
 import spock.lang.Unroll
+import groovy.transform.CompileStatic
 
 /**
  *

@@ -32,6 +32,7 @@ import nextflow.plugin.TestPluginManager
 import nextflow.plugin.extension.PluginExtensionProvider
 import org.pf4j.PluginDescriptorFinder
 import groovy.util.logging.Slf4j
+import groovy.transform.CompileStatic
 import spock.lang.Shared
 import spock.lang.Timeout
 import spock.lang.Specification

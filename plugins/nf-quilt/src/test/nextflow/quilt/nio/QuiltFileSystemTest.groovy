@@ -5,6 +5,7 @@ import nextflow.quilt.jep.QuiltParser
 import java.nio.file.Paths
 
 import spock.lang.Ignore
+import groovy.transform.CompileStatic
 
 /**
  *

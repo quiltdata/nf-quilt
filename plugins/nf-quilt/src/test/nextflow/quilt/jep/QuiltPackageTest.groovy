@@ -31,6 +31,7 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import java.nio.file.attribute.BasicFileAttributes
 import groovy.util.logging.Slf4j
+import groovy.transform.CompileStatic
 
 /**
  *

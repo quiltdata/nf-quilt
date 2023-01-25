@@ -22,6 +22,7 @@ import spock.lang.Requires
 import spock.lang.Shared
 import spock.lang.Ignore
 import groovy.util.logging.Slf4j
+import groovy.transform.CompileStatic
 
 /**
  *

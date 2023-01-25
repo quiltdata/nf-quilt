@@ -4,6 +4,7 @@ import nextflow.quilt.QuiltSpecification
 import spock.lang.Unroll
 import spock.lang.Ignore
 import groovy.util.logging.Slf4j
+import groovy.transform.CompileStatic
 
 /**
  *

@@ -19,6 +19,7 @@ package nextflow.quilt.nio
 import nextflow.Global
 import nextflow.Session
 import nextflow.executor.BashFunLib
+import groovy.transform.CompileStatic
 
 /**
  * Quilt helper class
