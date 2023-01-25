@@ -28,6 +28,7 @@ import groovy.util.logging.Slf4j
  * @author Ernest Prabhakar <ernest@quiltdata.io>
  */
 @Slf4j
+@CompileStatic
 class QuiltNioTest extends QuiltSpecification {
     static String null_url = 'quilt+s3://quilt-dev-null#package=test/null'
     public static def null_path(f) { null_url+"&path=$f" }

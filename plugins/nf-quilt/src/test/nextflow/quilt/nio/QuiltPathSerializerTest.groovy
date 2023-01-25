@@ -26,6 +26,7 @@ import nextflow.Session
  *
  * @author Ernest Prabhakar <ernest@quiltdata.io>
  */
+@CompileStatic
 class QuiltPathSerializerTest extends QuiltSpecification {
 
     static String url = 'quilt+s3://bucket#package=pkg%2fname&path=sample.csv'

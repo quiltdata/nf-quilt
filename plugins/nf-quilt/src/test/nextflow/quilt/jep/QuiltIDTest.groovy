@@ -10,6 +10,7 @@ import groovy.util.logging.Slf4j
  * @author Ernest Prabhakar <ernest@quiltdata.io>
  */
 @Slf4j
+@CompileStatic
 class QuiltIDTest extends QuiltSpecification {
     def 'should null on missing bucket'() {
         when:

@@ -11,6 +11,7 @@ import spock.lang.Ignore
  *
  * @author Ernest Prabhakar <ernest@quiltdata.io>
  */
+@CompileStatic
 class QuiltFileSystemProviderTest extends QuiltSpecification {
 
     def 'should return Quilt storage scheme'() {

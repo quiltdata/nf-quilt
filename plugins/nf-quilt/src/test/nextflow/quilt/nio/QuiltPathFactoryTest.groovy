@@ -26,7 +26,7 @@ import spock.lang.Unroll
  *
  * @author Ernest Prabhakar <ernest@quiltdata.io>
  */
-
+@CompileStatic
 class QuiltPathFactoryTest extends QuiltSpecification {
 
     static String packageURL = 'quilt+s3://quilt-example#package=examples/hurdat@f8d1478d93'

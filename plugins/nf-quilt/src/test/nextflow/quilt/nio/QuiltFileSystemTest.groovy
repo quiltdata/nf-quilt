@@ -10,6 +10,7 @@ import spock.lang.Ignore
  *
  * @author Paolo Di Tommaso <paolo.ditommaso@gmail.com>
  */
+@CompileStatic
 class QuiltFileSystemTest extends QuiltSpecification {
 
     def 'should test getPath' () {

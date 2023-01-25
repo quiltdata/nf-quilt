@@ -23,6 +23,7 @@ import nextflow.executor.BashFunLib
 /**
  * Quilt helper class
  */
+@CompileStatic
 class QuiltBashLib extends BashFunLib<QuiltBashLib> {
 
     static String script() {

@@ -10,6 +10,7 @@ import groovy.util.logging.Slf4j
  * @author Ernest Prabhakar <ernest@quiltdata.io>
  */
 @Slf4j
+@CompileStatic
 class QuiltParserTest extends QuiltSpecification {
 
     static String path_url = 'quilt+s3://bucket-name#package=quilt/test@abc1&path=sub%2Fpath'

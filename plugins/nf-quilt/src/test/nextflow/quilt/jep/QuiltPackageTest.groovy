@@ -38,6 +38,7 @@ import groovy.util.logging.Slf4j
  */
 
 @Slf4j
+@CompileStatic
 class QuiltPackageTest extends QuiltSpecification {
     QuiltPathFactory factory
     QuiltPath qpath

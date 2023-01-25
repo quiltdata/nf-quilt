@@ -26,6 +26,7 @@ import spock.lang.Unroll
  *
  * @author Ernest Prabhakar <ernest@quiltdata.io>
  */
+@CompileStatic
 class QuiltObserverTest extends QuiltSpecification {
 
     def 'should generate solid string for timestamp'() {

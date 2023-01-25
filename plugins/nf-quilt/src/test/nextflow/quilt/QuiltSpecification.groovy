@@ -42,6 +42,7 @@ import sun.nio.fs.UnixPath
  * @author Ernest Prabhakar <ernest@quiltdata.io>
  */
 @Slf4j
+@CompileStatic
 abstract class QuiltSpecification extends Specification {
 
     @Shared String pluginsMode
