@@ -23,7 +23,7 @@ import nextflow.quilt.nio.QuiltPathFactory
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
-import java.text.SimpleDateFormat
+import java.time.LocalDateTime;  
 
 import groovy.json.JsonOutput
 import groovy.transform.CompileStatic
@@ -52,9 +52,8 @@ class QuiltObserver implements TraceObserver {
     }
 
     static String now() {
-        def date = new Date()
-        def sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss")
-        return sdf.format(date)
+        LocalDateTime time = LocalDateTime.now()
+        return time.toString()
     }
 
     static QuiltPath asQuiltPath(Path path) {

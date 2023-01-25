@@ -22,7 +22,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.stream.Collectors
-import java.text.SimpleDateFormat
+import java.time.LocalDate
 
 @Slf4j
 @CompileStatic
@@ -39,8 +39,8 @@ class QuiltPackage {
     private boolean installed
 
     static String today() {
-        Date dateObj =  new Date()
-        return new SimpleDateFormat('yyyy-MM-dd', Locale.getDefault()).format(dateObj)
+        LocalDate date = LocalDate.now() 
+        return date.toString()
     }
 
     static QuiltPackage forParsed(QuiltParser parsed) {
