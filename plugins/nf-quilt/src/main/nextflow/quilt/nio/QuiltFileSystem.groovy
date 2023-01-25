@@ -95,7 +95,7 @@ public final class QuiltFileSystem extends FileSystem {
 
     QuiltFileAttributesView getFileAttributeView(QuiltPath path) {
         log.debug "QuiltFileAttributesView QuiltFileSystem.getFileAttributeView($path)"
-        def pathString = path.toUriString()
+        String pathString = path.toUriString()
         try {
             QuiltFileAttributes attrs = readAttributes(path)
             return new QuiltFileAttributesView(attrs)
@@ -146,15 +146,15 @@ public final class QuiltFileSystem extends FileSystem {
     }
 
     String toUriString(Path path) {
-        return path instanceof QuiltPath ? ((QuiltPath)path).toUriString() : null
+        return path in QuiltPath ? ((QuiltPath)path).toUriString() : null
     }
 
     String getBashLib(Path path) {
-        return path instanceof QuiltPath ? QuiltBashLib.script() : null
+        return path in QuiltPath ? QuiltBashLib.script() : null
     }
 
     String getUploadCmd(String source, Path target) {
-        return target instanceof QuiltPath ?  QuiltFileCopyStrategy.uploadCmd(source, target) : null
+        return target in QuiltPath ?  QuiltFileCopyStrategy.uploadCmd(source, target) : null
     }
 
     @Override

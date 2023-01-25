@@ -46,14 +46,14 @@ abstract class QuiltSpecification extends Specification {
 
     @Shared String pluginsMode
 
-    def setupSpec() {
+    void setupSpec() {
         // reset previous instances
         PluginExtensionProvider.reset()
         // this need to be set *before* the plugin manager class is created
         pluginsMode = System.getProperty('pf4j.mode')
         System.setProperty('pf4j.mode', 'dev')
         // the plugin root should
-        def root = Path.of('.').toAbsolutePath().normalize()
+        Path root = Path.of('.').toAbsolutePath().normalize()
         def manager = new TestPluginManager(root){
 
             @Override
@@ -73,7 +73,7 @@ abstract class QuiltSpecification extends Specification {
         Plugins.startIfMissing('nf-quilt')
     }
 
-    def cleanupSpec() {
+    void cleanupSpec() {
         Plugins.stop()
         PluginExtensionProvider.reset()
         pluginsMode ? System.setProperty('pf4j.mode', pluginsMode) : System.clearProperty('pf4j.mode')
@@ -81,36 +81,36 @@ abstract class QuiltSpecification extends Specification {
 
     Path createObject(String url, String text) {
         assert url
-        def path = Paths.get(new URI(url))
-        createObject(path, text)
+        Path path  = Paths.get(new URI(url))
+        return createObject(path, text)
     }
 
     Path createObject(Path path, String text) {
         assert path
         log.debug "Write String[$text] to '$path'"
         Files.write(path, text.bytes)
-        path.localPath()
+        return path.localPath()
     }
 
     boolean existsPath(String path) {
         assert path
         log.debug "Check path string exists '$path'"
-        Files.exists(Paths.get(path))
+        return Files.exists(Paths.get(path))
     }
 
     boolean existsPath(QuiltPath path) {
         log.debug "Check path object exists '$path'"
         final local = path.localPath()
-        existsPath(local.toString())
+        return existsPath(local.toString())
     }
 
     String readObject(Path path) {
         log.debug "Read String from '$path'"
-        new String(Files.readAllBytes(path))
+        return new String(Files.readAllBytes(path))
     }
 
     String readChannel(SeekableByteChannel sbc, int buffLen)  {
-        def buffer = new ByteArrayOutputStream()
+        ByteArrayOutputStream buffer = new ByteArrayOutputStream()
         ByteBuffer bf = ByteBuffer.allocate(buffLen)
         while ((sbc.read(bf)) > 0) {
             bf.flip()
@@ -118,7 +118,7 @@ abstract class QuiltSpecification extends Specification {
             bf.clear()
         }
 
-        buffer.toString()
+        return buffer.toString()
     }
 
     void writeChannel(SeekableByteChannel channel, String content, int buffLen) {
@@ -126,7 +126,7 @@ abstract class QuiltSpecification extends Specification {
         ByteBuffer buf = ByteBuffer.allocate(buffLen)
         int i = 0
         while (i < bytes.size()) {
-            def len = Math.min(buffLen, bytes.size() - i)
+            int len = Math.min(buffLen, bytes.size() - i)
             buf.clear()
             buf.put(bytes, i, len)
             buf.flip()
@@ -139,9 +139,9 @@ abstract class QuiltSpecification extends Specification {
     protected Path mockQuiltPath(String path, boolean isDir=false) {
         assert path.startsWith('quilt+s3://')
 
-        def tokens = path.tokenize('/')
-        def bucket = tokens[1]
-        def file = '/' + tokens[2..-1].join('/')
+        List<String> tokens = path.tokenize('/')
+        String bucket = tokens[1]
+        String file = '/' + tokens[2..-1].join('/')
 
         def attr = Mock(BasicFileAttributes)
         attr.isDirectory() >> isDir
@@ -168,8 +168,8 @@ abstract class QuiltSpecification extends Specification {
         result.toAbsolutePath() >> result
         result.asBoolean() >> true
         result.getParent() >> {
-            def p = path.lastIndexOf('/')
-            return (p != -1) ? mockQuiltPath("${path.substring(0, p)}", true) : null
+            int p = path.lastIndexOf('/')
+            return (p == -1) ? null : mockQuiltPath("${path.substring(0, p)}", true) 
         }
         result.getFileName() >> { Paths.get(tokens[-1]) }
         result.getName() >> tokens[1]

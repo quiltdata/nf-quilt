@@ -200,7 +200,7 @@ public final class QuiltPath implements Path {
     @Override
     Path relativize(Path other) {
         if (this == other) return null
-        String file = (other instanceof QuiltPath) ? ((QuiltPath)other).localPath() : other.toString()
+        String file = (other in QuiltPath) ? ((QuiltPath)other).localPath() : other.toString()
         String base = [pkg().toString(), parsed.path()].join(QuiltParser.SEP)
         log.debug "relativize[$base] in [$file]"
         int i = file.indexOf(base)

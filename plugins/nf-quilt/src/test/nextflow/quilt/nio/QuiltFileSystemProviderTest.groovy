@@ -11,9 +11,9 @@ import groovy.transform.CompileDynamic
 @CompileDynamic
 class QuiltFileSystemProviderTest extends QuiltSpecification {
 
-    def 'should return Quilt storage scheme'() {
+    void 'should return Quilt storage scheme'() {
         given:
-        def provider = new QuiltFileSystemProvider()
+        QuiltFileSystemProvider provider = new QuiltFileSystemProvider()
         expect:
         provider.getScheme() == 'quilt+s3'
     }

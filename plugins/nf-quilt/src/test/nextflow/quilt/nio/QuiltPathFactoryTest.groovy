@@ -16,10 +16,10 @@
 package nextflow.quilt.nio
 
 import nextflow.quilt.QuiltSpecification
-
 import nextflow.Channel
 import nextflow.Global
 import nextflow.Session
+import java.nio.file.Path
 import groovy.transform.CompileDynamic
 
 /**
@@ -32,9 +32,9 @@ class QuiltPathFactoryTest extends QuiltSpecification {
     static String packageURL = 'quilt+s3://quilt-example#package=examples/hurdat@f8d1478d93'
     static String url = packageURL + '&path=scripts/build.py'
 
-    def 'should decompose Quilt URLs' () {
+    void 'should decompose Quilt URLs' () {
         given:
-        def qpath = QuiltPathFactory.Parse(url)
+        Path qpath = QuiltPathFactory.Parse(url)
         expect:
         qpath != null
         qpath.bucket() == 'quilt-example'
@@ -42,7 +42,7 @@ class QuiltPathFactoryTest extends QuiltSpecification {
         qpath.file_key() == 'scripts/build.py'
     }
 
-    def 'should create quilt path #PATH' () {
+    void 'should create quilt path #PATH' () {
         given:
         Global.session = Mock(Session) {
             getConfig() >> [quilt:[project:'foo', region:'x']]
@@ -56,7 +56,7 @@ class QuiltPathFactoryTest extends QuiltSpecification {
         _ | 'quilt+s3://reg#package=user/pkg'           | 'reg#package=user%2fpkg'
     }
 
-    def 'should create Channel from URL' () {
+    void 'should create Channel from URL' () {
         expect:
         def channel = Channel.fromPath(url) // +'/*'
         channel

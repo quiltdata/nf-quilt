@@ -55,7 +55,7 @@ public class QuiltPathIterator implements Iterator<Path> {
         QuiltPath result = null
         while( result == null && itr.hasNext() ) {
             def item = itr.next()
-            def path = dir.resolve(item)
+            Path path  = dir.resolve(item)
             if( path == dir)    // make sure to  skip the original path
                 result = null
             else if( filter )

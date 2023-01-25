@@ -2,6 +2,7 @@ package nextflow.quilt.nio
 import nextflow.quilt.QuiltSpecification
 import nextflow.quilt.jep.QuiltParser
 
+import java.nio.file.Path
 import java.nio.file.Paths
 import groovy.util.logging.Slf4j
 
@@ -32,10 +33,10 @@ class QuiltPathTest extends QuiltSpecification {
     }
 
     @Unroll
-    def 'should create a path: #objectName'() {
+    void 'should create a path: #objectName'() {
 
         when:
-        def path = pathify(objectName)
+        Path path = pathify(objectName)
         then:
         path.toString() == expected
         //path.directory == dir
@@ -50,13 +51,13 @@ class QuiltPathTest extends QuiltSpecification {
         '#package=o%2fs&path=b.c'       | 'null#package=o%2fs&path=b.c'     | false
     }
 
-    def 'should validate equals and hashCode'() {
+    void 'should validate equals and hashCode'() {
 
         when:
-        def path1 = pathify('bucket#package=so%2fme&path=file-name.txt')
-        def path2 = pathify('bucket#package=so%2fme&path=file-name.txt')
-        def path3 = pathify('bucket#package=ot%2fher&path=file-name.txt')
-        def path4 = pathify('bucket2#package=so%2fme&path=file-name.txt')
+        Path path1 = pathify('bucket#package=so%2fme&path=file-name.txt')
+        Path path2 = pathify('bucket#package=so%2fme&path=file-name.txt')
+        Path path3 = pathify('bucket#package=ot%2fher&path=file-name.txt')
+        Path path4 = pathify('bucket2#package=so%2fme&path=file-name.txt')
 
         then:
         path1 == path2
@@ -67,28 +68,28 @@ class QuiltPathTest extends QuiltSpecification {
         path1.hashCode() != path3.hashCode()
 
         when:
-        def rel1 = pathify('file.txt')
-        def rel2 = pathify('file.txt')
+        Path rel1 = pathify('file.txt')
+        Path rel2 = pathify('file.txt')
         then:
         rel1 == rel2
         rel1.hashCode() == rel2.hashCode()
 
     }
 
-    def 'should validate isAbsolute'() {
+    void 'should validate isAbsolute'() {
         when:
-        def path1 = pathify('bucket#package=so%2fme&path=file-name.txt')
-        def path2 = pathify('file-name.txt')
+        Path path1 = pathify('bucket#package=so%2fme&path=file-name.txt')
+        Path path2 = pathify('file-name.txt')
 
         then:
         path1.isAbsolute()
         !path2.isAbsolute()
     }
 
-    def 'should validate getRoot'() {
+    void 'should validate getRoot'() {
         when:
-        def path1 = pathify('bucket#package=so%2fme&path=file-name.txt')
-        def path2 = pathify('#path=file-name.txt')
+        Path path1 = pathify('bucket#package=so%2fme&path=file-name.txt')
+        Path path2 = pathify('#path=file-name.txt')
 
         then:
         path1.getRoot() == pathify('bucket#package=so%2fme')
@@ -97,9 +98,9 @@ class QuiltPathTest extends QuiltSpecification {
     }
 
     @Unroll
-    def 'should return fsName and isJustPackage' () {
+    void 'should return fsName and isJustPackage' () {
         when:
-        def p = pathify(path)
+        Path p = pathify(path)
         then:
         p.isJustPackage() == expected
         p.getFileSystem().toString() == fsName
@@ -114,7 +115,7 @@ class QuiltPathTest extends QuiltSpecification {
     }
 
     @Ignore
-    def 'should validate getFileName'() {
+    void 'should validate getFileName'() {
         expect:
         pathify(path).getFileName() == pathify(fileName)
 
@@ -126,9 +127,9 @@ class QuiltPathTest extends QuiltSpecification {
     }
 
     @Unroll
-    def 'should validate getParent: #path'() {
+    void 'should validate getParent: #path'() {
         given:
-        def parent_path = (parent ? pathify(parent) : null)
+        Path parent_path = (parent ? pathify(parent) : null)
         expect:
         pathify(path).getParent() == parent_path
 
@@ -141,7 +142,7 @@ class QuiltPathTest extends QuiltSpecification {
     }
 
     @Unroll
-    def 'should validate toUri: #uri'() {
+    void 'should validate toUri: #uri'() {
         expect:
         pathify(path).toUri() == new URI(uri)
         pathify(path).toUri().scheme == new URI(uri).scheme
@@ -158,7 +159,7 @@ class QuiltPathTest extends QuiltSpecification {
 
 
     @Unroll
-    def 'should validate resolve: base:=#base; path=#path'() {
+    void 'should validate resolve: base:=#base; path=#path'() {
 
         expect:
         pathify(base).resolve(path) == pathify(expected)
@@ -173,7 +174,7 @@ class QuiltPathTest extends QuiltSpecification {
     }
 
     @Ignore
-    def 'should validate subpath: #expected'() {
+    void 'should validate subpath: #expected'() {
         expect:
         pathify(path).subpath(from, to) == pathify(expected)
         where:
@@ -184,7 +185,7 @@ class QuiltPathTest extends QuiltSpecification {
     }
 
     @Unroll
-    def 'should validate startsWith: #prefix'() {
+    void 'should validate startsWith: #prefix'() {
         expect:
         pathify(path).startsWith(prefix) == expected
         pathify(path).startsWith(pathify(prefix)) == expected
@@ -200,7 +201,7 @@ class QuiltPathTest extends QuiltSpecification {
     }
 
     @Unroll
-    def 'should validate endsWith'() {
+    void 'should validate endsWith'() {
         expect:
         pathify(path).endsWith(suffix) == expected
         //pathify(path).endsWith(pathify(suffix)) == expected
@@ -216,7 +217,7 @@ class QuiltPathTest extends QuiltSpecification {
     }
 
     @Unroll
-    def 'should validate normalise'() {
+    void 'should validate normalise'() {
         expect:
         pathify(path).normalize() == pathify(expected)
         where:
@@ -227,7 +228,7 @@ class QuiltPathTest extends QuiltSpecification {
     }
 
     @Unroll
-    def 'should validate resolveSibling: #path' () {
+    void 'should validate resolveSibling: #path' () {
         expect:
         pathify(base).resolveSibling(path) == pathify(expected)
 
@@ -239,7 +240,7 @@ class QuiltPathTest extends QuiltSpecification {
     }
 
     @Unroll
-    def 'should validate relativize' () {
+    void 'should validate relativize' () {
         expect:
         pathify(path).relativize(pathify(other)).toString() == pathify(expected).toString()
         where:

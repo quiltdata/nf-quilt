@@ -46,18 +46,18 @@ class QuiltPathFactory extends FileSystemPathFactory {
 
     @Override
     protected String toUriString(Path p) {
-        if (p instanceof QuiltPath) {
+        if (p in QuiltPath) {
             return p.toUriString()
         }
         return null
     }
 
     protected String getBashLib(Path path) {
-        return path instanceof QuiltPath ? QuiltBashLib.script() : null
+        return path in QuiltPath ? QuiltBashLib.script() : null
     }
 
     protected String getUploadCmd(String source, Path target) {
-        return target instanceof QuiltPath ?  QuiltFileCopyStrategy.uploadCmd(source, target) : null
+        return target in QuiltPath ?  QuiltFileCopyStrategy.uploadCmd(source, target) : null
     }
 
 }

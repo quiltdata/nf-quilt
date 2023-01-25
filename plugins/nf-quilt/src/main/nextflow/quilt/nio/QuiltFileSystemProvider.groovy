@@ -68,7 +68,7 @@ class QuiltFileSystemProvider extends FileSystemProvider {
     }
 
     static QuiltPath asQuiltPath(Path path) {
-        if (path !instanceof QuiltPath) {
+        if (path !in QuiltPath) {
             String pathClassName = path?.class?.name ?: '-'
             throw new IllegalArgumentException("Not a valid Quilt blob storage path object: `${path}` [${pathClassName}]")
         }
@@ -78,7 +78,7 @@ class QuiltFileSystemProvider extends FileSystemProvider {
     static QuiltFileSystem getQuiltFilesystem(Path path) {
         final qPath = asQuiltPath(path)
         final fs = qPath.getFileSystem()
-        if (fs !instanceof QuiltFileSystem) {
+        if (fs !in QuiltFileSystem) {
             String pathClassName = path?.class?.name ?: '-'
             throw new IllegalArgumentException("Not a valid Quilt file system: `$fs` [${pathClassName}]")
         }
@@ -182,7 +182,7 @@ class QuiltFileSystemProvider extends FileSystemProvider {
     }
 
     QuiltFileSystem getFileSystem0(String quiltIDS, boolean canCreate) {
-        def fs = fileSystems.get(quiltIDS)
+        QuiltFileSystem fs = fileSystems.get(quiltIDS)
         if (fs) return fs
         if (canCreate) {
             return newFileSystem(quiltIDS, env)
@@ -258,7 +258,7 @@ class QuiltFileSystemProvider extends FileSystemProvider {
         log.debug "Creating `newByteChannel`: ${path} <- ${options}"
         final modeWrite = options.contains(WRITE) || options.contains(APPEND)
 
-        final qPath = asQuiltPath(path)
+        final QuiltPath qPath = asQuiltPath(path)
         Path installedPath = qPath.localPath()
         Path parent = installedPath.getParent()
         Files.createDirectories(parent)
@@ -270,7 +270,7 @@ class QuiltFileSystemProvider extends FileSystemProvider {
                 notifyFilePublish(qPath)
             }
             log.debug "\tOpening channel to: $installedPath"
-            def channel = FileChannel.open(installedPath, options)
+            FileChannel channel = FileChannel.open(installedPath, options)
             return channel
         }
         catch (java.nio.file.NoSuchFileException e) {
@@ -369,7 +369,7 @@ class QuiltFileSystemProvider extends FileSystemProvider {
     void checkAccess(Path path, AccessMode... modes) throws IOException {
         log.debug "Calling `checkAccess`: ${path}"
         checkRoot(path)
-        final qPath = asQuiltPath(path)
+        QuiltPath qPath = asQuiltPath(path)
         readAttributes(qPath, QuiltFileAttributes)
         if (AccessMode.EXECUTE in modes) {
             throw new AccessDeniedException(qPath.toUriString(), null, 'Execute permission not allowed')
@@ -381,7 +381,7 @@ class QuiltFileSystemProvider extends FileSystemProvider {
         log.debug "Calling `getFileAttributeView`: ${path}"
         checkRoot(path)
         if (type == BasicFileAttributeView || type == QuiltFileAttributesView) {
-            def qPath = asQuiltPath(path)
+            QuiltPath qPath = asQuiltPath(path)
             QuiltFileSystem fs = qPath.filesystem
             return (V)fs.getFileAttributeView(qPath)
         }
@@ -396,7 +396,7 @@ class QuiltFileSystemProvider extends FileSystemProvider {
             return attr
         }
         if (type == BasicFileAttributes || type == QuiltFileAttributes) {
-            def qPath = asQuiltPath(path)
+            QuiltPath qPath = asQuiltPath(path)
             QuiltFileSystem fs = qPath.filesystem
             def result = (A)fs.readAttributes(qPath)
             if (result) {
