@@ -17,10 +17,8 @@
 
 plugins {
     id 'io.codearte.nexus-staging' version '0.30.0'
-    id 'groovy'
     id 'java'
     id 'idea'
-    id 'com.bmuschko.clover' version '3.0.3'
 }
 
 // Add ability to test with upcoming versions of Groovy
@@ -100,7 +98,6 @@ allprojects {
         // see https://docs.gradle.org/4.1/userguide/dependency_management.html#sec:module_replacement
         implementation 'org.codehaus.groovy:groovy-all:3.0.14'
         implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.14.1'
-        implementation 'org.openclover:clover:4.4.1'
 
         modules {
             module('commons-logging:commons-logging') { replacedBy('org.slf4j:jcl-over-slf4j') }

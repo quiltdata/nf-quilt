@@ -21,8 +21,8 @@ check:
 coverage: compile
 	./gradlew cloverInstrumentCodeForTest
 
-.PHONY: test clean all
-test: coverage check
+.PHONY: clean test all
+test: clean check #coverage
 
 
 #
