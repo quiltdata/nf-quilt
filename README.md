@@ -23,7 +23,7 @@ which quilt3 # e.g., /usr/local/bin/quilt3
 
 ### Loading the nf-quilt plugin
 
-Once this plugin is officially published on `nextflow-io/plugins`, 
+Once this plugin is officially published on `nextflow-io/plugins`,
 you can enable it by modifying `nextflow.config`.
 Add the following snippet, or just add that one 'id' if you already have other plugins):
 ```groovy
@@ -43,8 +43,8 @@ Next, create a Quilt URL for the S3 bucket where you want to store (and eventual
 You must specify a package name containing exactly one '/', such as `instrument/experiment`
 e.g. "quilt+s3://raw-bucket#package=nf-quilt/sarek"
 
-Note your command-line environment must have 
-[AWS credentials](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html) 
+Note your command-line environment must have
+[AWS credentials](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html)
 that allow you to read/write that bucket.
 
 Finally, run your Nextflow pipeline as usual, setting that URL as your output directory, .e.g.:
@@ -123,5 +123,5 @@ Follow these steps to package, upload and publish the plugin:
  ```bash
  ./gradlew :plugins:publishIndex
  ```
- 
+
 6. Create a pull request to push your changes back to [nextflow-io/plugins](https://github.com/nextflow-io/plugins/blob/main/plugins.json)

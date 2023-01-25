@@ -2,7 +2,6 @@ package nextflow.quilt.nio
 
 import nextflow.quilt.QuiltSpecification
 
-
 import groovy.transform.CompileDynamic
 
 /**

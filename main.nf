@@ -1,5 +1,5 @@
 #!/usr/bin/env nextflow
-nextflow.enable.dsl=2
+nextflow.enable.dsl = 2
 
 params.src = 'quilt+s3://quilt-example#package=examples/hurdat'
 params.pub = '/var/tmp'
@@ -11,10 +11,10 @@ process transfer {
     publishDir params.pub, mode: 'copy', overwrite: true
 
     input:
-      path x
+    path x
 
     output:
-      path params.out + '/*'
+    path params.out + '/*'
 
     """
     mkdir -p $params.out
@@ -24,5 +24,5 @@ process transfer {
 }
 
 workflow {
-  packageFiles | transfer | view { it }
+    packageFiles | transfer | view { it }
 }

@@ -17,7 +17,6 @@
 // package nextflow.quilt.jep
 package nextflow.quilt.jep
 
-
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import java.nio.file.Files
