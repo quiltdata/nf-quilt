@@ -171,6 +171,6 @@ ${meta['workflow']['stats']['processes']}
         wf.remove('complete')
         printMap(wf, "workflow")
         log.info "\npublishing: ${wf['runName']}"
-        [params: params, config: cf, workflow: wf, time_start: start, time_complete: complete]
+        return [params: params, config: cf, workflow: wf, time_start: start, time_complete: complete]
     }
 }

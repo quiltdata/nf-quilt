@@ -39,12 +39,12 @@ class QuiltParser {
     private final Map<String,Object> options
 
     static public QuiltParser ForBarePath(String path) {
-        QuiltParser.ForUriString(PREFIX + path)
+        return QuiltParser.ForUriString(PREFIX + path)
     }
 
     static public QuiltParser ForUriString(String uri_string) {
         URI uri = new URI(uri_string)
-        QuiltParser.ForURI(uri)
+        return QuiltParser.ForURI(uri)
     }
 
     static public QuiltParser ForURI(URI uri) {
@@ -56,13 +56,13 @@ class QuiltParser {
         def options = parseQuery(uri.fragment)
         String pkg = options.get(P_PKG)
         String path = options.get(P_PATH)
-        new QuiltParser(uri.authority, pkg, path, options)
+        return new QuiltParser(uri.authority, pkg, path, options)
     }
 
     static private Map<String,Object> parseQuery(String query) {
         if (!query) return [:] // skip for urls without query params
         final queryParams = query.split('&')
-        queryParams.collectEntries { param -> param.split('=').collect { URLDecoder.decode(it) } }
+        return queryParams.collectEntries { param -> param.split('=').collect { URLDecoder.decode(it) } }
     }
 
     QuiltParser(String bucket, String pkg, String path, Map<String,Object> options = [:]) {
@@ -94,7 +94,7 @@ class QuiltParser {
             pkg = head.join(SEP)
             this.paths += tail
         }
-        pkg
+        return pkg
     }
 
     QuiltParser appendPath(String tail) {
@@ -102,23 +102,23 @@ class QuiltParser {
         while (path2.startsWith(SEP)) {
             path2 = path2.substring(1)
         }
-        new QuiltParser(bucket(), packageName(), path2, options)
+        return new QuiltParser(bucket(), packageName(), path2, options)
     }
 
     QuiltParser dropPath() {
         String[] subpath = ((paths.size() > 1) ? paths[0..-2] : []) as String[]
         String path2 = subpath.join(SEP)
-        new QuiltParser(bucket(), packageName(), path2, options)
+        return new QuiltParser(bucket(), packageName(), path2, options)
     }
 
     QuiltParser lastPath() {
         String path2 = paths.size() > 0 ? paths[-1] : ''
-        new QuiltParser(bucket(), packageName(), path2, options)
+        return new QuiltParser(bucket(), packageName(), path2, options)
     }
 
     QuiltParser subPath(int beginIndex, int endIndex) {
         String path2 = path(beginIndex, endIndex)
-        new QuiltParser(bucket(), packageName(), path2, options)
+        return new QuiltParser(bucket(), packageName(), path2, options)
     }
 
     QuiltParser normalized() {
@@ -138,52 +138,52 @@ class QuiltParser {
         log.debug("normalized: ${paths} -> ${rnorms}")
         String path2 = rnorms.reverse().join(SEP)
         log.debug("normalized: -> ${path2}")
-        new QuiltParser(bucket(), packageName(), path2, options)
+        return new QuiltParser(bucket(), packageName(), path2, options)
     }
 
     QuiltID quiltID() {
-        QuiltID.fetch(bucket(), packageName())
+        return QuiltID.fetch(bucket(), packageName())
     }
 
     String quiltIDS() {
-        quiltID().toString()
+        return quiltID().toString()
     }
 
     String bucket() {
-        bucket?.toLowerCase()
+        return bucket?.toLowerCase()
     }
 
     String packageName() {
-        packageName
+        return packageName
     }
 
     String hash() {
-        hash
+        return hash
     }
 
     String tag() {
-        tag
+        return tag
     }
 
     String path() {
-        paths.join(SEP)
+        return paths.join(SEP)
     }
 
     String path(int beginIndex, int endIndex) {
         String[] sub = paths[beginIndex..<endIndex]
-        sub.join(SEP)
+        return sub.join(SEP)
     }
 
     String[] paths() {
-        paths
+        return paths
     }
 
     boolean hasPath() {
-        paths.size() > 0
+        return paths.size() > 0
     }
 
     String options(String key) {
-        options?.get(key)
+        return options?.get(key)
     }
 
     String toPackageString() {
@@ -194,7 +194,7 @@ class QuiltParser {
             if (tag) { pkg += ":$tag" }
             str += "#package=${pkg.replace('/', '%2f')}"
         }
-        str
+        return str
     }
 
     String toString() {
@@ -202,10 +202,11 @@ class QuiltParser {
         if (! hasPath()) return str
         str += (packageName) ? '&' : '#'
         str += "path=${path().replace('/', '%2f')}"
+        return str
     }
 
     String toUriString() {
-        PREFIX + toString()
+        return PREFIX + toString()
     }
 
 }

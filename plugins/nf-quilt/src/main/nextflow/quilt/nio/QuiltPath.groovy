@@ -52,29 +52,29 @@ public final class QuiltPath implements Path {
     }
 
     public String bucket() {
-        parsed.bucket()
+        return parsed.bucket()
     }
 
     public String packageName() {
-        parsed.packageName()
+        return parsed.packageName()
     }
 
     public String sub_paths() {
-        parsed.path()
+        return parsed.path()
     }
 
     public QuiltPackage pkg() {
-        isAbsolute() ? QuiltPackage.forParsed(parsed) : null
+        return isAbsolute() ? QuiltPackage.forParsed(parsed) : null
     }
 
     public String file_key() {
-        sub_paths()
+        return sub_paths()
     }
 
     Path localPath() {
         Path pkgPath = pkg().packageDest()
         assert pkgPath
-        Paths.get(pkgPath.toUriString(), sub_paths())
+        return Paths.get(pkgPath.toUriString(), sub_paths())
     }
 
     public boolean deinstall() {
@@ -91,39 +91,39 @@ public final class QuiltPath implements Path {
     @Override
     boolean isAbsolute() {
         log.debug "isAbsolute[${packageName()}] : ${parsed}"
-        filesystem && packageName()
+        return filesystem && packageName()
     }
 
     boolean isJustPackage() {
-        !parsed.hasPath()
+        return !parsed.hasPath()
     }
 
     QuiltPath getJustPackage() {
         if (isJustPackage()) return this
         QuiltParser packageParsed = QuiltParser.ForBarePath(parsed.toPackageString())
-        new QuiltPath(filesystem, packageParsed)
+        return new QuiltPath(filesystem, packageParsed)
     }
 
     @Override
     Path getRoot() {
-        isAbsolute() ? getJustPackage() : null
+        return isAbsolute() ? getJustPackage() : null
     }
 
     @Override
     Path getFileName() {
         log.debug "getFileName`[${this}]: paths=$paths"
-        isJustPackage() ? this : new QuiltPath(filesystem, parsed.lastPath()) // IF DIRECTORY
+        return isJustPackage() ? this : new QuiltPath(filesystem, parsed.lastPath()) // IF DIRECTORY
     }
 
     @Override
     Path getParent() {
         log.debug "${this}.getParent: ${paths}`"
-        new QuiltPath(filesystem, parsed.dropPath())
+        return new QuiltPath(filesystem, parsed.dropPath())
     }
 
     @Override
     int getNameCount() {
-        paths.size()
+        return paths.size()
     }
 
     @Override
@@ -135,27 +135,27 @@ public final class QuiltPath implements Path {
     @Override
     Path subpath(int beginIndex, int endIndex) {
         QuiltParser p2 = parsed.subPath(beginIndex, endIndex)
-        new QuiltPath(filesystem, p2)
+        return new QuiltPath(filesystem, p2)
     }
 
     @Override
     boolean startsWith(Path other) {
-        startsWith(other.toString())
+        return startsWith(other.toString())
     }
 
     @Override
     boolean startsWith(String other) {
-        toString().startsWith(other)
+        return toString().startsWith(other)
     }
 
     @Override
     boolean endsWith(Path other) {
-        endsWith(other.toString())
+        return endsWith(other.toString())
     }
 
     @Override
     boolean endsWith(String other) {
-        toString().endsWith(other)
+        return toString().endsWith(other)
     }
 
     @Override
@@ -165,7 +165,7 @@ public final class QuiltPath implements Path {
 
     @Override
     Path normalize() {
-        new QuiltPath(filesystem, parsed.normalized())
+        return new QuiltPath(filesystem, parsed.normalized())
     }
 
     @Override
@@ -184,7 +184,7 @@ public final class QuiltPath implements Path {
 
     @Override
     QuiltPath resolve(String other) {
-        new QuiltPath(filesystem, parsed.appendPath(other))
+        return new QuiltPath(filesystem, parsed.appendPath(other))
     }
 
     @Override
@@ -194,7 +194,7 @@ public final class QuiltPath implements Path {
 
     @Override
     Path resolveSibling(String other) {
-        new QuiltPath(filesystem, parsed.dropPath().appendPath(other))
+        return new QuiltPath(filesystem, parsed.dropPath().appendPath(other))
     }
 
     @Override
@@ -211,26 +211,26 @@ public final class QuiltPath implements Path {
         String tail = file.substring(i + base.size())
         if (tail.size() > 0 && tail[0] == '/') tail = tail.substring(1) // drop leading "/"
         log.debug "tail[$i] -> $tail"
-        Paths.get(tail)
+        return Paths.get(tail)
     }
 
     @Override
     String toString() {
-        parsed.toString()
+        return parsed.toString()
     }
 
     String toUriString() {
-        parsed.toUriString()
+        return parsed.toUriString()
     }
 
     @Override
     URI toUri() {
-        new URI(toUriString())
+        return new URI(toUriString())
     }
 
     @Override
     int hashCode() {
-        toString().hashCode()
+        return toString().hashCode()
     }
 
     @Override

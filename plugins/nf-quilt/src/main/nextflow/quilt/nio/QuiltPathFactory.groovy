@@ -34,7 +34,7 @@ class QuiltPathFactory extends FileSystemPathFactory {
 
     static public QuiltPath Parse(String path) {
         QuiltPathFactory factory = new QuiltPathFactory()
-        (QuiltPath) factory.parseUri(path)
+        return (QuiltPath) factory.parseUri(path)
     }
 
     @Override
