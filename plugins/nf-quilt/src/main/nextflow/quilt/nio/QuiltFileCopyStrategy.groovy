@@ -43,6 +43,6 @@ class QuiltFileCopyStrategy extends SimpleFileCopyStrategy {
     }
 
     static String uploadCmd(String source, Path target) {
-        "quilt3 push ${Escape.path(source)} ${Escape.uriPath(target)}"
+        return "quilt3 push ${Escape.path(source)} ${Escape.uriPath(target)}"
     }
 }
