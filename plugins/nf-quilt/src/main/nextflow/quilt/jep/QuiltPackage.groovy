@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 // https://medium.com/geekculture/how-to-execute-python-modules-from-java-2384041a3d6d
-// package nextflow.quilt.jep
 package nextflow.quilt.jep
 
 import groovy.transform.CompileStatic
