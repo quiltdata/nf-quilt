@@ -35,3 +35,8 @@ jobs:
     # Mega-Linter
     - name: MegaLinter
       uses: oxsecurity/megalinter/flavors/dotnet@v6.18.0
+
+    - uses: actions/upload-artifact@v3
+      with:
+        name: linted_sources
+        path: ${{ github.workspace }}/megalinter-reports/updated_sources/
