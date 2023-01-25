@@ -67,7 +67,7 @@ class QuiltFileSystemProvider extends FileSystemProvider {
         return QuiltParser.SCHEME
     }
 
-    static private QuiltPath asQuiltPath(Path path) {
+    static QuiltPath asQuiltPath(Path path) {
         if (path !instanceof QuiltPath) {
             String pathClassName = path?.class?.name ?: '-'
             throw new IllegalArgumentException("Not a valid Quilt blob storage path object: `${path}` [${pathClassName}]")
@@ -75,7 +75,7 @@ class QuiltFileSystemProvider extends FileSystemProvider {
         return (QuiltPath)path
     }
 
-    static private QuiltFileSystem getQuiltFilesystem(Path path) {
+    static QuiltFileSystem getQuiltFilesystem(Path path) {
         final qPath = asQuiltPath(path)
         final fs = qPath.getFileSystem()
         if (fs !instanceof QuiltFileSystem) {
@@ -85,7 +85,7 @@ class QuiltFileSystemProvider extends FileSystemProvider {
         return (QuiltFileSystem)fs
     }
 
-    protected String getQuiltIDS(URI uri) {
+    String getQuiltIDS(URI uri) {
         assert uri
         QuiltParser parsed = QuiltParser.ForURI(uri)
         return parsed.quiltID().toString()
@@ -181,7 +181,7 @@ class QuiltFileSystemProvider extends FileSystemProvider {
         getFileSystem0(quiltIDS, false)
     }
 
-    protected QuiltFileSystem getFileSystem0(String quiltIDS, boolean canCreate) {
+    QuiltFileSystem getFileSystem0(String quiltIDS, boolean canCreate) {
         def fs = fileSystems.get(quiltIDS)
         if (fs) return fs
         if (canCreate) {
@@ -226,11 +226,11 @@ class QuiltFileSystemProvider extends FileSystemProvider {
         new QuiltPath(fs, parsed)
     }
 
-    static private FileSystemProvider provider(Path path) {
+    static FileSystemProvider provider(Path path) {
         path.getFileSystem().provider()
     }
 
-    private void checkRoot(Path path) {
+    void checkRoot(Path path) {
         if (path.toString() == '/') {
             throw new UnsupportedOperationException("Operation 'checkRoot' not supported on root path")
         }
@@ -245,7 +245,7 @@ class QuiltFileSystemProvider extends FileSystemProvider {
     * @return
     * @throws IOException
     */
-    protected void notifyFilePublish(QuiltPath destination, Path source=null) {
+    void notifyFilePublish(QuiltPath destination, Path source=null) {
         final sess = Global.session
         if (sess instanceof Session) {
             sess.notifyFilePublish((Path)destination, source)
@@ -253,7 +253,7 @@ class QuiltFileSystemProvider extends FileSystemProvider {
     }
 
     @Override
-    public SeekableByteChannel newByteChannel(
+    SeekableByteChannel newByteChannel(
       Path path, Set<? extends OpenOption> options, FileAttribute<?>... attrs) throws IOException {
         log.debug "Creating `newByteChannel`: ${path} <- ${options}"
         final modeWrite = options.contains(WRITE) || options.contains(APPEND)

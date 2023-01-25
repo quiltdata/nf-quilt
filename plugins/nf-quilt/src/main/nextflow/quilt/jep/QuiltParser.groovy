@@ -35,19 +35,18 @@ class QuiltParser {
     private String[] paths
     private String hash
     private String tag
-    //private final String catalog
     private final Map<String,Object> options
 
-    static public QuiltParser ForBarePath(String path) {
+    static QuiltParser ForBarePath(String path) {
         return QuiltParser.ForUriString(PREFIX + path)
     }
 
-    static public QuiltParser ForUriString(String uri_string) {
+    static QuiltParser ForUriString(String uri_string) {
         URI uri = new URI(uri_string)
         return QuiltParser.ForURI(uri)
     }
 
-    static public QuiltParser ForURI(URI uri) {
+    static QuiltParser ForURI(URI uri) {
         log.debug("ForURI[${uri.scheme}] for ${uri}")
         if (uri.scheme != SCHEME) {
             String msg =  "Scheme[${uri}] URI:${uri.scheme}] != SCHEME:${SCHEME}"
@@ -59,8 +58,8 @@ class QuiltParser {
         return new QuiltParser(uri.authority, pkg, path, options)
     }
 
-    static private Map<String,Object> parseQuery(String query) {
-        if (!query) return [:] // skip for urls without query params
+    static Map<String,Object> parseQuery(String query) {
+        if (!query) { return [:] } // skip for urls without query params
         final queryParams = query.split('&')
         return queryParams.collectEntries { param -> param.split('=').collect { URLDecoder.decode(it) } }
     }
@@ -73,8 +72,8 @@ class QuiltParser {
     }
 
     String parsePkg(String pkg) {
-        if (! pkg) return null
-        if (! pkg.contains('/')) {
+        if (!pkg) { return null }
+        if (!pkg.contains('/')) {
             log.error("Invalid package[$pkg]")
         }
         if (pkg.contains('@')) {
@@ -199,7 +198,7 @@ class QuiltParser {
 
     String toString() {
         String str = toPackageString()
-        if (! hasPath()) return str
+        if (!hasPath()) { return str }
         str += (packageName) ? '&' : '#'
         str += "path=${path().replace('/', '%2f')}"
         return str

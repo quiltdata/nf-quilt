@@ -60,11 +60,11 @@ class QuiltPackage {
         return pkg
     }
 
-    static protected List<Path> listDirectory(Path rootPath) {
+    static List<Path> listDirectory(Path rootPath) {
         return Files.walk(rootPath).sorted(Comparator.reverseOrder()).collect(Collectors.toList())
     }
 
-    static protected boolean deleteDirectory(Path rootPath) {
+    static boolean deleteDirectory(Path rootPath) {
         if (!Files.exists(rootPath)) { return false }
         try {
             final List<Path> pathsToDelete = listDirectory(rootPath)

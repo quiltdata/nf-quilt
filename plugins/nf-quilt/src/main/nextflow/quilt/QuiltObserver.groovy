@@ -137,7 +137,7 @@ ${meta['workflow']['stats']['processes']}
     }
 
     private static String[] bigKeys = [
-        'nextflow','commandLine','scriptFile','projectDir','homeDir','workDir','launchDir','manifest','configFiles'
+        'nextflow', 'commandLine', 'scriptFile', 'projectDir', 'homeDir', 'workDir', 'launchDir', 'manifest', 'configFiles'
     ]
 
     static void printMap(Map map, String title) {
