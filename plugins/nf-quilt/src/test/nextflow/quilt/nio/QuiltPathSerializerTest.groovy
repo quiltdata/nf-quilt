@@ -13,11 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package nextflow.quilt.nio
+
 import nextflow.quilt.QuiltSpecification
 
-import java.nio.file.Path
 import java.nio.file.Paths
 import nextflow.Global
 import nextflow.Session
@@ -46,4 +45,5 @@ class QuiltPathSerializerTest extends QuiltSpecification {
         path.toUri() == uri
         path.toUriString() == url
     }
+
 }

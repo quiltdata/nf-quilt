@@ -13,18 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package nextflow.quilt.jep
+
 import nextflow.quilt.jep.QuiltParser
 
 import groovy.transform.CompileStatic
-import groovy.transform.Memoized
 import groovy.util.logging.Slf4j
 
 @Slf4j
 @CompileStatic
 class QuiltID {
-    public static final String[] DefaultPackage=["null","default"]
+
+    public static final String[] DefaultPackage = ['null', 'default']
     private static final Map<String,QuiltID> ids = [:]
 
     private final String bucket
@@ -36,12 +36,12 @@ class QuiltID {
             log.error "null == QuiltID.fetch($bucket, $packageName)"
             return null
         }
-        if (!packageName || packageName.size()<QuiltParser.MIN_SIZE) {
+        if (!packageName || packageName.size() < QuiltParser.MIN_SIZE) {
             packageName = DefaultPackage.join(QuiltParser.SEP)
             log.warn "QuiltID.fetch: setting missing package to $packageName"
         }
         String[] split = packageName.split(QuiltParser.SEP)
-        if (split.size()<QuiltParser.MIN_SIZE || split[1].size()<QuiltParser.MIN_SIZE) {
+        if (split.size() < QuiltParser.MIN_SIZE || split[1].size() < QuiltParser.MIN_SIZE) {
             split += DefaultPackage[1] as String
             log.warn "QuiltID.fetch: setting missing suffix to $split[1]"
         }
@@ -61,4 +61,5 @@ class QuiltID {
     String toString() {
         "${bucket}.${pkgPrefix}.${pkgSuffix}"
     }
+
 }

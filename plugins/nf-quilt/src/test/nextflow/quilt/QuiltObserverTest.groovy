@@ -13,14 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package nextflow.quilt.nio
+
 import nextflow.quilt.QuiltSpecification
 import nextflow.quilt.QuiltObserver
 
 import java.nio.file.Path
 import java.nio.file.Paths
-import spock.lang.Unroll
 import groovy.transform.CompileDynamic
 
 /**

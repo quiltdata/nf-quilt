@@ -13,25 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package nextflow.quilt.jep
-import nextflow.quilt.nio.QuiltPath
+
 import groovy.transform.CompileStatic
-import groovy.transform.Memoized
 import groovy.util.logging.Slf4j
-import java.nio.file.Files
-import java.nio.file.Path
-import java.nio.file.Paths
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.lang.ProcessBuilder
 
 @Slf4j
 @CompileStatic
 class QuiltParser {
+
     public static final String SCHEME = 'quilt+s3'
     public static final String SEP = '/'
-    public static final String PREFIX = SCHEME+'://'
+    public static final String PREFIX = SCHEME + '://'
     public static final int MIN_SIZE = 2
 
     public static final String P_PKG = 'package'
@@ -46,7 +39,7 @@ class QuiltParser {
     private final Map<String,Object> options
 
     static public QuiltParser ForBarePath(String path) {
-        QuiltParser.ForUriString(PREFIX+path)
+        QuiltParser.ForUriString(PREFIX + path)
     }
 
     static public QuiltParser ForUriString(String uri_string) {
@@ -68,8 +61,8 @@ class QuiltParser {
 
     static private Map<String,Object> parseQuery(String query) {
         if (!query) return [:] // skip for urls without query params
-        final queryParams = query.split('&') 
-        queryParams.collectEntries { param -> param.split('=').collect { URLDecoder.decode(it) }}
+        final queryParams = query.split('&')
+        queryParams.collectEntries { param -> param.split('=').collect { URLDecoder.decode(it) } }
     }
 
     QuiltParser(String bucket, String pkg, String path, Map<String,Object> options = [:]) {
@@ -105,7 +98,7 @@ class QuiltParser {
     }
 
     QuiltParser appendPath(String tail) {
-        String path2 = [path(),tail].join(SEP)
+        String path2 = [path(), tail].join(SEP)
         while (path2.startsWith(SEP)) {
             path2 = path2.substring(1)
         }
@@ -113,7 +106,7 @@ class QuiltParser {
     }
 
     QuiltParser dropPath() {
-        String[] subpath = ((paths.size() > 1) ? paths[0..-2] : []) as String[] 
+        String[] subpath = ((paths.size() > 1) ? paths[0..-2] : []) as String[]
         String path2 = subpath.join(SEP)
         new QuiltParser(bucket(), packageName(), path2, options)
     }
@@ -123,7 +116,6 @@ class QuiltParser {
         new QuiltParser(bucket(), packageName(), path2, options)
     }
 
-
     QuiltParser subPath(int beginIndex, int endIndex) {
         String path2 = path(beginIndex, endIndex)
         new QuiltParser(bucket(), packageName(), path2, options)
@@ -132,12 +124,12 @@ class QuiltParser {
     QuiltParser normalized() {
         boolean skip = false
         String[] rnorms = paths.reverse().findAll { String x ->
-            if (x == "..") {
+            if (x == '..') {
                 skip = true
                 false
-            } else if(skip) {
+            } else if (skip) {
                 skip = false
-                false                
+                false
             } else {
                 true
             }
@@ -196,20 +188,20 @@ class QuiltParser {
 
     String toPackageString() {
         String str = "${bucket()}"
-        if ( packageName ) {
+        if (packageName) {
             String pkg = packageName
-            if ( hash ) { pkg += "@$hash" }
-            if ( tag ) { pkg += ":$tag" }
-            str += "#package=${pkg.replace('/','%2f')}"
+            if (hash) { pkg += "@$hash" }
+            if (tag) { pkg += ":$tag" }
+            str += "#package=${pkg.replace('/', '%2f')}"
         }
         str
     }
 
     String toString() {
         String str = toPackageString()
-        if (! hasPath() ) return str
-        str += ( packageName ) ? "&" : "#"
-        str += "path=${path().replace('/','%2f')}"
+        if (! hasPath()) return str
+        str += (packageName) ? '&' : '#'
+        str += "path=${path().replace('/', '%2f')}"
     }
 
     String toUriString() {

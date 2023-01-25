@@ -1,10 +1,10 @@
 package nextflow.quilt.nio
+
 import nextflow.quilt.QuiltSpecification
 import nextflow.quilt.jep.QuiltParser
 
 import java.nio.file.Paths
 
-import spock.lang.Ignore
 import groovy.transform.CompileDynamic
 
 /**
@@ -32,13 +32,12 @@ class QuiltFileSystemTest extends QuiltSpecification {
         fs_path.toString() == path
 
         where:
-        call| path
+        call | path
         1   | 'file-name.txt'
         1   | 'bucket#package=alpha%2fbravo'
     }
 
     def 'should test basic properties' () {
-
         given:
         def BUCKET_NAME = 'bucket'
         def provider = Stub(QuiltFileSystemProvider)

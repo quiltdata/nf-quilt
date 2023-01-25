@@ -13,16 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 // https://medium.com/geekculture/how-to-execute-python-modules-from-java-2384041a3d6d
 // package nextflow.quilt.jep
-
 package nextflow.quilt.jep
-import nextflow.quilt.nio.QuiltPath
 
-import jep.Interpreter;
+
 import groovy.transform.CompileStatic
-import groovy.transform.Memoized
 import groovy.util.logging.Slf4j
 import java.nio.file.Files
 import java.nio.file.Path
@@ -30,13 +26,13 @@ import java.nio.file.Paths
 import java.util.stream.Collectors
 import java.text.SimpleDateFormat
 import java.util.Date
-import java.lang.ProcessBuilder
 
 @Slf4j
 @CompileStatic
 class QuiltPackage {
+
     private static final Map<String,QuiltPackage> packages = [:]
-    private static final String INSTALL_PREFIX = "QuiltPackage"
+    private static final String INSTALL_PREFIX = 'QuiltPackage'
     public static final Path INSTALL_ROOT = Files.createTempDirectory(INSTALL_PREFIX)
 
     private final String bucket
@@ -48,7 +44,7 @@ class QuiltPackage {
     static public QuiltPackage ForParsed(QuiltParser parsed) {
         def pkgKey = parsed.toPackageString()
         def pkg = packages.get(pkgKey)
-        if( pkg ) return pkg
+        if (pkg) return pkg
         pkg = new QuiltPackage(parsed)
         packages[pkgKey] = pkg
         try {
@@ -69,8 +65,8 @@ class QuiltPackage {
         if (!Files.exists(rootPath)) return false
         try {
             final List<Path> pathsToDelete = listDirectory(rootPath)
-            for(Path path : pathsToDelete) {
-                Files.deleteIfExists(path);
+            for (Path path : pathsToDelete) {
+                Files.deleteIfExists(path)
             }
         }
         catch (java.nio.file.NoSuchFileException e) { }
@@ -96,11 +92,11 @@ class QuiltPackage {
     List<String> relativeChildren(String subpath) {
         Path subfolder = folder.resolve(subpath)
         String base = subfolder.toString() + '/'
-        List<String> result = new ArrayList<String>()
+        List<String> result = []
         final String[] children = subfolder.list().sort()
         log.debug "relativeChildren[${base}] $children"
-        for(String pathString : children) {
-            def relative = pathString.replace(base,'')
+        for (String pathString : children) {
+            def relative = pathString.replace(base, '')
             result.add(relative)
         }
         result
@@ -123,20 +119,19 @@ class QuiltPackage {
         "--dir ${packageDest()}"
     }
 
-
     String key_force() {
-        "--force true"
+        '--force true'
     }
 
     String key_hash() {
         "--top-hash $hash"
     }
 
-    String key_meta(String meta="[]") {
+    String key_meta(String meta='[]') {
         "--meta '$meta'"
     }
 
-    String key_msg(prefix="") {
+    String key_msg(prefix='') {
         "--message 'nf-quilt:${prefix}@${today()}'"
     }
 
@@ -151,15 +146,15 @@ class QuiltPackage {
     int call(String... args) {
         def command = ['quilt3']
         command.addAll(args)
-        def cmd = command.join(" ")
+        def cmd = command.join(' ')
         log.debug "call `${cmd}`"
 
-        ProcessBuilder pb = new ProcessBuilder('bash','-c', cmd)
-        pb.redirectErrorStream(true);
+        ProcessBuilder pb = new ProcessBuilder('bash', '-c', cmd)
+        pb.redirectErrorStream(true)
 
-        Process p = pb.start();
-        String result = new String(p.getInputStream().readAllBytes());
-        int exitCode = p.waitFor();
+        Process p = pb.start()
+        String result = new String(p.getInputStream().readAllBytes())
+        int exitCode = p.waitFor()
         if (exitCode > 0) {
             log.warn "`call.exitCode` ${exitCode}: ${result}"
         }
@@ -168,10 +163,10 @@ class QuiltPackage {
 
     // usage: quilt3 install [-h] [--registry REGISTRY] [--top-hash TOP_HASH] [--dest DEST] [--dest-registry DEST_REGISTRY] [--path PATH] name
     Path install() {
-        if ('latest' == hash || hash == null || hash == "null") {
-            call('install',packageName,key_registry(),key_dest())
+        if ('latest' == hash || hash == null || hash == 'null') {
+            call('install', packageName, key_registry(), key_dest())
         } else {
-            call('install',packageName,key_registry(),key_hash(),key_dest())
+            call('install', packageName, key_registry(), key_hash(), key_dest())
         }
         installed = true
         packageDest()
@@ -186,10 +181,10 @@ class QuiltPackage {
     }
 
     // https://docs.quiltdata.com/v/version-5.0.x/examples/gitlike#install-a-package
-    boolean push(String msg = "update", String meta = "[]") {
+    boolean push(String msg = 'update', String meta = '[]') {
         log.debug "`push` $this"
         try {
-            call('push',packageName,key_dir(),key_registry(),key_meta(meta),key_msg(msg))
+            call('push', packageName, key_dir(), key_registry(), key_meta(meta), key_msg(msg))
         }
         catch (Exception e) {
             log.error "Failed `push` ${this}: ${e}"
@@ -200,7 +195,7 @@ class QuiltPackage {
 
     @Override
     String toString() {
-        "${bucket}_${packageName}".replaceAll(/[-\/]/,'_')
+        "${bucket}_${packageName}".replaceAll(/[-\/]/, '_')
     }
 
 }

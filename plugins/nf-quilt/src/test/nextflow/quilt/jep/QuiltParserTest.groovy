@@ -1,8 +1,7 @@
 package nextflow.quilt.jep
+
 import nextflow.quilt.QuiltSpecification
 
-import spock.lang.Unroll
-import spock.lang.Ignore
 import groovy.util.logging.Slf4j
 import groovy.transform.CompileDynamic
 
@@ -28,7 +27,7 @@ class QuiltParserTest extends QuiltSpecification {
 
     def 'should error on invalid schema'() {
         when:
-        QuiltParser.ForUriString("quilt3://bucket/")
+        QuiltParser.ForUriString('quilt3://bucket/')
         then:
         thrown(IllegalArgumentException)
     }
@@ -37,26 +36,26 @@ class QuiltParserTest extends QuiltSpecification {
         when:
         def parser = QuiltParser.ForUriString(test_url)
         then:
-        parser.bucket() == "quilt-ernest-staging"
-        parser.packageName() == "nf-quilt/sarek"
-        parser.path() == "pipeline_info/execution_trace_2022-10-13_01-01-31.txt"
-      }
+        parser.bucket() == 'quilt-ernest-staging'
+        parser.packageName() == 'nf-quilt/sarek'
+        parser.path() == 'pipeline_info/execution_trace_2022-10-13_01-01-31.txt'
+    }
 
     def 'should modify path segments appropriately'() {
         when:
         def parser = QuiltParser.ForUriString(rel_url)
         then:
-        parser.path() == "sub/../path"
-        parser.appendPath("child").path() == "sub/../path/child"
-        parser.normalized().path() == "path"
+        parser.path() == 'sub/../path'
+        parser.appendPath('child').path() == 'sub/../path/child'
+        parser.normalized().path() == 'path'
         def p1 = parser.dropPath()
-        p1.path() == "sub/.."
+        p1.path() == 'sub/..'
         def p2 = p1.dropPath()
-        p2.path() == "sub"
+        p2.path() == 'sub'
         def p3 = p2.dropPath()
-        p3.path() == ""
+        p3.path() == ''
         def p4 = p3.dropPath()
-        p4.path() == ""
+        p4.path() == ''
     }
 
     def 'should decompose URIs'() {
@@ -71,12 +70,12 @@ class QuiltParserTest extends QuiltSpecification {
 
         where:
         bare                                 | bucket   | query                    | pkg    | path | hash     | tag
-        'bucket'                             | 'bucket' | null                     | null   | "" | null   | null
-        'BuCKet'                             | 'bucket' | null                     | null   | "" | null   | null
-        'b#frag'                             | 'b'      | 'frag'                   | null   | "" | null   | null
-        'B#package=q%2Fp'                    | 'b'      | 'package=q/p'            | 'q/p'  | "" | null   | null
-        'B#package=q%2Fp@hash'               | 'b'      | 'package=q/p@hash'        | 'q/p' | "" | 'hash' | null
-        'B#package=q%2Fp:tag&path=a%2Fb'     | 'b'      | 'package=q/p:tag&path=a/b'| 'q/p' | 'a/b'| null | 'tag'
+        'bucket'                             | 'bucket' | null                     | null   | '' | null   | null
+        'BuCKet'                             | 'bucket' | null                     | null   | '' | null   | null
+        'b#frag'                             | 'b'      | 'frag'                   | null   | '' | null   | null
+        'B#package=q%2Fp'                    | 'b'      | 'package=q/p'            | 'q/p'  | '' | null   | null
+        'B#package=q%2Fp@hash'               | 'b'      | 'package=q/p@hash'        | 'q/p' | '' | 'hash' | null
+        'B#package=q%2Fp:tag&path=a%2Fb' | 'b' | 'package=q/p:tag&path=a/b' | 'q/p' | 'a/b' | null | 'tag'
     }
 
 }

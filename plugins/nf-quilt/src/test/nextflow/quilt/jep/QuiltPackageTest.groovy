@@ -13,18 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package nextflow.quilt.jep
 
 import nextflow.quilt.QuiltSpecification
 import nextflow.quilt.nio.QuiltPathFactory
 import nextflow.quilt.nio.QuiltPath
-import nextflow.quilt.nio.QuiltFileAttributesView
 
-import nextflow.Global
-import nextflow.Session
-import spock.lang.Unroll
-import spock.lang.Shared
 import spock.lang.IgnoreIf
 import java.nio.file.Files
 import java.nio.file.Path
@@ -41,6 +35,7 @@ import groovy.transform.CompileDynamic
 @Slf4j
 @CompileDynamic
 class QuiltPackageTest extends QuiltSpecification {
+
     QuiltPathFactory factory
     QuiltPath qpath
     QuiltPackage pkg
@@ -62,14 +57,14 @@ class QuiltPackageTest extends QuiltSpecification {
 
         expect:
         pkg != null
-        pkg.toString() == "quilt_example_examples_smart_report"
+        pkg.toString() == 'quilt_example_examples_smart_report'
         pkgPath.toUriString() == packageURL
         pkg == pkg2
     }
 
     def 'should distinguish Packages with same name in different Buckets ' () {
         given:
-        def url2 = url.replace('quilt-','quilted-')
+        def url2 = url.replace('quilt-', 'quilted-')
         def qpath2 = factory.parseUri(url2)
         def pkg2 = qpath2.pkg()
 
@@ -84,7 +79,7 @@ class QuiltPackageTest extends QuiltSpecification {
     def 'should create an install folder ' () {
         given:
         Path installPath = pkg.packageDest()
-        String tmpDirsLocation = System.getProperty("java.io.tmpdir")
+        String tmpDirsLocation = System.getProperty('java.io.tmpdir')
         expect:
         installPath.toString().startsWith(tmpDirsLocation)
         Files.exists(installPath)
@@ -101,7 +96,7 @@ class QuiltPackageTest extends QuiltSpecification {
         Files.readAttributes(qroot, BasicFileAttributes)
     }
 
-    @IgnoreIf({ System.getProperty("os.name").contains("ux") })
+    @IgnoreIf({ System.getProperty('os.name').contains('ux') })
     def 'should pre-install files and get attributes' () {
         expect:
         pkg.install()
@@ -110,7 +105,7 @@ class QuiltPackageTest extends QuiltSpecification {
         Files.readAttributes(qpath, BasicFileAttributes)
     }
 
-    @IgnoreIf({ System.getProperty("os.name").contains("ux") })
+    @IgnoreIf({ System.getProperty('os.name').contains('ux') })
     def 'should deinstall files' () {
         expect:
         Files.exists(qpath.localPath())
@@ -124,7 +119,6 @@ class QuiltPackageTest extends QuiltSpecification {
         thrown(java.nio.file.NoSuchFileException)
     }
 
-
     def 'should iterate over installed files ' () {
         given:
         def root = qpath.getRoot()
@@ -136,7 +130,7 @@ class QuiltPackageTest extends QuiltSpecification {
         root == qroot
         Files.isDirectory(qroot)
         pkg.install()
-        //vs!Files.isDirectory(qpath)
+    //vs!Files.isDirectory(qpath)
     }
 
     def 'should write new files back to bucket ' () {
@@ -148,16 +142,16 @@ class QuiltPackageTest extends QuiltSpecification {
         // remove path
         // re-install package
         // verify file exists
-        Files.writeString(outPath, cleanDate);
+        Files.writeString(outPath, cleanDate)
         expect:
         Files.exists(outPath)
-        //opkg.push()
-        //opkg.uninstall()
-        //!Files.exists(outPath)
-        //pkg.isInstalled()
+    //opkg.push()
+    //opkg.uninstall()
+    //!Files.exists(outPath)
+    //pkg.isInstalled()
     }
-
 
     def 'Package should return Attributes IFF the file exists' () {
     }
+
 }

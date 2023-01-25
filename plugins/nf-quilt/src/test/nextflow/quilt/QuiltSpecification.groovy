@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package nextflow.quilt
+
 import nextflow.quilt.nio.QuiltPath
 
 import java.nio.ByteBuffer
@@ -34,9 +34,7 @@ import org.pf4j.PluginDescriptorFinder
 import groovy.util.logging.Slf4j
 import groovy.transform.CompileDynamic
 import spock.lang.Shared
-import spock.lang.Timeout
 import spock.lang.Specification
-import sun.nio.fs.UnixPath
 
 /**
  *
@@ -57,15 +55,19 @@ abstract class QuiltSpecification extends Specification {
         // the plugin root should
         def root = Path.of('.').toAbsolutePath().normalize()
         def manager = new TestPluginManager(root){
+
             @Override
             protected PluginDescriptorFinder createPluginDescriptorFinder() {
                 return new TestPluginDescriptorFinder(){
+
                     @Override
                     protected Path getManifestPath(Path pluginPath) {
                         return pluginPath.resolve('src/resources/META-INF/MANIFEST.MF')
                     }
+
                 }
             }
+
         }
         Plugins.init(root, 'dev', manager)
         Plugins.startIfMissing('nf-quilt')
@@ -74,7 +76,7 @@ abstract class QuiltSpecification extends Specification {
     def cleanupSpec() {
         Plugins.stop()
         PluginExtensionProvider.reset()
-        pluginsMode ? System.setProperty('pf4j.mode',pluginsMode) : System.clearProperty('pf4j.mode')
+        pluginsMode ? System.setProperty('pf4j.mode', pluginsMode) : System.clearProperty('pf4j.mode')
     }
 
     Path createObject(String url, String text) {
@@ -107,36 +109,32 @@ abstract class QuiltSpecification extends Specification {
         new String(Files.readAllBytes(path))
     }
 
-    String readChannel(SeekableByteChannel sbc, int buffLen )  {
+    String readChannel(SeekableByteChannel sbc, int buffLen)  {
         def buffer = new ByteArrayOutputStream()
         ByteBuffer bf = ByteBuffer.allocate(buffLen)
-        while((sbc.read(bf))>0) {
-            bf.flip();
+        while ((sbc.read(bf)) > 0) {
+            bf.flip()
             buffer.write(bf.array(), 0, bf.limit())
-            bf.clear();
+            bf.clear()
         }
 
         buffer.toString()
     }
 
-    void writeChannel( SeekableByteChannel channel, String content, int buffLen ) {
-
+    void writeChannel(SeekableByteChannel channel, String content, int buffLen) {
         def bytes = content.getBytes()
-        ByteBuffer buf = ByteBuffer.allocate(buffLen);
-        int i=0
-        while( i < bytes.size()) {
-
-            def len = Math.min(buffLen, bytes.size()-i);
-            buf.clear();
-            buf.put(bytes, i, len);
-            buf.flip();
-            channel.write(buf);
+        ByteBuffer buf = ByteBuffer.allocate(buffLen)
+        int i = 0
+        while (i < bytes.size()) {
+            def len = Math.min(buffLen, bytes.size() - i)
+            buf.clear()
+            buf.put(bytes, i, len)
+            buf.flip()
+            channel.write(buf)
 
             i += len
         }
-
     }
-
 
     protected Path mockQuiltPath(String path, boolean isDir=false) {
         assert path.startsWith('quilt+s3://')
@@ -160,7 +158,6 @@ abstract class QuiltSpecification extends Specification {
         def uri = GroovyMock(URI)
         uri.toString() >> path
 
-
         def result = GroovyMock(Path)
         result.bucket() >> bucket
         result.toUriString() >> path
@@ -172,7 +169,7 @@ abstract class QuiltSpecification extends Specification {
         result.asBoolean() >> true
         result.getParent() >> {
             def p = path.lastIndexOf('/')
-            return ( p != -1 ) ? mockQuiltPath("${path.substring(0,p)}", true) : null 
+            return (p != -1) ? mockQuiltPath("${path.substring(0, p)}", true) : null
         }
         result.getFileName() >> { Paths.get(tokens[-1]) }
         result.getName() >> tokens[1]

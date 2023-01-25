@@ -13,9 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 // https://github.com/LukeGoodsell/nextflow/blob/master/src/main/groovy/nextflow/executor/SimpleFileCopyStrategy.groovy
-
 package nextflow.quilt.nio
 
 import java.nio.file.Path
@@ -45,4 +43,5 @@ class QuiltFileCopyStrategy extends SimpleFileCopyStrategy {
     static String uploadCmd(String source, Path target) {
         return "quilt3 push ${Escape.path(source)} ${Escape.uriPath(target)}"
     }
+
 }

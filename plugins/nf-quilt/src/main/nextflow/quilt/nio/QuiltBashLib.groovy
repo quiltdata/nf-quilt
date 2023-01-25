@@ -13,11 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package nextflow.quilt.nio
 
-import nextflow.Global
-import nextflow.Session
 import nextflow.executor.BashFunLib
 import groovy.transform.CompileStatic
 
@@ -28,6 +25,7 @@ import groovy.transform.CompileStatic
 class QuiltBashLib extends BashFunLib<QuiltBashLib> {
 
     static String script() {
-      return "quilt3 install"
+        return 'quilt3 install'
     }
+
 }

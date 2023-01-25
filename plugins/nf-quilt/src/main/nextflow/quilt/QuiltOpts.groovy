@@ -13,16 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package nextflow.quilt
 
-import groovy.json.JsonSlurper
 import groovy.transform.CompileStatic
 import groovy.transform.Memoized
 import groovy.transform.ToString
 import groovy.util.logging.Slf4j
 import nextflow.Session
-import nextflow.exception.AbortOperationException
+
 /**
  * Model Quilt config options
  *
@@ -46,15 +44,15 @@ class QuiltOpts {
             return fromSession0(session.config)
         }
         catch (Exception e) {
-            if(session) session.abort()
+            if (session) session.abort()
             throw e
         }
     }
 
     protected static QuiltOpts fromSession0(Map config) {
         final result = new QuiltOpts()
-        result.registry = config.navigate("Quilt3.registry") as String
-        result.profile = config.navigate("Quilt3.profile") as String
+        result.registry = config.navigate('Quilt3.registry') as String
+        result.profile = config.navigate('Quilt3.profile') as String
         return result
     }
 

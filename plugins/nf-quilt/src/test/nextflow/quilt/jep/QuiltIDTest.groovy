@@ -1,8 +1,7 @@
 package nextflow.quilt.jep
+
 import nextflow.quilt.QuiltSpecification
 
-import spock.lang.Unroll
-import spock.lang.Ignore
 import groovy.util.logging.Slf4j
 import groovy.transform.CompileDynamic
 
@@ -13,31 +12,33 @@ import groovy.transform.CompileDynamic
 @Slf4j
 @CompileDynamic
 class QuiltIDTest extends QuiltSpecification {
+
     def 'should null on missing bucket'() {
         when:
-        def id = QuiltID.fetch(null, "pkg/name")
+        def id = QuiltID.fetch(null, 'pkg/name')
         then:
         null == id
     }
 
     def 'should default on missing pgk_suffix'() {
         when:
-        def id = QuiltID.fetch("bucket", "pkg")
+        def id = QuiltID.fetch('bucket', 'pkg')
         then:
-        id.toString() == "bucket.pkg.default"
+        id.toString() == 'bucket.pkg.default'
     }
 
     def 'should default on missing pgk_name'() {
         when:
-        def id = QuiltID.fetch("bucket", null)
+        def id = QuiltID.fetch('bucket', null)
         then:
-        id.toString() == "bucket.null.default"
+        id.toString() == 'bucket.null.default'
     }
 
     def 'should decompose pkg names'() {
         when:
-        def id = QuiltID.fetch("bucket", "pkg/name")
+        def id = QuiltID.fetch('bucket', 'pkg/name')
         then:
-        id.toString() == "bucket.pkg.name"
+        id.toString() == 'bucket.pkg.name'
     }
+
 }
