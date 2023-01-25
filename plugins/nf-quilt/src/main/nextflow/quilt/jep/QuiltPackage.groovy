@@ -30,7 +30,7 @@ class QuiltPackage {
 
     private static final Map<String,QuiltPackage> PKGS = [:]
     private static final String INSTALL_PREFIX = 'QuiltPackage'
-    public static final Path INSTALL_ROOT = Files.createTempDirectory(INSTALL_PREFIX)
+    static final Path INSTALL_ROOT = Files.createTempDirectory(INSTALL_PREFIX)
 
     private final String bucket
     private final String packageName

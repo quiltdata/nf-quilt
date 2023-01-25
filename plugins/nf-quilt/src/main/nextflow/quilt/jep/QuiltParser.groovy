@@ -22,13 +22,13 @@ import groovy.util.logging.Slf4j
 @CompileStatic
 class QuiltParser {
 
-    public static final String SCHEME = 'quilt+s3'
-    public static final String SEP = '/'
-    public static final String PREFIX = SCHEME + '://'
-    public static final int MIN_SIZE = 2
+    static final String SCHEME = 'quilt+s3'
+    static final String SEP = '/'
+    static final String PREFIX = SCHEME + '://'
+    static final int MIN_SIZE = 2
 
-    public static final String P_PKG = 'package'
-    public static final String P_PATH = 'path'
+    static final String P_PKG = 'package'
+    static final String P_PATH = 'path'
 
     private final String bucket
     private final String packageName

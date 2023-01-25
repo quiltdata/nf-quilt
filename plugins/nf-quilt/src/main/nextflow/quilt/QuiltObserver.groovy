@@ -45,19 +45,19 @@ class QuiltObserver implements TraceObserver {
     private Map quilt_config
     private Set<QuiltPackage> pkgs = new HashSet<>()
 
-    public static void writeString(String text, QuiltPackage pkg, String filename) {
+    static void writeString(String text, QuiltPackage pkg, String filename) {
         String dir = pkg.packageDest()
         def path = Paths.get(dir, filename)
         Files.write(path, text.bytes)
     }
 
-    public static String now() {
+    static String now() {
         def date = new Date()
         def sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss")
         return sdf.format(date)
     }
 
-    public static QuiltPath asQuiltPath(Path path) {
+    static QuiltPath asQuiltPath(Path path) {
         if (path instanceof QuiltPath) {
             return (QuiltPath) path
         }

@@ -31,10 +31,10 @@ import groovy.transform.CompileDynamic
 class QuiltNioTest extends QuiltSpecification {
 
     static String null_url = 'quilt+s3://quilt-dev-null#package=test/null'
-    public static null_path(f) { null_url + "&path=$f" }
+    static null_path(f) { null_url + "&path=$f" }
     //https://open.quiltdata.com/b/quilt-example/tree/examples/hurdat/
     static String packageURL = 'quilt+s3://quilt-example#package=examples/hurdat'
-    public static packagePath(f) { packageURL + "&path=$f" }
+    static packagePath(f) { packageURL + "&path=$f" }
     static String write_url = packagePath('folder/file-name.txt')
     static String read_url = packagePath('data/atlantic-storms.csv')
     static String TEXT = 'Hello world!'
