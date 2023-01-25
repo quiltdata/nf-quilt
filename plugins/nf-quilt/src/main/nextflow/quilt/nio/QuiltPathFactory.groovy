@@ -13,17 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package nextflow.quilt.nio
 
 import java.nio.file.Path
 
 import groovy.transform.CompileStatic
-import nextflow.Global
-import nextflow.Session
 import nextflow.quilt.jep.QuiltParser
 import nextflow.file.FileSystemPathFactory
 import nextflow.file.FileHelper
+
 /**
  * Implements FileSystemPathFactory interface for Google storage
  *
@@ -39,18 +37,19 @@ class QuiltPathFactory extends FileSystemPathFactory {
 
     @Override
     protected Path parseUri(String uri_string) {
-        if( !uri_string.startsWith(QuiltParser.PREFIX) )
+        if (!uri_string.startsWith(QuiltParser.PREFIX)) {
             return null
+        }
         final uri = new URI(uri_string)
         return FileHelper.getOrCreateFileSystemFor(uri).provider().getPath(uri)
     }
 
     @Override
     protected String toUriString(Path p) {
-      if( p instanceof QuiltPath ) {
-          return p.toUriString()
-      }
-      return null
+        if (p instanceof QuiltPath) {
+            return p.toUriString()
+        }
+        return null
     }
 
     protected String getBashLib(Path path) {
