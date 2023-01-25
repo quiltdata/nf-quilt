@@ -6,13 +6,13 @@ import java.nio.file.FileSystemAlreadyExistsException
 import spock.lang.Specification
 import spock.lang.Unroll
 import spock.lang.Ignore
-import groovy.transform.CompileStatic
+import groovy.transform.CompileDynamic
 
 /**
  *
  * @author Ernest Prabhakar <ernest@quiltdata.io>
  */
-@CompileStatic
+@CompileDynamic
 class QuiltFileSystemProviderTest extends QuiltSpecification {
 
     def 'should return Quilt storage scheme'() {

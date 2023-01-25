@@ -5,13 +5,13 @@ import nextflow.quilt.jep.QuiltParser
 import java.nio.file.Paths
 
 import spock.lang.Ignore
-import groovy.transform.CompileStatic
+import groovy.transform.CompileDynamic
 
 /**
  *
  * @author Paolo Di Tommaso <paolo.ditommaso@gmail.com>
  */
-@CompileStatic
+@CompileDynamic
 class QuiltFileSystemTest extends QuiltSpecification {
 
     def 'should test getPath' () {

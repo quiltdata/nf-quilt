@@ -31,7 +31,7 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import java.nio.file.attribute.BasicFileAttributes
 import groovy.util.logging.Slf4j
-import groovy.transform.CompileStatic
+import groovy.transform.CompileDynamic
 
 /**
  *
@@ -39,7 +39,7 @@ import groovy.transform.CompileStatic
  */
 
 @Slf4j
-@CompileStatic
+@CompileDynamic
 class QuiltPackageTest extends QuiltSpecification {
     QuiltPathFactory factory
     QuiltPath qpath

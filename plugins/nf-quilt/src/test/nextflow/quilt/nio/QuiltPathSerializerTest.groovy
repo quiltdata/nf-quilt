@@ -21,13 +21,13 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import nextflow.Global
 import nextflow.Session
-import groovy.transform.CompileStatic
+import groovy.transform.CompileDynamic
 
 /**
  *
  * @author Ernest Prabhakar <ernest@quiltdata.io>
  */
-@CompileStatic
+@CompileDynamic
 class QuiltPathSerializerTest extends QuiltSpecification {
 
     static String url = 'quilt+s3://bucket#package=pkg%2fname&path=sample.csv'

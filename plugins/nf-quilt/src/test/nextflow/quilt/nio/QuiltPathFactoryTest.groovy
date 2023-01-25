@@ -21,13 +21,13 @@ import nextflow.Channel
 import nextflow.Global
 import nextflow.Session
 import spock.lang.Unroll
-import groovy.transform.CompileStatic
+import groovy.transform.CompileDynamic
 
 /**
  *
  * @author Ernest Prabhakar <ernest@quiltdata.io>
  */
-@CompileStatic
+@CompileDynamic
 class QuiltPathFactoryTest extends QuiltSpecification {
 
     static String packageURL = 'quilt+s3://quilt-example#package=examples/hurdat@f8d1478d93'

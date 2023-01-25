@@ -4,14 +4,14 @@ import nextflow.quilt.QuiltSpecification
 import spock.lang.Unroll
 import spock.lang.Ignore
 import groovy.util.logging.Slf4j
-import groovy.transform.CompileStatic
+import groovy.transform.CompileDynamic
 
 /**
  *
  * @author Ernest Prabhakar <ernest@quiltdata.io>
  */
 @Slf4j
-@CompileStatic
+@CompileDynamic
 class QuiltIDTest extends QuiltSpecification {
     def 'should null on missing bucket'() {
         when:

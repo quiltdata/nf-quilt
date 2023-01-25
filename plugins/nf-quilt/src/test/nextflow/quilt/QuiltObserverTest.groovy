@@ -21,13 +21,13 @@ import nextflow.quilt.QuiltObserver
 import java.nio.file.Path
 import java.nio.file.Paths
 import spock.lang.Unroll
-import groovy.transform.CompileStatic
+import groovy.transform.CompileDynamic
 
 /**
  *
  * @author Ernest Prabhakar <ernest@quiltdata.io>
  */
-@CompileStatic
+@CompileDynamic
 class QuiltObserverTest extends QuiltSpecification {
 
     def 'should generate solid string for timestamp'() {

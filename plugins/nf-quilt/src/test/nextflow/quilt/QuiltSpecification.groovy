@@ -32,7 +32,7 @@ import nextflow.plugin.TestPluginManager
 import nextflow.plugin.extension.PluginExtensionProvider
 import org.pf4j.PluginDescriptorFinder
 import groovy.util.logging.Slf4j
-import groovy.transform.CompileStatic
+import groovy.transform.CompileDynamic
 import spock.lang.Shared
 import spock.lang.Timeout
 import spock.lang.Specification
@@ -43,7 +43,7 @@ import sun.nio.fs.UnixPath
  * @author Ernest Prabhakar <ernest@quiltdata.io>
  */
 @Slf4j
-@CompileStatic
+@CompileDynamic
 abstract class QuiltSpecification extends Specification {
 
     @Shared String pluginsMode

@@ -22,14 +22,14 @@ import spock.lang.Requires
 import spock.lang.Shared
 import spock.lang.Ignore
 import groovy.util.logging.Slf4j
-import groovy.transform.CompileStatic
+import groovy.transform.CompileDynamic
 
 /**
  *
  * @author Ernest Prabhakar <ernest@quiltdata.io>
  */
 @Slf4j
-@CompileStatic
+@CompileDynamic
 class QuiltNioTest extends QuiltSpecification {
     static String null_url = 'quilt+s3://quilt-dev-null#package=test/null'
     public static def null_path(f) { null_url+"&path=$f" }
