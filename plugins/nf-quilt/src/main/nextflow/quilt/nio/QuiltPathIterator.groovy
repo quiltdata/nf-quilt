@@ -49,22 +49,6 @@ class QuiltPathIterator implements Iterator<Path> {
         advance()
     }
 
-    private void advance() {
-        QuiltPath result = null
-        while (result == null && itr.hasNext()) {
-            def item = itr.next()
-            Path path  = dir.resolve(item)
-            if (path == dir)    // make sure to  skip the original path
-                result = null
-            else if (filter)
-                result = filter.accept(path) ? path : null
-            else
-                result = path
-        }
-
-        next = result
-    }
-
     @Override
     boolean hasNext() {
         return next != null
@@ -83,6 +67,22 @@ class QuiltPathIterator implements Iterator<Path> {
     @Override
     void remove() {
         throw new UnsupportedOperationException("Operation 'remove' is not supported by QuiltPathIterator")
+    }
+
+    private void advance() {
+        QuiltPath result = null
+        while (result == null && itr.hasNext()) {
+            def item = itr.next()
+            Path path  = dir.resolve(item)
+            if (path == dir)    // make sure to  skip the original path
+                result = null
+            else if (filter)
+                result = filter.accept(path) ? path : null
+            else
+                result = path
+        }
+
+        next = result
     }
 
 }
