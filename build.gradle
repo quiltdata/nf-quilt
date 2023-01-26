@@ -167,7 +167,7 @@ allprojects {
 def getRuntimeConfigs() {
     def names = subprojects
             .findAll { prj -> prj.name in ['nextflow', 'nf-commons', 'nf-httpfs'] }
-            .collect { it.name }
+            .collect { p -> p.name }
 
     FileCollection result = null
     for ( def it : names ) {

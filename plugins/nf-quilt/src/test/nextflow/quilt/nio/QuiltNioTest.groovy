@@ -401,7 +401,7 @@ class QuiltNioTest extends QuiltSpecification {
         given:
         Path path  = Paths.get(new URI(write_url))
         def writer = Files.newBufferedWriter(path, Charset.forName('UTF-8'))
-        TEXT.readLines().each { it -> writer.println(it) }
+        TEXT.readLines().each { line -> writer.println(line) }
         writer.close()
         expect:
         readObject(path).trim() == TEXT
@@ -422,8 +422,8 @@ class QuiltNioTest extends QuiltSpecification {
         given:
         Path path  = Paths.get(new URI(write_url))
         def writer = Files.newOutputStream(path)
-        TEXT.readLines().each { it ->
-            writer.write(it.bytes)
+        TEXT.readLines().each { line ->
+            writer.write(line.bytes)
             writer.write((int)('\n' as char))
         }
         writer.close()
@@ -485,19 +485,19 @@ class QuiltNioTest extends QuiltSpecification {
         list == [ 'foo' ]
 
         when:
-        list = Files.newDirectoryStream(Paths.get(new URI(null_path('foo')))).collect { it.getFileName().toString() }
+        list = Files.newDirectoryStream(Paths.get(new URI(null_path('foo')))).collect { path -> path.getFileName().toString() }
         then:
         list.size() == 4
         list as Set == [ 'file1.txt', 'file2.txt', 'bar', 'file6.txt' ] as Set
 
         when:
-        list = Files.newDirectoryStream(Paths.get(new URI(null_path('foo/bar')))).collect { it.getFileName().toString() }
+        list = Files.newDirectoryStream(Paths.get(new URI(null_path('foo/bar')))).collect { path -> path.getFileName().toString() }
         then:
         list.size() == 3
         list as Set == [ 'file3.txt', 'baz', 'file5.txt' ] as Set
 
         when:
-        list = Files.newDirectoryStream(Paths.get(new URI(null_path('foo/bar/baz')))).collect { it.getFileName().toString() }
+        list = Files.newDirectoryStream(Paths.get(new URI(null_path('foo/bar/baz')))).collect { path -> path.getFileName().toString() }
         then:
         list.size() == 1
         list  == [ 'file4.txt' ]
