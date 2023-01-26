@@ -141,7 +141,7 @@ final class QuiltFileSystem extends FileSystem {
     QuiltPath getPath(String root, String... more) {
         log.debug "QuiltFileSystem.getPath`[${root}]: $more"
 
-        QuiltParser p = QuiltParser.ForBarePath(root)
+        QuiltParser p = QuiltParser.forBarePath(root)
         new QuiltPath(this, p)
     }
 

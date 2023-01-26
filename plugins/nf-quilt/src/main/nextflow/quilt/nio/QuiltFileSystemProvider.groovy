@@ -87,7 +87,7 @@ class QuiltFileSystemProvider extends FileSystemProvider {
 
     String getQuiltIDS(URI uri) {
         assert uri
-        QuiltParser parsed = QuiltParser.ForURI(uri)
+        QuiltParser parsed = QuiltParser.forURI(uri)
         return parsed.quiltID().toString()
     }
 
@@ -220,7 +220,7 @@ class QuiltFileSystemProvider extends FileSystemProvider {
      */
     @Override
     QuiltPath getPath(URI uri) {
-        QuiltParser parsed = QuiltParser.ForURI(uri)
+        QuiltParser parsed = QuiltParser.forURI(uri)
         log.debug "QuiltFileSystemProvider.getPath`[${uri}]: parsed=$parsed"
         final fs = getFileSystem0(parsed.quiltIDS(), true)
         new QuiltPath(fs, parsed)

@@ -100,7 +100,7 @@ final class QuiltPath implements Path {
 
     QuiltPath getJustPackage() {
         if (isJustPackage()) return this
-        QuiltParser packageParsed = QuiltParser.ForBarePath(parsed.toPackageString())
+        QuiltParser packageParsed = QuiltParser.forBarePath(parsed.toPackageString())
         return new QuiltPath(filesystem, packageParsed)
     }
 

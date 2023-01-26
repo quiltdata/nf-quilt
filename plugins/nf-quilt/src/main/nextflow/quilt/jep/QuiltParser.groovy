@@ -37,17 +37,17 @@ class QuiltParser {
     private String tag
     private final Map<String,Object> options
 
-    static QuiltParser ForBarePath(String path) {
-        return QuiltParser.ForUriString(PREFIX + path)
+    static QuiltParser forBarePath(String path) {
+        return QuiltParser.forUriString(PREFIX + path)
     }
 
-    static QuiltParser ForUriString(String uri_string) {
+    static QuiltParser forUriString(String uri_string) {
         URI uri = new URI(uri_string)
-        return QuiltParser.ForURI(uri)
+        return QuiltParser.forURI(uri)
     }
 
-    static QuiltParser ForURI(URI uri) {
-        log.debug("ForURI[${uri.scheme}] for ${uri}")
+    static QuiltParser forURI(URI uri) {
+        log.debug("forURI[${uri.scheme}] for ${uri}")
         if (uri.scheme != SCHEME) {
             String msg =  "Scheme[${uri}] URI:${uri.scheme}] != SCHEME:${SCHEME}"
             throw new IllegalArgumentException(msg)

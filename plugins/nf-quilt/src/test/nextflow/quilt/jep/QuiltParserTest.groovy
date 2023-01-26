@@ -27,14 +27,14 @@ class QuiltParserTest extends QuiltSpecification {
 
     void 'should error on invalid schema'() {
         when:
-        QuiltParser.ForUriString('quilt3://bucket/')
+        QuiltParser.forUriString('quilt3://bucket/')
         then:
         thrown(IllegalArgumentException)
     }
 
     void 'should parse over-long packages into path'() {
         when:
-        QuiltParser parser = QuiltParser.ForUriString(test_url)
+        QuiltParser parser = QuiltParser.forUriString(test_url)
         then:
         parser.bucket() == 'quilt-ernest-staging'
         parser.packageName() == 'nf-quilt/sarek'
@@ -43,7 +43,7 @@ class QuiltParserTest extends QuiltSpecification {
 
     void 'should modify path segments appropriately'() {
         when:
-        QuiltParser parser = QuiltParser.ForUriString(rel_url)
+        QuiltParser parser = QuiltParser.forUriString(rel_url)
         then:
         parser.path() == 'sub/../path'
         parser.appendPath('child').path() == 'sub/../path/child'
@@ -60,7 +60,7 @@ class QuiltParserTest extends QuiltSpecification {
 
     void 'should decompose URIs'() {
         when:
-        QuiltParser parser = QuiltParser.ForBarePath(bare)
+        QuiltParser parser = QuiltParser.forBarePath(bare)
         then:
         parser.bucket() == bucket
         parser.packageName() == pkg
