@@ -35,7 +35,7 @@ class QuiltPathIterator implements Iterator<Path> {
     private final DirectoryStream.Filter<? super Path> filter
     private final String[] children
     private final QuiltPath dir
-    private QuiltPath next
+    private QuiltPath _next
 
     QuiltPathIterator(QuiltPath dir, DirectoryStream.Filter<? super Path> filter) {
         this.dir = dir
@@ -47,12 +47,12 @@ class QuiltPathIterator implements Iterator<Path> {
 
     @Override
     boolean hasNext() {
-        return next != null
+        return _next != null
     }
 
     @Override
     Path next() {
-        def result = next
+        def result = _next
         if (result == null) {
             throw new NoSuchElementException()
         }
@@ -70,15 +70,18 @@ class QuiltPathIterator implements Iterator<Path> {
         while (result == null && itr.hasNext()) {
             def item = itr.next()
             Path path  = dir.resolve(item)
-            if (path == dir)    // make sure to  skip the original path
+            if (path == dir) { // make sure to  skip the original path
                 result = null
-            else if (filter)
+            }
+            else if (filter) {
                 result = filter.accept(path) ? path : null
-            else
+            }
+            else {
                 result = path
+            }
         }
 
-        next = result
+        _next = result
     }
 
 }

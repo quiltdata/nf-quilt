@@ -46,11 +46,11 @@ import nextflow.quilt.jep.QuiltParser
 final class QuiltFileSystem extends FileSystem {
 
     private final String quiltIDS
-    private final QuiltFileSystemProvider provider
+    private final QuiltFileSystemProvider _provider
 
     QuiltFileSystem(String quiltIDS, QuiltFileSystemProvider provider) {
         this.quiltIDS = quiltIDS
-        this.provider = provider
+        this._provider = provider
     }
 
     @Override
@@ -70,7 +70,7 @@ final class QuiltFileSystem extends FileSystem {
 
     @Override
     FileSystemProvider provider() {
-        return provider
+        return _provider
     }
 
     @Override
