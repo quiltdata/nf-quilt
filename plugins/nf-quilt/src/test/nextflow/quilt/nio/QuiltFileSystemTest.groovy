@@ -15,7 +15,7 @@ import groovy.transform.CompileDynamic
 @CompileDynamic
 class QuiltFileSystemTest extends QuiltSpecification {
 
-    void 'should test getPath' () {
+    void 'should test getPath'() {
         given:
         String BUCKET_NAME = 'bucket'
         QuiltFileSystemProvider provider = Stub(QuiltFileSystemProvider)
@@ -38,7 +38,7 @@ class QuiltFileSystemTest extends QuiltSpecification {
         1   | 'bucket#package=alpha%2fbravo'
     }
 
-    void 'should test basic properties' () {
+    void 'should test basic properties'() {
         given:
         String BUCKET_NAME = 'bucket'
         QuiltFileSystemProvider provider = Stub(QuiltFileSystemProvider)
