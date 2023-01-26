@@ -43,7 +43,7 @@ import nextflow.quilt.jep.QuiltParser
 // https://github.com/nextflow-io/nextflow-s3fs/tree/master/src/main/java/com/upplication/s3fs
 @Slf4j
 @CompileStatic
-final class QuiltFileSystem extends FileSystem {
+final class QuiltFileSystem extends FileSystem implements Closeable {
 
     private final String quiltIDS
     private final QuiltFileSystemProvider _provider
@@ -142,7 +142,7 @@ final class QuiltFileSystem extends FileSystem {
         log.debug "QuiltFileSystem.getPath`[${root}]: $more"
 
         QuiltParser p = QuiltParser.forBarePath(root)
-        new QuiltPath(this, p)
+        return new QuiltPath(this, p)
     }
 
     String toUriString(Path path) {
@@ -164,7 +164,9 @@ final class QuiltFileSystem extends FileSystem {
 
     @Override
     UserPrincipalLookupService getUserPrincipalLookupService() {
-        throw new UnsupportedOperationException("Operation 'getUserPrincipalLookupService' is not supported by QuiltFileSystem")
+        throw new UnsupportedOperationException(
+            "Operation 'getUserPrincipalLookupService' is not supported by QuiltFileSystem"
+        )
     }
 
     @Override

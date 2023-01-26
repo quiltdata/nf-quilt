@@ -15,8 +15,9 @@
  */
 package nextflow.quilt.nio
 
-import static java.nio.file.StandardCopyOption.*
-import static java.nio.file.StandardOpenOption.*
+import static java.nio.file.StandardCopyOption.WRITE
+import static java.nio.file.StandardOpenOption.APPEND
+import static java.nio.file.StandardOpenOption.WRITE
 
 import java.nio.channels.FileChannel
 import java.nio.channels.SeekableByteChannel
@@ -59,18 +60,13 @@ class QuiltFileSystemProvider extends FileSystemProvider {
     private final Map<String,QuiltFileSystem> fileSystems = [:]
     private Map<Path,BasicFileAttributes> attributesCache = [:]
 
-    /**
-     * @inheritDoc
-     */
-    @Override
-    String getScheme() {
-        return QuiltParser.SCHEME
-    }
 
     static QuiltPath asQuiltPath(Path path) {
         if (path !in QuiltPath) {
             String pathClassName = path?.class?.name ?: '-'
-            throw new IllegalArgumentException("Not a valid Quilt blob storage path object: `${path}` [${pathClassName}]")
+            throw new IllegalArgumentException(
+                "Not a valid Quilt blob storage path object: `${path}` [${pathClassName}]"
+            )
         }
         return (QuiltPath)path
     }
@@ -83,6 +79,18 @@ class QuiltFileSystemProvider extends FileSystemProvider {
             throw new IllegalArgumentException("Not a valid Quilt file system: `$fs` [${pathClassName}]")
         }
         return (QuiltFileSystem)fs
+    }
+
+    static FileSystemProvider provider(Path path) {
+        return path.getFileSystem().provider()
+    }
+
+    /**
+     * @inheritDoc
+     */
+    @Override
+    String getScheme() {
+        return QuiltParser.SCHEME
     }
 
     String getQuiltIDS(URI uri) {
@@ -132,13 +140,13 @@ class QuiltFileSystemProvider extends FileSystemProvider {
     @Override
     QuiltFileSystem newFileSystem(URI uri, Map<String, ?> config) throws IOException {
         final quiltIDS = getQuiltIDS(uri)
-        newFileSystem(quiltIDS, config)
+        return newFileSystem(quiltIDS, config)
     }
 
-    QuiltFileSystem newFileSystem(String quiltIDS, Map<String, ?> env) throws IOException {
+    QuiltFileSystem newFileSystem(String quiltIDS, Map<String, ?> _env) throws IOException {
         final fs = new QuiltFileSystem(quiltIDS, this)
         fileSystems[quiltIDS] = fs
-        fs
+        return fs
     }
 
     /**
@@ -178,18 +186,16 @@ class QuiltFileSystemProvider extends FileSystemProvider {
     @Override
     FileSystem getFileSystem(URI uri) {
         final quiltIDS = getQuiltIDS(uri)
-        getFileSystem0(quiltIDS, false)
+        return getFileSystem0(quiltIDS, false)
     }
 
     QuiltFileSystem getFileSystem0(String quiltIDS, boolean canCreate) {
         QuiltFileSystem fs = fileSystems.get(quiltIDS)
-        if (fs) return fs
+        if (fs) { return fs }
         if (canCreate) {
             return newFileSystem(quiltIDS, env)
         }
-        else {
-            throw new FileSystemNotFoundException("Missing Quilt file system for quiltIDS: `$quiltIDS`")
-        }
+        throw new FileSystemNotFoundException("Missing Quilt file system for quiltIDS: `$quiltIDS`")
     }
 
     /**
@@ -223,11 +229,7 @@ class QuiltFileSystemProvider extends FileSystemProvider {
         QuiltParser parsed = QuiltParser.forURI(uri)
         log.debug "QuiltFileSystemProvider.getPath`[${uri}]: parsed=$parsed"
         final fs = getFileSystem0(parsed.quiltIDS(), true)
-        new QuiltPath(fs, parsed)
-    }
-
-    static FileSystemProvider provider(Path path) {
-        path.getFileSystem().provider()
+        return new QuiltPath(fs, parsed)
     }
 
     void checkRoot(Path path) {
@@ -247,9 +249,11 @@ class QuiltFileSystemProvider extends FileSystemProvider {
     */
     void notifyFilePublish(QuiltPath destination, Path source=null) {
         final sess = Global.session
+        /* groovylint-disable */
         if (sess instanceof Session) {
             sess.notifyFilePublish((Path)destination, source)
         }
+        /* groovylint-enable */
     }
 
     @Override
@@ -286,7 +290,9 @@ class QuiltFileSystemProvider extends FileSystemProvider {
                 return Collections.emptyIterator()
             }
 
+            /* groovylint-disable */
             @Override void close() throws IOException { }
+            /* groovylint-enable */
 
         }
     }
@@ -301,10 +307,12 @@ class QuiltFileSystemProvider extends FileSystemProvider {
 
         return new DirectoryStream<Path>() {
 
+            /* groovylint-disable */
             @Override
             void close() throws IOException {
             // nothing to do here
             }
+            /* groovylint-enable */
 
             @Override
             Iterator<Path> iterator() {
@@ -314,12 +322,14 @@ class QuiltFileSystemProvider extends FileSystemProvider {
         }
     }
 
+    /* groovylint-disable */
     @Override
     void createDirectory(Path dir, FileAttribute<?>... attrs) throws IOException {
         final path = asQuiltPath(dir).localPath()
         log.debug "Calling createDirectory[${path}]: ${dir} "
         Files.createDirectories(path)
     }
+    /* groovylint-enable */
 
     @Override
     void delete(Path obj) throws IOException {
