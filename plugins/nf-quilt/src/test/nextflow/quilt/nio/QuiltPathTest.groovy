@@ -17,13 +17,13 @@ import spock.lang.Ignore
 @Slf4j
 class QuiltPathTest extends QuiltSpecification {
 
-    static final String BKT = 'bucket'
-    static final String PKG_URL = "${QuiltParser.PREFIX}${BKT}#package=so%2fme"
-    static QuiltPath pkgPath
-    static QuiltFileSystem QFS
-    static String sub_path = "${BKT}#package=s/d&path=f%2ffile.txt"
+    private static final String BKT = 'bucket'
+    private static final String PKG_URL = "${QuiltParser.PREFIX}${BKT}#package=so%2fme"
+    private static QuiltPath pkgPath
+    private static QuiltFileSystem QFS
+    private static String sub_path = "${BKT}#package=s/d&path=f%2ffile.txt"
 
-    private QuiltPath pathify(String path) {
+    QuiltPath pathify(String path) {
         if (!pkgPath) { pkgPath = Paths.get(new URI(PKG_URL)) }
         if (!QFS) { QFS = pkgPath.getFileSystem() }
         if (!path.contains(BKT)) {
@@ -96,7 +96,7 @@ class QuiltPathTest extends QuiltSpecification {
     }
 
     @Unroll
-    void 'should return fsName and isJustPackage' () {
+    void 'should return fsName and isJustPackage'() {
         when:
         Path p = pathify(path)
         then:
@@ -224,7 +224,7 @@ class QuiltPathTest extends QuiltSpecification {
     }
 
     @Unroll
-    void 'should validate resolveSibling: #path' () {
+    void 'should validate resolveSibling: #path'() {
         expect:
         pathify(base).resolveSibling(path) == pathify(expected)
 
@@ -236,7 +236,7 @@ class QuiltPathTest extends QuiltSpecification {
     }
 
     @Unroll
-    void 'should validate relativize' () {
+    void 'should validate relativize'() {
         expect:
         pathify(path).relativize(pathify(other)).toString() == pathify(expected).toString()
         where:

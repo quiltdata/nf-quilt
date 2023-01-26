@@ -36,13 +36,13 @@ import groovy.transform.CompileDynamic
 @CompileDynamic
 class QuiltPackageTest extends QuiltSpecification {
 
-    QuiltPathFactory factory
-    QuiltPath qpath
-    QuiltPackage pkg
+    private static String packageURL = 'quilt+s3://quilt-example#package=examples%2fsmart-report@d68a7e9'
+    private static String url = packageURL + '&path=README.md'
+    private static String out_url = 'quilt+s3://quilt_dev_null#package=nf-quilt%2ftest'
 
-    static String packageURL = 'quilt+s3://quilt-example#package=examples%2fsmart-report@d68a7e9'
-    static String url = packageURL + '&path=README.md'
-    static String out_url = 'quilt+s3://quilt_dev_null#package=nf-quilt%2ftest'
+    private QuiltPathFactory factory
+    private QuiltPath qpath
+    private QuiltPackage pkg
 
     def setup() {
         factory = new QuiltPathFactory()
@@ -50,7 +50,7 @@ class QuiltPackageTest extends QuiltSpecification {
         pkg = qpath.pkg()
     }
 
-    void 'should create unique Package for associated Paths' () {
+    void 'should create unique Package for associated Paths'() {
         given:
         def pkgPath = qpath.getJustPackage()
         def pkg2 = pkgPath.pkg()
@@ -62,7 +62,7 @@ class QuiltPackageTest extends QuiltSpecification {
         pkg == pkg2
     }
 
-    void 'should distinguish Packages with same name in different Buckets ' () {
+    void 'should distinguish Packages with same name in different Buckets '() {
         given:
         def url2 = url.replace('quilt-', 'quilted-')
         def qpath2 = factory.parseUri(url2)
@@ -76,7 +76,7 @@ class QuiltPackageTest extends QuiltSpecification {
         !Files.exists(qpath2.localPath())
     }
 
-    void 'should create an install folder ' () {
+    void 'should create an install folder '() {
         given:
         Path installPath = pkg.packageDest()
         String tmpDirsLocation = System.getProperty('java.io.tmpdir')
@@ -85,7 +85,7 @@ class QuiltPackageTest extends QuiltSpecification {
         Files.exists(installPath)
     }
 
-    void 'should get attributes for package folder' () {
+    void 'should get attributes for package folder'() {
         given:
         def root = qpath.getRoot()
         def qroot = factory.parseUri(packageURL)
@@ -97,7 +97,7 @@ class QuiltPackageTest extends QuiltSpecification {
     }
 
     @IgnoreIf({ System.getProperty('os.name').contains('ux') })
-    void 'should pre-install files and get attributes' () {
+    void 'should pre-install files and get attributes'() {
         expect:
         pkg.install()
         pkg.isInstalled()
@@ -106,7 +106,7 @@ class QuiltPackageTest extends QuiltSpecification {
     }
 
     @IgnoreIf({ System.getProperty('os.name').contains('ux') })
-    void 'should deinstall files' () {
+    void 'should deinstall files'() {
         expect:
         Files.exists(qpath.localPath())
         when:
@@ -119,7 +119,7 @@ class QuiltPackageTest extends QuiltSpecification {
         thrown(java.nio.file.NoSuchFileException)
     }
 
-    void 'should iterate over installed files ' () {
+    void 'should iterate over installed files '() {
         given:
         def root = qpath.getRoot()
         def qroot = factory.parseUri(packageURL)
@@ -133,7 +133,7 @@ class QuiltPackageTest extends QuiltSpecification {
     //vs!Files.isDirectory(qpath)
     }
 
-    void 'should write new files back to bucket ' () {
+    void 'should write new files back to bucket '() {
         given:
         def cleanDate = QuiltPackage.today()
         //def qout = factory.parseUri(out_url)
@@ -151,7 +151,7 @@ class QuiltPackageTest extends QuiltSpecification {
     //pkg.isInstalled()
     }
 
-    void 'Package should return Attributes IFF the file exists' () {
+    void 'Package should return Attributes IFF the file exists'() {
     }
 
 }
