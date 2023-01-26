@@ -29,7 +29,7 @@ import groovy.util.logging.Slf4j
 
 @Slf4j
 @CompileStatic
-public class QuiltPathIterator implements Iterator<Path> {
+class QuiltPathIterator implements Iterator<Path> {
 
     private Iterator<String> itr
 

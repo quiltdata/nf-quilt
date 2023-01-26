@@ -526,7 +526,7 @@ class QuiltNioTest extends QuiltSpecification {
             }
 
             @Override
-            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+            FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
                 files[file.getFileName().toString()] = attrs
                 return FileVisitResult.CONTINUE
             }
@@ -560,7 +560,7 @@ class QuiltNioTest extends QuiltSpecification {
             }
 
             @Override
-            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+            FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
                 files[file.getFileName().toString()] = attrs
                 return FileVisitResult.CONTINUE
             }
@@ -624,7 +624,7 @@ class QuiltNioTest extends QuiltSpecification {
             }
 
             @Override
-            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+            FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
                 files[root.relativize(file).toString()] = attrs
                 return FileVisitResult.CONTINUE
             }

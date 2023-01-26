@@ -302,12 +302,12 @@ class QuiltFileSystemProvider extends FileSystemProvider {
         return new DirectoryStream<Path>() {
 
             @Override
-            public void close() throws IOException {
+            void close() throws IOException {
             // nothing to do here
             }
 
             @Override
-            public Iterator<Path> iterator() {
+            Iterator<Path> iterator() {
                 return new QuiltPathIterator(qPath, filter)
             }
 

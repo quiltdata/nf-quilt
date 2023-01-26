@@ -43,12 +43,12 @@ import nextflow.quilt.jep.QuiltParser
 // https://github.com/nextflow-io/nextflow-s3fs/tree/master/src/main/java/com/upplication/s3fs
 @Slf4j
 @CompileStatic
-public final class QuiltFileSystem extends FileSystem {
+final class QuiltFileSystem extends FileSystem {
 
     private final String quiltIDS
     private final QuiltFileSystemProvider provider
 
-    public QuiltFileSystem(String quiltIDS, QuiltFileSystemProvider provider) {
+    QuiltFileSystem(String quiltIDS, QuiltFileSystemProvider provider) {
         this.quiltIDS = quiltIDS
         this.provider = provider
     }

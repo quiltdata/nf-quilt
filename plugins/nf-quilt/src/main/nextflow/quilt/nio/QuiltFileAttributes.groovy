@@ -37,7 +37,7 @@ class QuiltFileAttributes implements BasicFileAttributes {
     private final String key;
     private final BasicFileAttributes attrs;
 
- 	public QuiltFileAttributes(QuiltPath path, String key, BasicFileAttributes attrs) {
+ 	QuiltFileAttributes(QuiltPath path, String key, BasicFileAttributes attrs) {
         this.path = path
  		this.key = path.isJustPackage() ? "/" : path.file_key()
  		this.attrs = attrs
@@ -45,53 +45,53 @@ class QuiltFileAttributes implements BasicFileAttributes {
  	}
 
  	@Override
- 	public FileTime lastModifiedTime() {
+ 	FileTime lastModifiedTime() {
  		return attrs.lastModifiedTime();
  	}
 
  	@Override
- 	public FileTime lastAccessTime() {
+ 	FileTime lastAccessTime() {
  		return attrs.lastAccessTime();
  	}
 
  	@Override
- 	public FileTime creationTime() {
+ 	FileTime creationTime() {
         return attrs.creationTime();
  	}
 
  	@Override
- 	public boolean isRegularFile() {
+ 	boolean isRegularFile() {
         return attrs.isRegularFile();
  	}
 
  	@Override
- 	public boolean isDirectory() {
+ 	boolean isDirectory() {
         return attrs.isDirectory();
  	}
 
  	@Override
- 	public boolean isSymbolicLink() {
+ 	boolean isSymbolicLink() {
         return attrs.isSymbolicLink();
  	}
 
  	@Override
- 	public boolean isOther() {
+ 	boolean isOther() {
         return attrs.isOther();
  	}
 
  	@Override
- 	public long size() {
+ 	long size() {
         return attrs.size();
  	}
 
  	@Override
- 	public Object fileKey() {
+ 	Object fileKey() {
         log.debug "QuiltFileAttributes.fileKey: $key"
  		return key;
  	}
 
  	@Override
- 	public String toString() {
+ 	String toString() {
  		return "[${key}: lastModified=${lastModifiedTime()}, size=${size()}, isDirectory=${isDirectory()}]"
     }
  }

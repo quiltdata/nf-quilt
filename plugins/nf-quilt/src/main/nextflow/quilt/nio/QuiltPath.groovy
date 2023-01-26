@@ -38,36 +38,36 @@ import groovy.util.logging.Slf4j
 
 @Slf4j
 @CompileStatic
-public final class QuiltPath implements Path {
+final class QuiltPath implements Path {
 
     private final QuiltFileSystem filesystem
     private final QuiltParser parsed
     private final String[] paths
 
-    public QuiltPath(QuiltFileSystem filesystem, QuiltParser parsed) {
+    QuiltPath(QuiltFileSystem filesystem, QuiltParser parsed) {
         this.filesystem = filesystem
         this.parsed = parsed
         this.paths = parsed.paths()
         log.debug "Creating QuiltPath[$parsed]@$filesystem"
     }
 
-    public String bucket() {
+    String bucket() {
         return parsed.bucket()
     }
 
-    public String packageName() {
+    String packageName() {
         return parsed.packageName()
     }
 
-    public String sub_paths() {
+    String sub_paths() {
         return parsed.path()
     }
 
-    public QuiltPackage pkg() {
+    QuiltPackage pkg() {
         return isAbsolute() ? QuiltPackage.forParsed(parsed) : null
     }
 
-    public String file_key() {
+    String file_key() {
         return sub_paths()
     }
 
@@ -77,7 +77,7 @@ public final class QuiltPath implements Path {
         return Paths.get(pkgPath.toUriString(), sub_paths())
     }
 
-    public boolean deinstall() {
+    boolean deinstall() {
         Path path = localPath()
         log.debug "QuiltPath.deinstall: $path"
         return Files.delete(path)
