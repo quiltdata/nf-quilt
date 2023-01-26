@@ -30,14 +30,14 @@ import groovy.transform.CompileDynamic
 @CompileDynamic
 class QuiltNioTest extends QuiltSpecification {
 
-    private static String null_url = 'quilt+s3://quilt-dev-null#package=test/null'
-    private static null_path(f) { null_url + "&path=$f" }
+    private static final String null_url = 'quilt+s3://quilt-dev-null#package=test/null'
+    private static final null_path(f) { null_url + "&path=$f" }
     //https://open.quiltdata.com/b/quilt-example/tree/examples/hurdat/
-    private static String packageURL = 'quilt+s3://quilt-example#package=examples/hurdat'
-    private static packagePath(f) { packageURL + "&path=$f" }
-    private static String write_url = packagePath('folder/file-name.txt')
-    private static String read_url = packagePath('data/atlantic-storms.csv')
-    private static String TEXT = 'Hello world!'
+    private static final String packageURL = 'quilt+s3://quilt-example#package=examples/hurdat'
+    private static final packagePath(f) { packageURL + "&path=$f" }
+    private static final String write_url = packagePath('folder/file-name.txt')
+    private static final String read_url = packagePath('data/atlantic-storms.csv')
+    private static final String TEXT = 'Hello world!'
 
     void 'should create valid URIs'() {
         given:

@@ -40,10 +40,22 @@ import nextflow.trace.TraceObserver
 @CompileStatic
 class QuiltObserver implements TraceObserver {
 
-    private Session session
     private Map config
-    private Map quilt_config
-    private Set<QuiltPackage> pkgs = new HashSet<>()
+    private Map quiltConfig
+    private Set<QuiltPackage> pkgs = [] as Set
+    private Session session
+
+    private final static String[] bigKeys = [
+        'nextflow', 'commandLine', 'scriptFile', 'projectDir', 
+        'homeDir', 'workDir', 'launchDir', 'manifest', 'configFiles'
+    ]
+
+    static void printMap(Map map, String title) {
+        log.debug "\n\n\n# $title"
+        map.each {
+            key, value -> log.debug "\n## ${key}: ${value}"
+        }
+    }
 
     static void writeString(String text, QuiltPackage pkg, String filename) {
         String dir = pkg.packageDest()
@@ -73,7 +85,7 @@ class QuiltObserver implements TraceObserver {
         log.debug "`onFlowCreate` $this"
         this.session = session
         this.config = session.config
-        this.quilt_config = session.config.navigate('quilt') as Map
+        this.quiltConfig = session.config.navigate('quilt') as Map
         this.pkgs
     }
 
@@ -134,17 +146,6 @@ ${meta['workflow']['stats']['processes']}
         writeString("$meta", pkg, 'quilt_metadata.txt')
         def rc = pkg.push(msg, jsonMeta)
         log.info "$rc: pushed package[$pkg] $msg"
-    }
-
-    private static String[] bigKeys = [
-        'nextflow', 'commandLine', 'scriptFile', 'projectDir', 'homeDir', 'workDir', 'launchDir', 'manifest', 'configFiles'
-    ]
-
-    static void printMap(Map map, String title) {
-        log.debug "\n\n\n# $title"
-        map.each {
-            key, value -> log.debug "\n## ${key}: ${value}"
-        }
     }
 
     Map getMetadata() {

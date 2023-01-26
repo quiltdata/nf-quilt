@@ -31,15 +31,11 @@ import groovy.util.logging.Slf4j
 @CompileStatic
 class QuiltPathIterator implements Iterator<Path> {
 
-    private Iterator<String> itr
-
-    private DirectoryStream.Filter<? super Path> filter
-
-    private String[] children
-
+    private final Iterator<String> itr
+    private final DirectoryStream.Filter<? super Path> filter
+    private final String[] children
+    private final QuiltPath dir
     private QuiltPath next
-
-    private QuiltPath dir
 
     QuiltPathIterator(QuiltPath dir, DirectoryStream.Filter<? super Path> filter) {
         this.dir = dir
@@ -69,7 +65,7 @@ class QuiltPathIterator implements Iterator<Path> {
         throw new UnsupportedOperationException("Operation 'remove' is not supported by QuiltPathIterator")
     }
 
-    private void advance() {
+    private final void advance() {
         QuiltPath result = null
         while (result == null && itr.hasNext()) {
             def item = itr.next()
