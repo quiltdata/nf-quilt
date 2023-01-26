@@ -1,6 +1,12 @@
 {
     "extends": "recommended",
     "rules": {
+        "JavadocEmptyFirstLine": {
+            "enabled": false
+        },
+        "JUnitPublicNonTestMethod": {
+            "enabled": false
+        },
         "CatchException": {
             "enabled": false
         },
