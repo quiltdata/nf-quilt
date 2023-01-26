@@ -69,13 +69,13 @@ class QuiltObserver implements TraceObserver {
     }
 
     static QuiltPath asQuiltPath(Path path) {
-        if (path instanceof QuiltPath) {
+        if (path in QuiltPath) {
             return (QuiltPath) path
         }
         String strPath = path.getFileName()
         if (strPath.contains('#package')) {
             String url = "${QuiltParser.SCHEME}://${strPath}"
-            return QuiltPathFactory.Parse(url)
+            return QuiltPathFactory.parse(url)
         }
         return null
     }

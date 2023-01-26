@@ -1,7 +1,16 @@
 {
     "extends": "recommended",
     "rules": {
+        "MethodCount": {
+            "enabled": false
+        },
         "JavadocMissingParamDescription": {
+            "enabled": false
+        },
+        "JavadocMissingThrowsDescription": {
+            "enabled": false
+        },
+        "JavadocEmptyReturnTag": {
             "enabled": false
         },
         "JavadocEmptyFirstLine": {

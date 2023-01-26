@@ -32,62 +32,64 @@ class QuiltFileAttributes implements BasicFileAttributes {
 
     private final QuiltPath path
     private final String key
+    private final String orig_key
     private final BasicFileAttributes attrs
 
     QuiltFileAttributes(QuiltPath path, String key, BasicFileAttributes attrs) {
         this.path = path
         this.key = path.isJustPackage() ? '/' : path.file_key()
+        this.orig_key = key
         this.attrs = attrs
         log.debug "QuiltFileAttributes($path): this=$this"
     }
 
-     @Override
+    @Override
     FileTime lastModifiedTime() {
         return attrs.lastModifiedTime()
     }
 
-     @Override
+    @Override
     FileTime lastAccessTime() {
         return attrs.lastAccessTime()
     }
 
-     @Override
+    @Override
     FileTime creationTime() {
         return attrs.creationTime()
     }
 
-     @Override
+    @Override
     boolean isRegularFile() {
         return attrs.isRegularFile()
     }
 
-     @Override
+    @Override
     boolean isDirectory() {
         return attrs.isDirectory()
     }
 
-     @Override
+    @Override
     boolean isSymbolicLink() {
         return attrs.isSymbolicLink()
     }
 
-     @Override
+    @Override
     boolean isOther() {
         return attrs.isOther()
     }
 
-     @Override
+    @Override
     long size() {
         return attrs.size()
     }
 
-     @Override
+    @Override
     Object fileKey() {
         log.debug "QuiltFileAttributes.fileKey: $key"
         return key
     }
 
-     @Override
+    @Override
     String toString() {
         return "[${key}: lastModified=${lastModifiedTime()}, size=${size()}, isDirectory=${isDirectory()}]"
     }

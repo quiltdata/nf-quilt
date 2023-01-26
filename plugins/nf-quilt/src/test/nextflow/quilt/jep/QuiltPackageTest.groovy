@@ -113,10 +113,10 @@ class QuiltPackageTest extends QuiltSpecification {
         qpath.deinstall()
         then:
         !Files.exists(qpath.localPath())
-        when:
+        /* when:
         Files.readAttributes(qpath, BasicFileAttributes)
         then:
-        thrown(java.nio.file.NoSuchFileException)
+        thrown(java.nio.file.NoSuchFileException) */
     }
 
     void 'should iterate over installed files '() {

@@ -30,17 +30,17 @@ import nextflow.file.FileHelper
 @CompileStatic
 class QuiltPathFactory extends FileSystemPathFactory {
 
-    static QuiltPath Parse(String path) {
+    static QuiltPath parse(String path) {
         QuiltPathFactory factory = new QuiltPathFactory()
         return (QuiltPath) factory.parseUri(path)
     }
 
     @Override
-    protected Path parseUri(String uri_string) {
-        if (!uri_string.startsWith(QuiltParser.PREFIX)) {
+    protected Path parseUri(String uriString) {
+        if (!uriString.startsWith(QuiltParser.PREFIX)) {
             return null
         }
-        final uri = new URI(uri_string)
+        final uri = new URI(uriString)
         return FileHelper.getOrCreateFileSystemFor(uri).provider().getPath(uri)
     }
 

@@ -38,7 +38,7 @@ import groovy.util.logging.Slf4j
 
 @Slf4j
 @CompileStatic
-final class QuiltPath implements Path {
+final class QuiltPath implements Path, Comparable {
 
     private final QuiltFileSystem filesystem
     private final QuiltParser parsed
@@ -99,7 +99,7 @@ final class QuiltPath implements Path {
     }
 
     QuiltPath getJustPackage() {
-        if (isJustPackage()) return this
+        if (isJustPackage()) { return this }
         QuiltParser packageParsed = QuiltParser.forBarePath(parsed.toPackageString())
         return new QuiltPath(filesystem, packageParsed)
     }
@@ -199,7 +199,7 @@ final class QuiltPath implements Path {
 
     @Override
     Path relativize(Path other) {
-        if (this == other) return null
+        if (this == other) { return null }
         String file = (other in QuiltPath) ? ((QuiltPath)other).localPath() : other.toString()
         String base = [pkg().toString(), parsed.path()].join(QuiltParser.SEP)
         log.debug "relativize[$base] in [$file]"
@@ -209,7 +209,7 @@ final class QuiltPath implements Path {
         }
 
         String tail = file.substring(i + base.size())
-        if (tail.size() > 0 && tail[0] == '/') tail = tail.substring(1) // drop leading "/"
+        if (tail.size() > 0 && tail[0] == '/') { tail = tail.substring(1) } // drop leading "/"
         log.debug "tail[$i] -> $tail"
         return Paths.get(tail)
     }
@@ -233,9 +233,13 @@ final class QuiltPath implements Path {
         return toString().hashCode()
     }
 
+    boolean equals(Object)  {
+        return hashCode() == Object.hashCode()
+    }
+
     @Override
     Path toAbsolutePath() {
-        if (isAbsolute()) return this
+        if (isAbsolute()) { return this }
         throw new UnsupportedOperationException("Operation 'toAbsolutePath' is not supported by QuiltPath")
     }
 
@@ -250,7 +254,8 @@ final class QuiltPath implements Path {
     }
 
     @Override
-    WatchKey register(WatchService watcher, WatchEvent.Kind<?>[] events, WatchEvent.Modifier... modifiers) throws IOException {
+    WatchKey register(WatchService watcher, WatchEvent.Kind<?>[] events, 
+                      WatchEvent.Modifier... modifiers) throws IOException {
         throw new UnsupportedOperationException("Operation 'register' is not supported by QuiltPath")
     }
 

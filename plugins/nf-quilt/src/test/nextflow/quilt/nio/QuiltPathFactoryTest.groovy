@@ -34,7 +34,7 @@ class QuiltPathFactoryTest extends QuiltSpecification {
 
     void 'should decompose Quilt URLs'() {
         given:
-        Path qpath = QuiltPathFactory.Parse(url)
+        Path qpath = QuiltPathFactory.parse(url)
         expect:
         qpath != null
         qpath.bucket() == 'quilt-example'
@@ -49,7 +49,7 @@ class QuiltPathFactoryTest extends QuiltSpecification {
         }
 
         expect:
-        QuiltPathFactory.Parse(PATH).toString() == STR
+        QuiltPathFactory.parse(PATH).toString() == STR
 
         where:
         _ | PATH                                        | STR

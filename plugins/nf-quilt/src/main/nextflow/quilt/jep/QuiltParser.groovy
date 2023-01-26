@@ -41,8 +41,8 @@ class QuiltParser {
         return QuiltParser.forUriString(PREFIX + path)
     }
 
-    static QuiltParser forUriString(String uri_string) {
-        URI uri = new URI(uri_string)
+    static QuiltParser forUriString(String uriString) {
+        URI uri = new URI(uriString)
         return QuiltParser.forURI(uri)
     }
 
