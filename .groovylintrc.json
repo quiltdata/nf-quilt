@@ -1,6 +1,9 @@
 {
     "extends": "recommended",
     "rules": {
+        "JavadocMissingParamDescription": {
+            "enabled": false
+        },
         "JavadocEmptyFirstLine": {
             "enabled": false
         },
