@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package nextflow.quilt.nio
 
 import java.nio.file.DirectoryStream
@@ -51,14 +50,13 @@ public class QuiltPathIterator implements Iterator<Path> {
     }
 
     private void advance() {
-
         QuiltPath result = null
-        while( result == null && itr.hasNext() ) {
+        while (result == null && itr.hasNext()) {
             def item = itr.next()
             Path path  = dir.resolve(item)
-            if( path == dir)    // make sure to  skip the original path
+            if (path == dir)    // make sure to  skip the original path
                 result = null
-            else if( filter )
+            else if (filter)
                 result = filter.accept(path) ? path : null
             else
                 result = path
@@ -75,8 +73,9 @@ public class QuiltPathIterator implements Iterator<Path> {
     @Override
     Path next() {
         def result = next
-        if( result == null )
+        if (result == null) {
             throw new NoSuchElementException()
+        }
         advance()
         return result
     }
@@ -85,4 +84,5 @@ public class QuiltPathIterator implements Iterator<Path> {
     void remove() {
         throw new UnsupportedOperationException("Operation 'remove' is not supported by QuiltPathIterator")
     }
+
 }

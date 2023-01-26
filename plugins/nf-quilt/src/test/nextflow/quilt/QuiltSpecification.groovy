@@ -169,7 +169,7 @@ abstract class QuiltSpecification extends Specification {
         result.asBoolean() >> true
         result.getParent() >> {
             int p = path.lastIndexOf('/')
-            return (p == -1) ? null : mockQuiltPath("${path.substring(0, p)}", true) 
+            return (p == -1) ? null : mockQuiltPath("${path.substring(0, p)}", true)
         }
         result.getFileName() >> { Paths.get(tokens[-1]) }
         result.getName() >> tokens[1]

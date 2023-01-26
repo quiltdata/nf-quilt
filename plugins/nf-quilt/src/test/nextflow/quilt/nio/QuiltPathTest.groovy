@@ -1,4 +1,5 @@
 package nextflow.quilt.nio
+
 import nextflow.quilt.QuiltSpecification
 import nextflow.quilt.jep.QuiltParser
 
@@ -6,9 +7,9 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import groovy.util.logging.Slf4j
 
-import spock.lang.Shared
 import spock.lang.Unroll
 import spock.lang.Ignore
+
 /**
  *
  * @author Paolo Di Tommaso <paolo.ditommaso@gmail.com>
@@ -16,7 +17,7 @@ import spock.lang.Ignore
 @Slf4j
 class QuiltPathTest extends QuiltSpecification {
 
-    static final String BKT = "bucket"
+    static final String BKT = 'bucket'
     static final String PKG_URL = "${QuiltParser.PREFIX}${BKT}#package=so%2fme"
     static QuiltPath pkgPath
     static QuiltFileSystem QFS
@@ -34,7 +35,6 @@ class QuiltPathTest extends QuiltSpecification {
 
     @Unroll
     void 'should create a path: #objectName'() {
-
         when:
         Path path = pathify(objectName)
         then:
@@ -52,7 +52,6 @@ class QuiltPathTest extends QuiltSpecification {
     }
 
     void 'should validate equals and hashCode'() {
-
         when:
         Path path1 = pathify('bucket#package=so%2fme&path=file-name.txt')
         Path path2 = pathify('bucket#package=so%2fme&path=file-name.txt')
@@ -73,7 +72,6 @@ class QuiltPathTest extends QuiltSpecification {
         then:
         rel1 == rel2
         rel1.hashCode() == rel2.hashCode()
-
     }
 
     void 'should validate isAbsolute'() {
@@ -135,7 +133,7 @@ class QuiltPathTest extends QuiltSpecification {
 
         where:
         path                                | parent
-        'bucket#path=some%2fdata%2ffile.txt'| 'bucket#path=some%2fdata'
+        'bucket#path=some%2fdata%2ffile.txt' | 'bucket#path=some%2fdata'
         'bucket#path=data%2ffile.txt'       | 'bucket#path=data'
         'bucket#path=file-name.txt'         | 'bucket#path=/'
         'bucket'                            | 'bucket'
@@ -157,10 +155,8 @@ class QuiltPathTest extends QuiltSpecification {
         '#path=some-file.txt'                    | 'quilt+s3://null#path=some-file.txt'
     }
 
-
     @Unroll
     void 'should validate resolve: base:=#base; path=#path'() {
-
         expect:
         pathify(base).resolve(path) == pathify(expected)
         //pathify(base).resolve( pathify(path) ) == pathify(expected)
@@ -192,10 +188,10 @@ class QuiltPathTest extends QuiltSpecification {
 
         where:
         path                         | prefix                | expected
-        'bucket#package=s/d/file.txt'| 'bucket#package=s%2fd'| true
-        'bucket#package=s/d/file.txt'| 'bucket#package=s'  | true
-        'bucket#package=s/d/file.txt'| 'bucket'            | true
-        'bucket#package=s/d/file.txt'| 'file.txt'          | false
+        'bucket#package=s/d/file.txt' | 'bucket#package=s%2fd' | true
+        'bucket#package=s/d/file.txt' | 'bucket#package=s' | true
+        'bucket#package=s/d/file.txt' | 'bucket' | true
+        'bucket#package=s/d/file.txt' | 'file.txt' | false
         'data%2ffile.txt'            | 'data'              | true
         'data%2ffile.txt'            | 'file.txt'          | false
     }
@@ -212,8 +208,8 @@ class QuiltPathTest extends QuiltSpecification {
         sub_path         | 'f%2ffile.txt'    | true
         sub_path         | '/f%2ffile.txt'   | false
         sub_path         | 'bucket'          | false
-        'data%2ffile.txt'| 'data'            | false
-        'data%2ffile.txt'| 'file.txt'        | true
+        'data%2ffile.txt' | 'data' | false
+        'data%2ffile.txt' | 'file.txt' | true
     }
 
     @Unroll
@@ -223,7 +219,7 @@ class QuiltPathTest extends QuiltSpecification {
         where:
         path                              | expected
         'bucket#path=s/d/file.txt'        | 'bucket#path=s/d/file.txt'
-        'bucket#path=some%2f..%2ffile.txt'| 'bucket#path=file.txt'
+        'bucket#path=some%2f..%2ffile.txt' | 'bucket#path=file.txt'
         'file.txt'                        | 'file.txt'
     }
 
@@ -249,4 +245,5 @@ class QuiltPathTest extends QuiltSpecification {
         'bucket#package=so%2fme%2fdata'   | 'bucket#package=so%2fme%2fdata%2ffile.txt' | 'file.txt'
         'bucket#package=so%2fme&path=foo' | 'bucket#package=so%2fme&path=foo%2fbar'    | 'bar'
     }
+
 }

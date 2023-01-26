@@ -39,7 +39,7 @@ class QuiltPackage {
     private boolean installed
 
     static String today() {
-        LocalDate date = LocalDate.now() 
+        LocalDate date = LocalDate.now()
         return date.toString()
     }
 
