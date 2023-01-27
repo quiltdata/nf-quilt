@@ -1,7 +1,8 @@
+/* groovylint-disable MethodName */
+
 package nextflow.quilt.jep
 
 import nextflow.quilt.QuiltSpecification
-
 import groovy.util.logging.Slf4j
 import groovy.transform.CompileDynamic
 

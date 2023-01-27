@@ -80,8 +80,8 @@ class QuiltPackage {
 
     QuiltPackage(QuiltParser parsed) {
         this.installed = false
-        this.bucket = parsed.bucket()
-        this.packageName = parsed.packageName()
+        this.bucket = parsed.getBucket()
+        this.packageName = parsed.getPackageName()
         this.hash = parsed.hash()
         this.folder = Paths.get(INSTALL_ROOT.toString(), this.toString())
         log.debug "QuiltParser.folder[${this.folder}] ${parsed}"

@@ -47,16 +47,16 @@ final class QuiltPath implements Path, Comparable {
     QuiltPath(QuiltFileSystem filesystem, QuiltParser parsed) {
         this.filesystem = filesystem
         this.parsed = parsed
-        this.paths = parsed.paths()
+        this.paths = parsed.getPaths()
         log.debug "Creating QuiltPath[$parsed]@$filesystem"
     }
 
-    String bucket() {
-        return parsed.bucket()
+    String getBucket() {
+        return parsed.getBucket()
     }
 
-    String packageName() {
-        return parsed.packageName()
+    String getPackageName() {
+        return parsed.getPackageName()
     }
 
     String sub_paths() {
@@ -90,8 +90,8 @@ final class QuiltPath implements Path, Comparable {
 
     @Override
     boolean isAbsolute() {
-        log.debug "isAbsolute[${packageName()}] : ${parsed}"
-        return filesystem && packageName()
+        log.debug "isAbsolute[${getPackageName()}] : ${parsed}"
+        return filesystem && getPackageName()
     }
 
     boolean isJustPackage() {
@@ -233,8 +233,8 @@ final class QuiltPath implements Path, Comparable {
         return toString().hashCode()
     }
 
-    boolean equals(Object)  {
-        return hashCode() == Object.hashCode()
+    boolean equals(Object other)  {
+        return hashCode() == other.hashCode()
     }
 
     @Override

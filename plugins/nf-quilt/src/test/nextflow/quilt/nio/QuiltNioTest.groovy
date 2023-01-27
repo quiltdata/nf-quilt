@@ -1,3 +1,4 @@
+/* groovylint-disable MethodName */
 package nextflow.quilt.nio
 
 import nextflow.quilt.QuiltSpecification

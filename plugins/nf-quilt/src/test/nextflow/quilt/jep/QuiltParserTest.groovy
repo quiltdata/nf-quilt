@@ -1,7 +1,7 @@
+/* groovylint-disable MethodName */
 package nextflow.quilt.jep
 
 import nextflow.quilt.QuiltSpecification
-
 import groovy.util.logging.Slf4j
 import groovy.transform.CompileDynamic
 
@@ -36,8 +36,8 @@ class QuiltParserTest extends QuiltSpecification {
         when:
         QuiltParser parser = QuiltParser.forUriString(test_url)
         then:
-        parser.bucket() == 'quilt-ernest-staging'
-        parser.packageName() == 'nf-quilt/sarek'
+        parser.getBucket() == 'quilt-ernest-staging'
+        parser.getPackageName() == 'nf-quilt/sarek'
         parser.path() == 'pipeline_info/execution_trace_2022-10-13_01-01-31.txt'
     }
 
@@ -62,8 +62,8 @@ class QuiltParserTest extends QuiltSpecification {
         when:
         QuiltParser parser = QuiltParser.forBarePath(bare)
         then:
-        parser.bucket() == bucket
-        parser.packageName() == pkg
+        parser.getBucket() == bucket
+        parser.getPackageName() == pkg
         parser.path() == path
         parser.hash() == hash
         parser.tag() == tag

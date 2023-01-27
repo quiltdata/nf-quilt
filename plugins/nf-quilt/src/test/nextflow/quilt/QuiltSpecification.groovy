@@ -1,3 +1,4 @@
+/* groovylint-disable MethodName */
 /*
  * Copyright 2022, Quilt Data Inc
  *
@@ -159,7 +160,7 @@ abstract class QuiltSpecification extends Specification {
         uri.toString() >> path
 
         def result = GroovyMock(Path)
-        result.bucket() >> bucket
+        result.getBucket() >> bucket
         result.toUriString() >> path
         result.toString() >> file
         result.getFileSystem() >> fs

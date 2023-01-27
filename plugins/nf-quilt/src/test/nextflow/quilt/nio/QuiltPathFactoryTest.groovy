@@ -1,3 +1,4 @@
+/* groovylint-disable MethodName */
 /*
  * Copyright 2022, Quilt Data Inc
  *
@@ -37,8 +38,8 @@ class QuiltPathFactoryTest extends QuiltSpecification {
         Path qpath = QuiltPathFactory.parse(url)
         expect:
         qpath != null
-        qpath.bucket() == 'quilt-example'
-        qpath.packageName() == 'examples/hurdat'
+        qpath.getBucket() == 'quilt-example'
+        qpath.getPackageName() == 'examples/hurdat'
         qpath.file_key() == 'scripts/build.py'
     }
 

@@ -40,15 +40,15 @@ import nextflow.trace.TraceObserver
 @CompileStatic
 class QuiltObserver implements TraceObserver {
 
-    private Map config
-    private Map quiltConfig
-    private Set<QuiltPackage> pkgs = [] as Set
-    private Session session
-
-    private final static String[] bigKeys = [
+    private final static String[] BIG_KEYS = [
         'nextflow', 'commandLine', 'scriptFile', 'projectDir',
         'homeDir', 'workDir', 'launchDir', 'manifest', 'configFiles'
     ]
+    private final Set<QuiltPackage> pkgs = [] as Set
+    private Map config
+    private Map quiltConfig
+    private Session session
+
 
     static void printMap(Map map, String title) {
         log.debug "\n\n\n# $title"
@@ -111,7 +111,7 @@ class QuiltObserver implements TraceObserver {
     }
 
     String readme(Map meta, String msg) {
-        """
+        return """
 # ${now()}
 ## $msg
 
@@ -161,7 +161,7 @@ ${meta['workflow']['stats']['processes']}
         Map wf = session.getWorkflowMetadata().toMap()
         String start = wf['start']
         String complete = wf['complete']
-        bigKeys.each { k -> wf[k] = "${wf[k]}" }
+        BIG_KEYS.each { k -> wf[k] = "${wf[k]}" }
         wf.remove('container')
         wf.remove('start')
         wf.remove('complete')

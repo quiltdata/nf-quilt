@@ -1,11 +1,10 @@
+/* groovylint-disable MethodName */
 package nextflow.quilt.nio
 
 import nextflow.quilt.QuiltSpecification
 import nextflow.quilt.jep.QuiltParser
-
 import java.nio.file.Path
 import java.nio.file.Paths
-
 import groovy.transform.CompileDynamic
 
 /**

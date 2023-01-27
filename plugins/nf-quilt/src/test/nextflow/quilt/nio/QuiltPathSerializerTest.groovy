@@ -1,3 +1,4 @@
+/* groovylint-disable MethodName */
 /*
  * Copyright 2022, Quilt Data Inc
  *

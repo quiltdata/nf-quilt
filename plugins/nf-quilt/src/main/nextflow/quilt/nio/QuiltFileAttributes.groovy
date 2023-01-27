@@ -32,13 +32,13 @@ class QuiltFileAttributes implements BasicFileAttributes {
 
     private final QuiltPath path
     private final String key
-    private final String orig_key
+    private final String origKey
     private final BasicFileAttributes attrs
 
     QuiltFileAttributes(QuiltPath path, String key, BasicFileAttributes attrs) {
         this.path = path
         this.key = path.isJustPackage() ? '/' : path.file_key()
-        this.orig_key = key
+        this.origKey = key
         this.attrs = attrs
         log.debug "QuiltFileAttributes($path): this=$this"
     }

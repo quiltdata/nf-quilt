@@ -46,11 +46,11 @@ import nextflow.quilt.jep.QuiltParser
 final class QuiltFileSystem extends FileSystem implements Closeable {
 
     private final String quiltIDS
-    private final QuiltFileSystemProvider _provider
+    private final QuiltFileSystemProvider myProvider
 
     QuiltFileSystem(String quiltIDS, QuiltFileSystemProvider provider) {
         this.quiltIDS = quiltIDS
-        this._provider = provider
+        this.myProvider = provider
     }
 
     @Override
@@ -70,7 +70,7 @@ final class QuiltFileSystem extends FileSystem implements Closeable {
 
     @Override
     FileSystemProvider provider() {
-        return _provider
+        return myProvider
     }
 
     @Override

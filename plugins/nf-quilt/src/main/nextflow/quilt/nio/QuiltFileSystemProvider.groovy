@@ -15,7 +15,6 @@
  */
 package nextflow.quilt.nio
 
-import static java.nio.file.StandardCopyOption.WRITE
 import static java.nio.file.StandardOpenOption.APPEND
 import static java.nio.file.StandardOpenOption.WRITE
 
@@ -56,7 +55,7 @@ import nextflow.quilt.jep.QuiltParser
 @CompileStatic
 class QuiltFileSystemProvider extends FileSystemProvider {
 
-    private final Map<String,String> env = new HashMap<>(System.getenv())
+    private final Map<String,String> myEnv = new HashMap<>(System.getenv())
     private final Map<String,QuiltFileSystem> fileSystems = [:]
     private Map<Path,BasicFileAttributes> attributesCache = [:]
 
@@ -142,7 +141,8 @@ class QuiltFileSystemProvider extends FileSystemProvider {
         return newFileSystem(quiltIDS, config)
     }
 
-    QuiltFileSystem newFileSystem(String quiltIDS, Map<String, ?> _env) throws IOException {
+    /* groovylint-disable-next-line UnusedMethodParameter */
+    QuiltFileSystem newFileSystem(String quiltIDS, Map<String, ?> env) throws IOException {
         final fs = new QuiltFileSystem(quiltIDS, this)
         fileSystems[quiltIDS] = fs
         return fs
@@ -192,7 +192,7 @@ class QuiltFileSystemProvider extends FileSystemProvider {
         QuiltFileSystem fs = fileSystems.get(quiltIDS)
         if (fs) { return fs }
         if (canCreate) {
-            return newFileSystem(quiltIDS, env)
+            return newFileSystem(quiltIDS, myEnv)
         }
         throw new FileSystemNotFoundException("Missing Quilt file system for quiltIDS: `$quiltIDS`")
     }
@@ -398,7 +398,8 @@ class QuiltFileSystemProvider extends FileSystemProvider {
     }
 
     @Override
-    def <A extends BasicFileAttributes> A readAttributes(Path path, Class<A> type, LinkOption... options) throws IOException {
+    def <A extends BasicFileAttributes> A readAttributes(Path path, Class<A> type, LinkOption... options)
+         throws IOException {
         log.debug "<A>BasicFileAttributes QuiltFileSystemProvider.readAttributes($path)"
         def attr = attributesCache.get(path)
         if (attr) {
