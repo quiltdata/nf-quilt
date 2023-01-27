@@ -254,10 +254,10 @@ final class QuiltPath implements Path, Comparable {
     }
 
     @Override
-    WatchKey register(WatchService watcher, WatchEvent.Kind<?>[] events, 
+    WatchKey register(WatchService watcher, WatchEvent.Kind<?>[] events,
                       WatchEvent.Modifier... modifiers) throws IOException {
         throw new UnsupportedOperationException("Operation 'register' is not supported by QuiltPath")
-    }
+                      }
 
     @Override
     WatchKey register(WatchService watcher, WatchEvent.Kind<?>... events) throws IOException {

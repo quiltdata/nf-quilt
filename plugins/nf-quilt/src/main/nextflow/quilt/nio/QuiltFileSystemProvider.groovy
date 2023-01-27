@@ -60,7 +60,6 @@ class QuiltFileSystemProvider extends FileSystemProvider {
     private final Map<String,QuiltFileSystem> fileSystems = [:]
     private Map<Path,BasicFileAttributes> attributesCache = [:]
 
-
     static QuiltPath asQuiltPath(Path path) {
         if (path !in QuiltPath) {
             String pathClassName = path?.class?.name ?: '-'

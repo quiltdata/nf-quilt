@@ -65,7 +65,7 @@ class QuiltPathIterator implements Iterator<Path> {
         throw new UnsupportedOperationException("Operation 'remove' is not supported by QuiltPathIterator")
     }
 
-    private final void advance() {
+    private void advance() {
         QuiltPath result = null
         while (result == null && itr.hasNext()) {
             def item = itr.next()

@@ -46,7 +46,7 @@ class QuiltObserver implements TraceObserver {
     private Session session
 
     private final static String[] bigKeys = [
-        'nextflow', 'commandLine', 'scriptFile', 'projectDir', 
+        'nextflow', 'commandLine', 'scriptFile', 'projectDir',
         'homeDir', 'workDir', 'launchDir', 'manifest', 'configFiles'
     ]
 
