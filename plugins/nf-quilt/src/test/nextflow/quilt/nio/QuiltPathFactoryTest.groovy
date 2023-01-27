@@ -30,8 +30,8 @@ import groovy.transform.CompileDynamic
 @CompileDynamic
 class QuiltPathFactoryTest extends QuiltSpecification {
 
-    private final static String PACKAGE_URL = 'quilt+s3://quilt-example#package=examples/hurdat@f8d1478d93'
-    private final static String TEST_URL = PACKAGE_URL + '&path=scripts/build.py'
+    private final static String PACKAGE_URL = 'quilt+s3://quilt-example#package=examples%2fhurdat@f8d1478d93'
+    private final static String TEST_URL = PACKAGE_URL + '&path=scripts%2fbuild.py'
 
     void 'should decompose Quilt URLs'() {
         given:
