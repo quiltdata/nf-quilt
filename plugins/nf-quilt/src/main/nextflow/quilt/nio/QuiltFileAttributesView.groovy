@@ -49,7 +49,7 @@ class QuiltFileAttributesView implements BasicFileAttributeView {
 
     /**
      * This API is implemented is not supported but instead of throwing an exception just do nothing
-     * to not break the method {@link java.nio.file.CopyMoveHelper#copyToForeignTarget(java.nio.file.Path, java.nio.file.Path, java.nio.file.CopyOption...)}
+     * to not break the method {@link java.nio.file.CopyMoveHelper#copyToForeignTarget(...)}
      *
      * @param lastModifiedTime
      * @param lastAccessTime
