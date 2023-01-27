@@ -1,3 +1,4 @@
+/* groovylint-disable MethodName */
 /*
  * Copyright 2022, Quilt Data Inc
  *
@@ -13,52 +14,52 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package nextflow.quilt.nio
-import nextflow.quilt.QuiltSpecification
 
+import nextflow.quilt.QuiltSpecification
 import nextflow.Channel
 import nextflow.Global
 import nextflow.Session
-import spock.lang.Unroll
+import java.nio.file.Path
+import groovy.transform.CompileDynamic
 
 /**
  *
  * @author Ernest Prabhakar <ernest@quiltdata.io>
  */
-
+@CompileDynamic
 class QuiltPathFactoryTest extends QuiltSpecification {
 
-    static String pkg_url = 'quilt+s3://quilt-example#package=examples/hurdat@f8d1478d93'
-    static String url = pkg_url + '&path=scripts/build.py'
+    private final static String PACKAGE_URL = 'quilt+s3://quilt-example#package=examples/hurdat@f8d1478d93'
+    private final static String URL = PACKAGE_URL + '&path=scripts/build.py'
 
-    def 'should decompose Quilt URLs' () {
+    void 'should decompose Quilt URLs'() {
         given:
-        def qpath = QuiltPathFactory.Parse(url)
+        Path qpath = QuiltPathFactory.parse(URL)
         expect:
         qpath != null
-        qpath.bucket() == 'quilt-example'
-        qpath.pkg_name() == 'examples/hurdat'
+        qpath.getBucket() == 'quilt-example'
+        qpath.getPackageName() == 'examples/hurdat'
         qpath.file_key() == 'scripts/build.py'
     }
 
-    def 'should create quilt path #PATH' () {
+    void 'should create quilt path #PATH'() {
         given:
         Global.session = Mock(Session) {
             getConfig() >> [quilt:[project:'foo', region:'x']]
         }
 
         expect:
-        QuiltPathFactory.Parse(PATH).toString() == STR
+        QuiltPathFactory.parse(PATH).toString() == STR
 
         where:
         _ | PATH                                        | STR
         _ | 'quilt+s3://reg#package=user/pkg'           | 'reg#package=user%2fpkg'
     }
 
-    def 'should create Channel from URL' () {
+    void 'should create Channel from URL'() {
         expect:
-        def channel = Channel.fromPath(url) // +'/*'
+        def channel = Channel.fromPath(URL) // +'/*'
         channel
     }
 

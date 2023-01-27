@@ -13,12 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package nextflow.quilt.nio
 
-import static java.lang.String.format;
-import java.nio.file.Path
-import java.nio.file.attribute.BasicFileAttributeView
 import java.nio.file.attribute.BasicFileAttributes
 import java.nio.file.attribute.FileTime
 import groovy.transform.CompileStatic
@@ -33,65 +29,69 @@ import groovy.util.logging.Slf4j
 @Slf4j
 @CompileStatic
 class QuiltFileAttributes implements BasicFileAttributes {
-    private final QuiltPath path;
-    private final String key;
-    private final BasicFileAttributes attrs;
 
- 	public QuiltFileAttributes(QuiltPath path, String key, BasicFileAttributes attrs) {
+    private final QuiltPath path
+    private final String key
+    private final String origKey
+    private final BasicFileAttributes attrs
+
+    QuiltFileAttributes(QuiltPath path, String key, BasicFileAttributes attrs) {
         this.path = path
- 		this.key = path.isJustPackage() ? "/" : path.file_key()
- 		this.attrs = attrs
+        this.key = path.isJustPackage() ? '/' : path.file_key()
+        this.origKey = key
+        this.attrs = attrs
         log.debug "QuiltFileAttributes($path): this=$this"
- 	}
-
- 	@Override
- 	public FileTime lastModifiedTime() {
- 		return attrs.lastModifiedTime();
- 	}
-
- 	@Override
- 	public FileTime lastAccessTime() {
- 		return attrs.lastAccessTime();
- 	}
-
- 	@Override
- 	public FileTime creationTime() {
-        return attrs.creationTime();
- 	}
-
- 	@Override
- 	public boolean isRegularFile() {
-        return attrs.isRegularFile();
- 	}
-
- 	@Override
- 	public boolean isDirectory() {
-        return attrs.isDirectory();
- 	}
-
- 	@Override
- 	public boolean isSymbolicLink() {
-        return attrs.isSymbolicLink();
- 	}
-
- 	@Override
- 	public boolean isOther() {
-        return attrs.isOther();
- 	}
-
- 	@Override
- 	public long size() {
-        return attrs.size();
- 	}
-
- 	@Override
- 	public Object fileKey() {
-        log.debug "QuiltFileAttributes.fileKey: $key"
- 		return key;
- 	}
-
- 	@Override
- 	public String toString() {
- 		return "[${key}: lastModified=${lastModifiedTime()}, size=${size()}, isDirectory=${isDirectory()}]"
     }
- }
+
+    @Override
+    FileTime lastModifiedTime() {
+        return attrs.lastModifiedTime()
+    }
+
+    @Override
+    FileTime lastAccessTime() {
+        return attrs.lastAccessTime()
+    }
+
+    @Override
+    FileTime creationTime() {
+        return attrs.creationTime()
+    }
+
+    @Override
+    boolean isRegularFile() {
+        return attrs.isRegularFile()
+    }
+
+    @Override
+    boolean isDirectory() {
+        return attrs.isDirectory()
+    }
+
+    @Override
+    boolean isSymbolicLink() {
+        return attrs.isSymbolicLink()
+    }
+
+    @Override
+    boolean isOther() {
+        return attrs.isOther()
+    }
+
+    @Override
+    long size() {
+        return attrs.size()
+    }
+
+    @Override
+    Object fileKey() {
+        log.debug "QuiltFileAttributes.fileKey: $key"
+        return key
+    }
+
+    @Override
+    String toString() {
+        return "[${key}: lastModified=${lastModifiedTime()}, size=${size()}, isDirectory=${isDirectory()}]"
+    }
+
+}

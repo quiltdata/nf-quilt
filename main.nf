@@ -1,20 +1,22 @@
 #!/usr/bin/env nextflow
-nextflow.enable.dsl=2
+/* groovylint-disable CompileStatic */
+
+nextflow.enable.dsl = 2
 
 params.src = 'quilt+s3://quilt-example#package=examples/hurdat'
 params.pub = '/var/tmp'
 params.out = 'output'
 
-pkg_files = Channel.fromPath(params.src)
+packageFiles = Channel.fromPath(params.src)
 
 process transfer {
     publishDir params.pub, mode: 'copy', overwrite: true
 
     input:
-      path x
+    path x
 
     output:
-      path params.out + '/*'
+    path params.out + '/*'
 
     """
     mkdir -p $params.out
@@ -24,5 +26,5 @@ process transfer {
 }
 
 workflow {
-  pkg_files | transfer | view { it }
+    packageFiles | transfer | view { file -> file }
 }

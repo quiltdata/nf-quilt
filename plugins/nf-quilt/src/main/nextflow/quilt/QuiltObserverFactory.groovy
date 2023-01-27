@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package nextflow.quilt
 
 import groovy.transform.CompileStatic
@@ -34,6 +33,7 @@ class QuiltObserverFactory implements TraceObserverFactory {
     @Override
     Collection<TraceObserver> create(Session session) {
         log.debug "`create` ${this}"
-        (Collection<TraceObserver>) [new QuiltObserver()]
+        return (Collection<TraceObserver>) [new QuiltObserver()]
     }
+
 }

@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package nextflow.quilt.nio
 
 import java.nio.file.DirectoryStream
@@ -30,17 +29,13 @@ import groovy.util.logging.Slf4j
 
 @Slf4j
 @CompileStatic
-public class QuiltPathIterator implements Iterator<Path> {
+class QuiltPathIterator implements Iterator<Path> {
 
-    private Iterator<String> itr
-
-    private DirectoryStream.Filter<? super Path> filter
-
-    private String[] children
-
-    private QuiltPath next
-
-    private QuiltPath dir
+    private final Iterator<String> itr
+    private final DirectoryStream.Filter<? super Path> filter
+    private final String[] children
+    private final QuiltPath dir
+    private QuiltPath nextPath
 
     QuiltPathIterator(QuiltPath dir, DirectoryStream.Filter<? super Path> filter) {
         this.dir = dir
@@ -50,33 +45,17 @@ public class QuiltPathIterator implements Iterator<Path> {
         advance()
     }
 
-    private void advance() {
-
-        QuiltPath result = null
-        while( result == null && itr.hasNext() ) {
-            def item = itr.next()
-            def path = dir.resolve(item)
-            if( path == dir)    // make sure to  skip the original path
-                result = null
-            else if( filter )
-                result = filter.accept(path) ? path : null
-            else
-                result = path
-        }
-
-        next = result
-    }
-
     @Override
     boolean hasNext() {
-        return next != null
+        return nextPath != null
     }
 
     @Override
     Path next() {
-        def result = next
-        if( result == null )
+        def result = nextPath
+        if (result == null) {
             throw new NoSuchElementException()
+        }
         advance()
         return result
     }
@@ -85,4 +64,24 @@ public class QuiltPathIterator implements Iterator<Path> {
     void remove() {
         throw new UnsupportedOperationException("Operation 'remove' is not supported by QuiltPathIterator")
     }
+
+    private void advance() {
+        QuiltPath result = null
+        while (result == null && itr.hasNext()) {
+            def item = itr.next()
+            Path path  = dir.resolve(item)
+            if (path == dir) { // make sure to  skip the original path
+                result = null
+            }
+            else if (filter) {
+                result = filter.accept(path) ? path : null
+            }
+            else {
+                result = path
+            }
+        }
+
+        nextPath = result
+    }
+
 }

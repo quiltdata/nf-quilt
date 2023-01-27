@@ -1,3 +1,4 @@
+/* groovylint-disable MethodName */
 /*
  * Copyright 2022, Quilt Data Inc
  *
@@ -13,35 +14,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package nextflow.quilt.nio
+
 import nextflow.quilt.QuiltSpecification
 
 import java.nio.file.Path
 import java.nio.file.Paths
 import nextflow.Global
 import nextflow.Session
+import groovy.transform.CompileDynamic
 
 /**
  *
  * @author Ernest Prabhakar <ernest@quiltdata.io>
  */
+@CompileDynamic
 class QuiltPathSerializerTest extends QuiltSpecification {
 
-    static String url = 'quilt+s3://bucket#package=pkg%2fname&path=sample.csv'
+    private static final String URL = 'quilt+s3://bucket#package=pkg%2fname&path=sample.csv'
 
-    def 'should serialize a Quilt path'() {
+    void 'should serialize a Quilt path'() {
         given:
         Global.session = Mock(Session) {
             getConfig() >> [quilt:[project:'foo', region:'x']]
         }
 
         when:
-        def uri = URI.create(url)
-        def path = Paths.get(uri)
+        URI uri = URI.create(URL)
+        Path path  = Paths.get(uri)
         then:
-        path instanceof QuiltPath
+        path in QuiltPath
         path.toUri() == uri
-        path.toUriString() == url
+        path.toUriString() == URL
     }
+
 }

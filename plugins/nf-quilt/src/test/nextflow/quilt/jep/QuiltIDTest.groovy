@@ -1,41 +1,44 @@
+/* groovylint-disable MethodName */
 package nextflow.quilt.jep
-import nextflow.quilt.QuiltSpecification
 
-import spock.lang.Unroll
-import spock.lang.Ignore
+import nextflow.quilt.QuiltSpecification
 import groovy.util.logging.Slf4j
+import groovy.transform.CompileDynamic
 
 /**
  *
  * @author Ernest Prabhakar <ernest@quiltdata.io>
  */
 @Slf4j
+@CompileDynamic
 class QuiltIDTest extends QuiltSpecification {
-    def 'should null on missing bucket'() {
+
+    void 'should null on missing bucket'() {
         when:
-        def id = QuiltID.Fetch(null, "pkg/name")
+        QuiltID id = QuiltID.fetch(null, 'pkg/name')
         then:
-        null == id
+        id == null
     }
 
-    def 'should default on missing pgk_suffix'() {
+    void 'should default on missing pgk_suffix'() {
         when:
-        def id = QuiltID.Fetch("bucket", "pkg")
+        QuiltID id = QuiltID.fetch('bucket', 'pkg')
         then:
-        id.toString() == "bucket.pkg.default"
+        id.toString() == 'bucket.pkg.default'
     }
 
-    def 'should default on missing pgk_name'() {
+    void 'should default on missing pgk_name'() {
         when:
-        def id = QuiltID.Fetch("bucket", null)
+        QuiltID id = QuiltID.fetch('bucket', null)
         then:
-        id.toString() == "bucket.null.default"
+        id.toString() == 'bucket.null.default'
     }
 
-    def 'should decompose pkg names'() {
+    void 'should decompose pkg names'() {
         when:
-        def id = QuiltID.Fetch("bucket", "pkg/name")
+        QuiltID id = QuiltID.fetch('bucket', 'pkg/name')
         then:
-        id.toString() == "bucket.pkg.name"
+        id.toString() == 'bucket.pkg.name'
     }
+
 }

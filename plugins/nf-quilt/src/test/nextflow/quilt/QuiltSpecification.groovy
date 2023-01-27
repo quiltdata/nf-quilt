@@ -1,3 +1,4 @@
+/* groovylint-disable MethodName */
 /*
  * Copyright 2022, Quilt Data Inc
  *
@@ -13,8 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package nextflow.quilt
+
 import nextflow.quilt.nio.QuiltPath
 
 import java.nio.ByteBuffer
@@ -32,116 +33,116 @@ import nextflow.plugin.TestPluginManager
 import nextflow.plugin.extension.PluginExtensionProvider
 import org.pf4j.PluginDescriptorFinder
 import groovy.util.logging.Slf4j
+import groovy.transform.CompileDynamic
 import spock.lang.Shared
-import spock.lang.Timeout
 import spock.lang.Specification
-import sun.nio.fs.UnixPath
 
 /**
  *
  * @author Ernest Prabhakar <ernest@quiltdata.io>
  */
 @Slf4j
-abstract class QuiltSpecification extends Specification {
+@CompileDynamic
+class QuiltSpecification extends Specification {
 
     @Shared String pluginsMode
 
-    def setupSpec() {
+    void setupSpec() {
         // reset previous instances
         PluginExtensionProvider.reset()
         // this need to be set *before* the plugin manager class is created
         pluginsMode = System.getProperty('pf4j.mode')
         System.setProperty('pf4j.mode', 'dev')
         // the plugin root should
-        def root = Path.of('.').toAbsolutePath().normalize()
+        Path root = Path.of('.').toAbsolutePath().normalize()
         def manager = new TestPluginManager(root){
+
             @Override
             protected PluginDescriptorFinder createPluginDescriptorFinder() {
                 return new TestPluginDescriptorFinder(){
+
                     @Override
                     protected Path getManifestPath(Path pluginPath) {
                         return pluginPath.resolve('src/resources/META-INF/MANIFEST.MF')
                     }
+
                 }
             }
+
         }
         Plugins.init(root, 'dev', manager)
         Plugins.startIfMissing('nf-quilt')
     }
 
-    def cleanupSpec() {
+    void cleanupSpec() {
         Plugins.stop()
         PluginExtensionProvider.reset()
-        pluginsMode ? System.setProperty('pf4j.mode',pluginsMode) : System.clearProperty('pf4j.mode')
+        pluginsMode ? System.setProperty('pf4j.mode', pluginsMode) : System.clearProperty('pf4j.mode')
     }
 
-    Path createObject(String url, String text) {
+    Path makeObject(String url, String text) {
         assert url
-        def path = Paths.get(new URI(url))
-        createObject(path, text)
+        Path path  = Paths.get(new URI(url))
+        return makeObject(path, text)
     }
 
-    Path createObject(Path path, String text) {
+    Path makeObject(Path path, String text) {
         assert path
         log.debug "Write String[$text] to '$path'"
         Files.write(path, text.bytes)
-        path.localPath()
+        return path.localPath()
     }
 
     boolean existsPath(String path) {
         assert path
         log.debug "Check path string exists '$path'"
-        Files.exists(Paths.get(path))
+        return Files.exists(Paths.get(path))
     }
 
     boolean existsPath(QuiltPath path) {
         log.debug "Check path object exists '$path'"
         final local = path.localPath()
-        existsPath(local.toString())
+        return existsPath(local.toString())
     }
 
     String readObject(Path path) {
         log.debug "Read String from '$path'"
-        new String(Files.readAllBytes(path))
+        return new String(Files.readAllBytes(path))
     }
 
-    String readChannel(SeekableByteChannel sbc, int buffLen )  {
-        def buffer = new ByteArrayOutputStream()
+    String readChannel(SeekableByteChannel sbc, int buffLen)  {
+        ByteArrayOutputStream buffer = new ByteArrayOutputStream()
         ByteBuffer bf = ByteBuffer.allocate(buffLen)
-        while((sbc.read(bf))>0) {
-            bf.flip();
+        while ((sbc.read(bf)) > 0) {
+            bf.flip()
             buffer.write(bf.array(), 0, bf.limit())
-            bf.clear();
+            bf.clear()
         }
 
-        buffer.toString()
+        return buffer.toString()
     }
 
-    void writeChannel( SeekableByteChannel channel, String content, int buffLen ) {
-
+    void writeChannel(SeekableByteChannel channel, String content, int buffLen) {
         def bytes = content.getBytes()
-        ByteBuffer buf = ByteBuffer.allocate(buffLen);
-        int i=0
-        while( i < bytes.size()) {
-
-            def len = Math.min(buffLen, bytes.size()-i);
-            buf.clear();
-            buf.put(bytes, i, len);
-            buf.flip();
-            channel.write(buf);
+        ByteBuffer buf = ByteBuffer.allocate(buffLen)
+        int i = 0
+        while (i < bytes.size()) {
+            int len = Math.min(buffLen, bytes.size() - i)
+            buf.clear()
+            buf.put(bytes, i, len)
+            buf.flip()
+            channel.write(buf)
 
             i += len
         }
-
     }
-
 
     protected Path mockQuiltPath(String path, boolean isDir=false) {
         assert path.startsWith('quilt+s3://')
 
-        def tokens = path.tokenize('/')
-        def bucket = tokens[1]
-        def file = '/' + tokens[2..-1].join('/')
+        List<String> tokens = path.tokenize('/')
+        String bucket = tokens[1]
+        String file = '/' + tokens[2..-1].join('/')
 
         def attr = Mock(BasicFileAttributes)
         attr.isDirectory() >> isDir
@@ -158,17 +159,19 @@ abstract class QuiltSpecification extends Specification {
         def uri = GroovyMock(URI)
         uri.toString() >> path
 
-
         def result = GroovyMock(Path)
-        result.bucket() >> bucket
+        result.getBucket() >> bucket
         result.toUriString() >> path
         result.toString() >> file
         result.getFileSystem() >> fs
         result.toUri() >> uri
-        result.resolve(_) >> { mockQuiltPath("$path/${it[0]}") }
+        result.resolve(_) >> { p -> mockQuiltPath("${path}/${p[0]}") }
         result.toAbsolutePath() >> result
         result.asBoolean() >> true
-        result.getParent() >> { def p=path.lastIndexOf('/'); p!=-1 ? mockQuiltPath("${path.substring(0,p)}", true) : null }
+        result.getParent() >> {
+            int p = path.lastIndexOf('/')
+            return (p == -1) ? null : mockQuiltPath("${path.substring(0, p)}", true)
+        }
         result.getFileName() >> { Paths.get(tokens[-1]) }
         result.getName() >> tokens[1]
         return result

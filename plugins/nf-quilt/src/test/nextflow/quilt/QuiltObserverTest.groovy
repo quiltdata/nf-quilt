@@ -1,3 +1,4 @@
+/* groovylint-disable MethodName */
 /*
  * Copyright 2022, Quilt Data Inc
  *
@@ -13,22 +14,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package nextflow.quilt.nio
+
 import nextflow.quilt.QuiltSpecification
 import nextflow.quilt.QuiltObserver
 
 import java.nio.file.Path
 import java.nio.file.Paths
-import spock.lang.Unroll
+import groovy.transform.CompileDynamic
 
 /**
  *
  * @author Ernest Prabhakar <ernest@quiltdata.io>
  */
+@CompileDynamic
 class QuiltObserverTest extends QuiltSpecification {
 
-    def 'should generate solid string for timestamp'() {
+    void 'should generate solid string for timestamp'() {
         when:
         def now = QuiltObserver.now()
         then:
@@ -36,13 +38,13 @@ class QuiltObserverTest extends QuiltSpecification {
         now.contains('T')
     }
 
-    def 'should extract Quilt path from appropriate UNIX Path'() {
+    void 'should extract Quilt path from appropriate UNIX Path'() {
         given:
-        def pkg = Paths.get('/var/tmp/output/quilt-example#package=examples%2fhurdat')
-        def unpkg = Paths.get('/var/tmp/output/quilt-example/examples/hurdat')
+        Path pkg = Paths.get('/var/tmp/output/quilt-example#package=examples%2fhurdat')
+        Path unpkg = Paths.get('/var/tmp/output/quilt-example/examples/hurdat')
         expect:
-        null == QuiltObserver.asQuiltPath(unpkg)
-        'quilt-example#package=examples%2fhurdat' == QuiltObserver.asQuiltPath(pkg).toString()
+        QuiltObserver.asQuiltPath(unpkg) == null
+        QuiltObserver.asQuiltPath(pkg).toString() == 'quilt-example#package=examples%2fhurdat'
     }
 
 }

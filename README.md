@@ -23,7 +23,7 @@ which quilt3 # e.g., /usr/local/bin/quilt3
 
 ### Loading the nf-quilt plugin
 
-Once this plugin is officially published on `nextflow-io/plugins`, 
+Once this plugin is officially published on `nextflow-io/plugins`,
 you can enable it by modifying `nextflow.config`.
 Add the following snippet, or just add that one 'id' if you already have other plugins):
 ```groovy
@@ -43,28 +43,28 @@ Next, create a Quilt URL for the S3 bucket where you want to store (and eventual
 You must specify a package name containing exactly one '/', such as `instrument/experiment`
 e.g. "quilt+s3://raw-bucket#package=nf-quilt/sarek"
 
-Note your command-line environment must have 
-[AWS credentials](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html) 
+Note your command-line environment must have
+[AWS credentials](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html)
 that allow you to read/write that bucket.
 
 Finally, run your Nextflow pipeline as usual, setting that URL as your output directory, .e.g.:
 
-```
+```bash
 ./launch.sh run nf-core/sarek -profile test,docker --outdir quilt+s3://raw-bucket#package=nf-quilt/sarek&path=.
 ```
 
 You can also use Quilt packages as input to nextflow jobs, e.g.:
 
-```
+```bash
 nextflow run my/analysis --indir quilt+s3://raw-bucket#package=experiment/instrument --outdir quilt+s3://prod-bucket#package=experiment/analysis
 ```
 
 
-# Development
+## Development
 
 _Based on [nf-hello](https://github.com/nextflow-io/nf-hello)_
 
-## Unit testing
+### Unit testing
 
 Run the following command in the project root directory (ie. where the file `settings.gradle` is located):
 
@@ -72,7 +72,7 @@ Run the following command in the project root directory (ie. where the file `set
 make check
 ```
 
-## Testing and debugging
+### Testing and debugging
 
 1. Clone the Nextflow repository into a sibling directory, .e.g:
 
@@ -99,7 +99,7 @@ make pkg-test BUCKET=my-s3-bucket # default, simply copies a package
 make sarek BUCKET=my-s3-bucket # runs nf-core/sarek, or any other pipeline that uses `--outdir`
 ```
 
-## Package, upload and publish
+### Package, upload and publish
 
 The project should be hosted in a GitHub repository whose name should match the name of the plugin, that is the name of the directory in the `plugins` folder (e.g. `nf-quilt`).
 
@@ -113,14 +113,15 @@ Follow these steps to package, upload and publish the plugin:
    * `github_commit_email`: The email address associated with your GitHub account.
 
 3. Use the following command to package and create a release for your plugin on GitHub:
-   ```bash
-   ./gradlew :plugins:nf-quilt:upload
-   ```
+```bash
+./gradlew :plugins:nf-quilt:upload
+```
 
 4. Fork the [nextflow-io/plugins](https://github.com/nextflow-io/plugins) repository to one you can write to
 
 5. Use the following command to publish your plugin to your fork:
-    ```bash
-    ./gradlew :plugins:publishIndex
-    ```
+ ```bash
+ ./gradlew :plugins:publishIndex
+ ```
+
 6. Create a pull request to push your changes back to [nextflow-io/plugins](https://github.com/nextflow-io/plugins/blob/main/plugins.json)

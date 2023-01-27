@@ -13,46 +13,45 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 // https://medium.com/geekculture/how-to-execute-python-modules-from-java-2384041a3d6d
-// package nextflow.quilt.jep
-
 package nextflow.quilt.jep
-import nextflow.quilt.nio.QuiltPath
 
-import jep.Interpreter;
 import groovy.transform.CompileStatic
-import groovy.transform.Memoized
 import groovy.util.logging.Slf4j
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.stream.Collectors
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.lang.ProcessBuilder
+import java.time.LocalDate
 
 @Slf4j
 @CompileStatic
 class QuiltPackage {
-    private static final Map<String,QuiltPackage> packages = [:]
-    private static final String INSTALL_PREFIX = "QuiltPackage"
-    public static final Path INSTALL_ROOT = Files.createTempDirectory(INSTALL_PREFIX)
+
+    private static final Map<String,QuiltPackage> PKGS = [:]
+    private static final String INSTALL_PREFIX = 'QuiltPackage'
+    static final Path INSTALL_ROOT = Files.createTempDirectory(INSTALL_PREFIX)
 
     private final String bucket
-    private final String pkg_name
+    private final String packageName
     private final String hash
     private final Path folder
     private boolean installed
 
-    static public QuiltPackage ForParsed(QuiltParser parsed) {
+    static String today() {
+        LocalDate date = LocalDate.now()
+        return date.toString()
+    }
+
+    static QuiltPackage forParsed(QuiltParser parsed) {
         def pkgKey = parsed.toPackageString()
-        def pkg = packages.get(pkgKey)
-        if( pkg ) return pkg
+        def pkg = PKGS.get(pkgKey)
+        if (pkg) { return pkg }
+
         pkg = new QuiltPackage(parsed)
-        packages[pkgKey] = pkg
+        PKGS[pkgKey] = pkg
         try {
-            log.debug "Installing `${pkg}` ForParsed(${parsed}) "
+            log.debug "Installing `${pkg}` forParsed(${parsed}) "
             pkg.install()
         }
         catch (Exception e) {
@@ -61,33 +60,31 @@ class QuiltPackage {
         return pkg
     }
 
-    static protected List<Path> listDirectory(Path rootPath) {
-        Files.walk(rootPath).sorted(Comparator.reverseOrder()).collect(Collectors.toList())
+    static List<Path> listDirectory(Path rootPath) {
+        return Files.walk(rootPath).sorted(Comparator.reverseOrder()).collect(Collectors.toList())
     }
 
-    static protected boolean deleteDirectory(Path rootPath) {
-        if (!Files.exists(rootPath)) return false
+    static boolean deleteDirectory(Path rootPath) {
+        if (!Files.exists(rootPath)) { return false }
         try {
             final List<Path> pathsToDelete = listDirectory(rootPath)
-            for(Path path : pathsToDelete) {
-                Files.deleteIfExists(path);
+            for (Path path : pathsToDelete) {
+                Files.deleteIfExists(path)
             }
         }
-        catch (java.nio.file.NoSuchFileException e) { }
+        catch (java.nio.file.NoSuchFileException e) {
+            log.debug 'deleteDirectory: ignore non-existent files'
+        }
         return true
-    }
-
-    static public String today() {
-        Date dateObj =  new Date()
-        new SimpleDateFormat('yyyy-MM-dd').format(dateObj)
     }
 
     QuiltPackage(QuiltParser parsed) {
         this.installed = false
-        this.bucket = parsed.bucket()
-        this.pkg_name = parsed.pkg_name()
-        this.hash = parsed.hash()
+        this.bucket = parsed.getBucket()
+        this.packageName = parsed.getPackageName()
+        this.hash = parsed.getHash()
         this.folder = Paths.get(INSTALL_ROOT.toString(), this.toString())
+        log.debug "QuiltParser.folder[${this.folder}] ${parsed}"
         assert this.folder
         this.setup()
     }
@@ -95,14 +92,14 @@ class QuiltPackage {
     List<String> relativeChildren(String subpath) {
         Path subfolder = folder.resolve(subpath)
         String base = subfolder.toString() + '/'
-        List<String> result = new ArrayList<String>()
+        List<String> result = []
         final String[] children = subfolder.list().sort()
         log.debug "relativeChildren[${base}] $children"
-        for(String pathString : children) {
-            def relative = pathString.replace(base,'')
+        for (String pathString : children) {
+            def relative = pathString.replace(base, '')
             result.add(relative)
         }
-        result
+        return result
     }
 
     void reset() {
@@ -115,80 +112,80 @@ class QuiltPackage {
     }
 
     String key_dest() {
-        "--dest ${packageDest()}"
+        return "--dest ${packageDest()}"
     }
 
     String key_dir() {
-        "--dir ${packageDest()}"
+        return "--dir ${packageDest()}"
     }
 
-
     String key_force() {
-        "--force true"
+        return '--force true'
     }
 
     String key_hash() {
-        "--top-hash $hash"
+        return "--top-hash $hash"
     }
 
-    String key_meta(String meta="[]") {
-        "--meta '$meta'"
+    String key_meta(String meta='[]') {
+        return "--meta '$meta'"
     }
 
-    String key_msg(prefix="") {
-        "--message 'nf-quilt:${prefix}@${today()}'"
+    String key_msg(prefix='') {
+        return "--message 'nf-quilt:${prefix}@${today()}'"
     }
 
     String key_path() {
-        "--path=${packageDest()}"
+        return "--path=${packageDest()}"
     }
 
     String key_registry() {
-        "--registry s3://${bucket}"
+        return "--registry s3://${bucket}"
     }
 
     int call(String... args) {
         def command = ['quilt3']
         command.addAll(args)
-        def cmd = command.join(" ")
+        def cmd = command.join(' ')
         log.debug "call `${cmd}`"
 
-        ProcessBuilder pb = new ProcessBuilder('bash','-c', cmd)
-        pb.redirectErrorStream(true);
+        ProcessBuilder pb = new ProcessBuilder('bash', '-c', cmd)
+        pb.redirectErrorStream(true)
 
-        Process p = pb.start();
-        String result = new String(p.getInputStream().readAllBytes());
-        int exitCode = p.waitFor();
+        Process p = pb.start()
+        String result = new String(p.getInputStream().readAllBytes())
+        int exitCode = p.waitFor()
         if (exitCode > 0) {
             log.warn "`call.exitCode` ${exitCode}: ${result}"
         }
-        exitCode
+        return exitCode
     }
 
-    // usage: quilt3 install [-h] [--registry REGISTRY] [--top-hash TOP_HASH] [--dest DEST] [--dest-registry DEST_REGISTRY] [--path PATH] name
+    // usage: quilt3 install [-h] [--registry REGISTRY] [--top-hash TOP_HASH]
+    // [--dest DEST] [--dest-registry DEST_REGISTRY] [--path PATH] name
     Path install() {
-        if ('latest' == hash || hash == null || hash == "null") {
-            call('install',pkg_name,key_registry(),key_dest())
+        if (hash == 'latest' || hash == null || hash == 'null') {
+            call('install', packageName, key_registry(), key_dest())
         } else {
-            call('install',pkg_name,key_registry(),key_hash(),key_dest())
+            call('install', packageName, key_registry(), key_hash(), key_dest())
         }
         installed = true
-        packageDest()
+        return packageDest()
     }
 
     boolean isInstalled() {
-        installed
+        return installed
     }
 
     Path packageDest() {
-        folder
+        return folder
     }
 
     // https://docs.quiltdata.com/v/version-5.0.x/examples/gitlike#install-a-package
-    boolean push(String msg = "update", String meta = "[]") {
+    boolean push(String msg = 'update', String meta = '[]') {
         log.debug "`push` $this"
         try {
-            call('push',pkg_name,key_dir(),key_registry(),key_meta(meta),key_msg(msg))
+            call('push', packageName, key_dir(), key_registry(), key_meta(meta), key_msg(msg))
         }
         catch (Exception e) {
             log.error "Failed `push` ${this}: ${e}"
@@ -199,7 +196,7 @@ class QuiltPackage {
 
     @Override
     String toString() {
-        "${bucket}_${pkg_name}".replaceAll(/[-\/]/,'_')
+        return "${bucket}_${packageName}".replaceAll(/[-\/]/, '_')
     }
 
 }

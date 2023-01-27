@@ -1,21 +1,19 @@
+/* groovylint-disable MethodName */
 package nextflow.quilt.nio
+
 import nextflow.quilt.QuiltSpecification
-
-import java.nio.file.FileSystemAlreadyExistsException
-
-import spock.lang.Specification
-import spock.lang.Unroll
-import spock.lang.Ignore
+import groovy.transform.CompileDynamic
 
 /**
  *
  * @author Ernest Prabhakar <ernest@quiltdata.io>
  */
+@CompileDynamic
 class QuiltFileSystemProviderTest extends QuiltSpecification {
 
-    def 'should return Quilt storage scheme'() {
+    void 'should return Quilt storage scheme'() {
         given:
-        def provider = new QuiltFileSystemProvider()
+        QuiltFileSystemProvider provider = new QuiltFileSystemProvider()
         expect:
         provider.getScheme() == 'quilt+s3'
     }
@@ -25,5 +23,3 @@ class QuiltFileSystemProviderTest extends QuiltSpecification {
     // do we need a new schema for quilt+local?
 
 }
-
-

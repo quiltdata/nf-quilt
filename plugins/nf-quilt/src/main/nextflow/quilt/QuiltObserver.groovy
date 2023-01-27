@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package nextflow.quilt
 
 import nextflow.quilt.jep.QuiltParser
@@ -21,20 +20,16 @@ import nextflow.quilt.jep.QuiltPackage
 import nextflow.quilt.nio.QuiltPath
 import nextflow.quilt.nio.QuiltPathFactory
 
-import java.nio.file.FileSystems
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
-import java.nio.file.PathMatcher
-import java.text.SimpleDateFormat
+import java.time.LocalDateTime
 
 import groovy.json.JsonOutput
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
-import nextflow.Global
 import nextflow.Session
 import nextflow.trace.TraceObserver
-
 
 /**
  * Plugin observer of workflow events
@@ -44,31 +39,42 @@ import nextflow.trace.TraceObserver
 @Slf4j
 @CompileStatic
 class QuiltObserver implements TraceObserver {
-    private Session session
-    private Map config
-    private Map quilt_config
-    private Set<QuiltPackage> pkgs = new HashSet<>()
 
-    public static void writeString(String text, QuiltPackage pkg, String filename) {
-        String dir = pkg.packageDest().toString()
-        def path = Paths.get(dir, filename)
+    private final static String[] BIG_KEYS = [
+        'nextflow', 'commandLine', 'scriptFile', 'projectDir',
+        'homeDir', 'workDir', 'launchDir', 'manifest', 'configFiles'
+    ]
+    private final Set<QuiltPackage> pkgs = [] as Set
+    private Map config
+    private Map quiltConfig
+    private Session session
+
+    static void printMap(Map map, String title) {
+        log.debug "\n\n\n# $title"
+        map.each {
+            key, value -> log.debug "\n## ${key}: ${value}"
+        }
+    }
+
+    static void writeString(String text, QuiltPackage pkg, String filename) {
+        String dir = pkg.packageDest()
+        Path path  = Paths.get(dir, filename)
         Files.write(path, text.bytes)
     }
 
-    public static String now(){
-        def date = new Date()
-        def sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss")
-        return sdf.format(date)
+    static String now() {
+        LocalDateTime time = LocalDateTime.now()
+        return time.toString()
     }
 
-    public static QuiltPath asQuiltPath(Path path){
-        if( path instanceof QuiltPath ) {
+    static QuiltPath asQuiltPath(Path path) {
+        if (path in QuiltPath) {
             return (QuiltPath) path
         }
-        String strPath = path.getFileName().toString()
+        String strPath = path.getFileName()
         if (strPath.contains('#package')) {
             String url = "${QuiltParser.SCHEME}://${strPath}"
-            return QuiltPathFactory.Parse(url)
+            return QuiltPathFactory.parse(url)
         }
         return null
     }
@@ -78,7 +84,7 @@ class QuiltObserver implements TraceObserver {
         log.debug "`onFlowCreate` $this"
         this.session = session
         this.config = session.config
-        this.quilt_config = session.config.navigate('quilt') as Map
+        this.quiltConfig = session.config.navigate('quilt') as Map
         this.pkgs
     }
 
@@ -87,7 +93,7 @@ class QuiltObserver implements TraceObserver {
         log.debug "onFilePublish.Path[$path].Source[$source]"
         QuiltPath qPath = asQuiltPath(path)
 
-        if( qPath ) {
+        if (qPath) {
             QuiltPackage pkg = qPath.pkg()
             this.pkgs.add(pkg)
             log.debug "onFilePublish.QuiltPath[$qPath]: pkgs=${pkgs}"
@@ -104,7 +110,7 @@ class QuiltObserver implements TraceObserver {
     }
 
     String readme(Map meta, String msg) {
-"""
+        return """
 # ${now()}
 ## $msg
 
@@ -121,14 +127,14 @@ ${meta['workflow']['stats']['processes']}
     }
 
     void publish(QuiltPackage pkg) {
-        String msg = pkg.toString()
+        String msg = pkg
         Map meta = [pkg: msg]
-        String text = "Stub README"
+        String text = 'Stub README'
         String jsonMeta = JsonOutput.toJson(meta)
         try {
             meta = getMetadata()
             msg = "${meta['config']['runName']}: ${meta['workflow']['commandLine']}"
-            text = readme(meta,msg)
+            text = readme(meta, msg)
             //meta.remove('config')
             jsonMeta = JsonOutput.toJson(meta)
         }
@@ -137,19 +143,8 @@ ${meta['workflow']['stats']['processes']}
         }
         writeString(text, pkg, 'README.md')
         writeString("$meta", pkg, 'quilt_metadata.txt')
-        def rc = pkg.push(msg,jsonMeta)
+        def rc = pkg.push(msg, jsonMeta)
         log.info "$rc: pushed package[$pkg] $msg"
-    }
-
-    private static String[] bigKeys = [
-        'nextflow','commandLine','scriptFile','projectDir','homeDir','workDir','launchDir','manifest','configFiles'
-    ]
-
-    static void printMap(Map map, String title) {
-        log.debug "\n\n\n# $title"
-        map.each{
-            key, value -> log.debug "\n## ${key}: ${value}";
-        }
     }
 
     Map getMetadata() {
@@ -158,19 +153,20 @@ ${meta['workflow']['stats']['processes']}
         cf.remove('params')
         cf.remove('session')
         cf.remove('executor')
-        printMap(cf, "config")
+        printMap(cf, 'config')
         Map params = session.getParams()
         params.remove('genomes')
-        printMap(params, "params")
+        printMap(params, 'params')
         Map wf = session.getWorkflowMetadata().toMap()
         String start = wf['start']
         String complete = wf['complete']
-        bigKeys.each { k -> wf[k] = "${wf[k]}" }
+        BIG_KEYS.each { k -> wf[k] = "${wf[k]}" }
         wf.remove('container')
         wf.remove('start')
         wf.remove('complete')
-        printMap(wf, "workflow")
+        printMap(wf, 'workflow')
         log.info "\npublishing: ${wf['runName']}"
-        [params: params, config: cf, workflow: wf, time_start: start, time_complete: complete]
+        return [params: params, config: cf, workflow: wf, time_start: start, time_complete: complete]
     }
+
 }

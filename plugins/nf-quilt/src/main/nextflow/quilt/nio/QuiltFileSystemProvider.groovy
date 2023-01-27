@@ -13,40 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package nextflow.quilt.nio
 
-import static java.nio.file.StandardCopyOption.*
-import static java.nio.file.StandardOpenOption.*
+import static java.nio.file.StandardOpenOption.APPEND
+import static java.nio.file.StandardOpenOption.WRITE
 
-import java.nio.channels.FileChannel;
-import java.nio.channels.SeekableByteChannel;
+import java.nio.channels.FileChannel
+import java.nio.channels.SeekableByteChannel
 import java.nio.file.AccessDeniedException
 import java.nio.file.AccessMode
 import java.nio.file.CopyOption
 import java.nio.file.DirectoryStream
-import java.nio.file.FileAlreadyExistsException
 import java.nio.file.Files
 import java.nio.file.FileStore
 import java.nio.file.FileSystem
-import java.nio.file.FileSystemAlreadyExistsException
 import java.nio.file.FileSystemNotFoundException
 import java.nio.file.LinkOption
 import java.nio.file.NoSuchFileException
-import java.nio.file.NotDirectoryException;
-import java.nio.file.OpenOption;
-import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
-import java.nio.file.StandardOpenOption;
+import java.nio.file.OpenOption
+import java.nio.file.Path
+import java.nio.file.StandardOpenOption
 import java.nio.file.attribute.BasicFileAttributeView
 import java.nio.file.attribute.BasicFileAttributes
 import java.nio.file.attribute.FileAttribute
 import java.nio.file.attribute.FileAttributeView
-import java.nio.file.attribute.FileTime
 import java.nio.file.spi.FileSystemProvider
 
 import groovy.transform.CompileStatic
-import groovy.transform.Memoized
 import groovy.util.logging.Slf4j
 import nextflow.Global
 import nextflow.Session
@@ -58,14 +51,37 @@ import nextflow.quilt.jep.QuiltParser
  * @author Ernest Prabhakar <ernest@quiltdata.io>
  */
 
-
 @Slf4j
 @CompileStatic
 class QuiltFileSystemProvider extends FileSystemProvider {
 
-    private final Map<String,String> env = new HashMap<>(System.getenv())
+    private final Map<String,String> myEnv = new HashMap<>(System.getenv())
     private final Map<String,QuiltFileSystem> fileSystems = [:]
     private Map<Path,BasicFileAttributes> attributesCache = [:]
+
+    static QuiltPath asQuiltPath(Path path) {
+        if (path !in QuiltPath) {
+            String pathClassName = path?.class?.name ?: '-'
+            throw new IllegalArgumentException(
+                "Not a valid Quilt blob storage path object: `${path}` [${pathClassName}]"
+            )
+        }
+        return (QuiltPath)path
+    }
+
+    static QuiltFileSystem getQuiltFilesystem(Path path) {
+        final qPath = asQuiltPath(path)
+        final fs = qPath.getFileSystem()
+        if (fs !in QuiltFileSystem) {
+            String pathClassName = path?.class?.name ?: '-'
+            throw new IllegalArgumentException("Not a valid Quilt file system: `$fs` [${pathClassName}]")
+        }
+        return (QuiltFileSystem)fs
+    }
+
+    static FileSystemProvider provider(Path path) {
+        return path.getFileSystem().provider()
+    }
 
     /**
      * @inheritDoc
@@ -75,23 +91,9 @@ class QuiltFileSystemProvider extends FileSystemProvider {
         return QuiltParser.SCHEME
     }
 
-    static private QuiltPath asQuiltPath(Path path ) {
-        if( path !instanceof QuiltPath )
-            throw new IllegalArgumentException("Not a valid Quilt blob storage path object: `$path` [${path?.class?.name?:'-'}]" )
-        return (QuiltPath)path
-    }
-
-    static private QuiltFileSystem getQuiltFilesystem(Path path ) {
-        final qPath = asQuiltPath(path)
-        final fs = qPath.getFileSystem()
-        if( fs !instanceof QuiltFileSystem )
-            throw new IllegalArgumentException("Not a valid Quilt file system: `$fs` [${path?.class?.name?:'-'}]" )
-        return (QuiltFileSystem)fs
-    }
-
-    protected String getQuiltIDS(URI uri) {
+    String getQuiltIDS(URI uri) {
         assert uri
-        QuiltParser parsed = QuiltParser.ForURI(uri)
+        QuiltParser parsed = QuiltParser.forURI(uri)
         return parsed.quiltID().toString()
     }
 
@@ -136,13 +138,14 @@ class QuiltFileSystemProvider extends FileSystemProvider {
     @Override
     QuiltFileSystem newFileSystem(URI uri, Map<String, ?> config) throws IOException {
         final quiltIDS = getQuiltIDS(uri)
-        newFileSystem(quiltIDS,config)
+        return newFileSystem(quiltIDS, config)
     }
 
+    /* groovylint-disable-next-line UnusedMethodParameter */
     QuiltFileSystem newFileSystem(String quiltIDS, Map<String, ?> env) throws IOException {
         final fs = new QuiltFileSystem(quiltIDS, this)
         fileSystems[quiltIDS] = fs
-        fs
+        return fs
     }
 
     /**
@@ -182,17 +185,16 @@ class QuiltFileSystemProvider extends FileSystemProvider {
     @Override
     FileSystem getFileSystem(URI uri) {
         final quiltIDS = getQuiltIDS(uri)
-        getFileSystem0(quiltIDS,false)
+        return getFileSystem0(quiltIDS, false)
     }
 
-    protected QuiltFileSystem getFileSystem0(String quiltIDS, boolean canCreate) {
-
-        def fs = fileSystems.get(quiltIDS)
-        if( fs ) return fs
-        if( canCreate )
-            return newFileSystem(quiltIDS, env)
-        else
-            throw new FileSystemNotFoundException("Missing Quilt file system for quiltIDS: `$quiltIDS`")
+    QuiltFileSystem getFileSystem0(String quiltIDS, boolean canCreate) {
+        QuiltFileSystem fs = fileSystems.get(quiltIDS)
+        if (fs) { return fs }
+        if (canCreate) {
+            return newFileSystem(quiltIDS, myEnv)
+        }
+        throw new FileSystemNotFoundException("Missing Quilt file system for quiltIDS: `$quiltIDS`")
     }
 
     /**
@@ -223,22 +225,17 @@ class QuiltFileSystemProvider extends FileSystemProvider {
      */
     @Override
     QuiltPath getPath(URI uri) {
-        QuiltParser parsed = QuiltParser.ForURI(uri)
+        QuiltParser parsed = QuiltParser.forURI(uri)
         log.debug "QuiltFileSystemProvider.getPath`[${uri}]: parsed=$parsed"
-        final fs = getFileSystem0(parsed.quiltIDS(),true)
-        new QuiltPath(fs, parsed)
+        final fs = getFileSystem0(parsed.quiltIDS(), true)
+        return new QuiltPath(fs, parsed)
     }
 
-
-    static private FileSystemProvider provider( Path path ) {
-        path.getFileSystem().provider()
-    }
-
-    private void checkRoot(Path path) {
-        if( path.toString() == '/' )
+    void checkRoot(Path path) {
+        if (path.toString() == '/') {
             throw new UnsupportedOperationException("Operation 'checkRoot' not supported on root path")
+        }
     }
-
 
     /**
     * Open a file for reading or writing.
@@ -249,20 +246,21 @@ class QuiltFileSystemProvider extends FileSystemProvider {
     * @return
     * @throws IOException
     */
-    protected void notifyFilePublish(QuiltPath destination, Path source=null) {
+    void notifyFilePublish(QuiltPath destination, Path source=null) {
         final sess = Global.session
+        /* groovylint-disable-next-line Instanceof */
         if (sess instanceof Session) {
             sess.notifyFilePublish((Path)destination, source)
         }
     }
 
     @Override
-    public SeekableByteChannel newByteChannel(
+    SeekableByteChannel newByteChannel(
       Path path, Set<? extends OpenOption> options, FileAttribute<?>... attrs) throws IOException {
         log.debug "Creating `newByteChannel`: ${path} <- ${options}"
         final modeWrite = options.contains(WRITE) || options.contains(APPEND)
 
-        final qPath = asQuiltPath(path)
+        final QuiltPath qPath = asQuiltPath(path)
         Path installedPath = qPath.localPath()
         Path parent = installedPath.getParent()
         Files.createDirectories(parent)
@@ -274,22 +272,25 @@ class QuiltFileSystemProvider extends FileSystemProvider {
                 notifyFilePublish(qPath)
             }
             log.debug "\tOpening channel to: $installedPath"
-            def channel = FileChannel.open(installedPath, options)
+            FileChannel channel = FileChannel.open(installedPath, options)
             return channel
         }
         catch (java.nio.file.NoSuchFileException e) {
             log.error "Failed `FileChannel.open`: ${installedPath} <- ${options}"
         }
-    }
+      }
 
     DirectoryStream<Path> emptyStream() throws IOException {
         return new DirectoryStream<Path>() {
+
             @Override
             Iterator<Path> iterator() {
                 return Collections.emptyIterator()
             }
 
+            /* groovylint-disable-next-line CloseWithoutCloseable */
             @Override void close() throws IOException { }
+
         }
     }
 
@@ -302,25 +303,26 @@ class QuiltFileSystemProvider extends FileSystemProvider {
         log.debug "QuiltFileSystemProvider.newDirectoryStream[${qPath.file_key()}]: ${qPath}"
 
         return new DirectoryStream<Path>() {
-            @Override
-            public void close() throws IOException {
-                // nothing to do here
-            }
 
             @Override
-            public Iterator<Path> iterator() {
+            Iterator<Path> iterator() {
                 return new QuiltPathIterator(qPath, filter)
             }
-        };
 
+            /* groovylint-disable-next-line CloseWithoutCloseable */
+            @Override void close() throws IOException { }
+
+        }
     }
 
+    /* groovylint-disable BuilderMethodWithSideEffects */
     @Override
     void createDirectory(Path dir, FileAttribute<?>... attrs) throws IOException {
         final path = asQuiltPath(dir).localPath()
         log.debug "Calling createDirectory[${path}]: ${dir} "
         Files.createDirectories(path)
     }
+    /* groovylint-enable BuilderMethodWithSideEffects */
 
     @Override
     void delete(Path obj) throws IOException {
@@ -334,8 +336,9 @@ class QuiltFileSystemProvider extends FileSystemProvider {
     void copy(Path from, Path to, CopyOption... options) throws IOException {
         log.debug "Attempting `copy`: ${from} -> ${to}"
         assert provider(from) == provider(to)
-        if( from == to )
+        if (from == to) {
             return // nothing to do -- just return
+        }
 
         checkRoot(from); checkRoot(to)
         final source = asQuiltPath(from)
@@ -346,7 +349,7 @@ class QuiltFileSystemProvider extends FileSystemProvider {
 
     @Override
     void move(Path source, Path target, CopyOption... options) throws IOException {
-        copy(source,target,options)
+        copy(source, target, options)
         delete(source)
     }
 
@@ -369,18 +372,19 @@ class QuiltFileSystemProvider extends FileSystemProvider {
     void checkAccess(Path path, AccessMode... modes) throws IOException {
         log.debug "Calling `checkAccess`: ${path}"
         checkRoot(path)
-        final qPath = asQuiltPath(path)
-        readAttributes(qPath, QuiltFileAttributes.class)
-        if( AccessMode.EXECUTE in modes)
+        QuiltPath qPath = asQuiltPath(path)
+        readAttributes(qPath, QuiltFileAttributes)
+        if (AccessMode.EXECUTE in modes) {
             throw new AccessDeniedException(qPath.toUriString(), null, 'Execute permission not allowed')
+        }
     }
 
     @Override
     def <V extends FileAttributeView> V getFileAttributeView(Path path, Class<V> type, LinkOption... options) {
         log.debug "Calling `getFileAttributeView`: ${path}"
         checkRoot(path)
-        if( type == BasicFileAttributeView || type == QuiltFileAttributesView ) {
-            def qPath = asQuiltPath(path)
+        if (type == BasicFileAttributeView || type == QuiltFileAttributesView) {
+            QuiltPath qPath = asQuiltPath(path)
             QuiltFileSystem fs = qPath.filesystem
             return (V)fs.getFileAttributeView(qPath)
         }
@@ -388,17 +392,18 @@ class QuiltFileSystemProvider extends FileSystemProvider {
     }
 
     @Override
-    def <A extends BasicFileAttributes> A readAttributes(Path path, Class<A> type, LinkOption... options) throws IOException {
+    def <A extends BasicFileAttributes> A readAttributes(Path path, Class<A> type, LinkOption... options)
+         throws IOException {
         log.debug "<A>BasicFileAttributes QuiltFileSystemProvider.readAttributes($path)"
         def attr = attributesCache.get(path)
-        if ( attr ) {
+        if (attr) {
             return attr
         }
-        if( type == BasicFileAttributes || type == QuiltFileAttributes ) {
-            def qPath = asQuiltPath(path)
+        if (type == BasicFileAttributes || type == QuiltFileAttributes) {
+            QuiltPath qPath = asQuiltPath(path)
             QuiltFileSystem fs = qPath.filesystem
             def result = (A)fs.readAttributes(qPath)
-            if( result ) {
+            if (result) {
                 attributesCache[path] = result
                 return result
             }
@@ -406,7 +411,7 @@ class QuiltFileSystemProvider extends FileSystemProvider {
             throw new NoSuchFileException(qPath.toUriString())
         }
         throw new UnsupportedOperationException("Not a valid Quilt Storage file attribute type: $type")
-    }
+         }
 
     @Override
     Map<String, Object> readAttributes(Path path, String attributes, LinkOption... options) throws IOException {

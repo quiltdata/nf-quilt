@@ -13,42 +13,45 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package nextflow.quilt.jep
 
+/* groovylint-disable-next-line ImportFromSamePackage */
+import nextflow.quilt.jep.QuiltParser
+
 import groovy.transform.CompileStatic
-import groovy.transform.Memoized
 import groovy.util.logging.Slf4j
 
 @Slf4j
 @CompileStatic
 class QuiltID {
-    public static String[] DEFAULT_PACKAGE=["null","default"]
-    private static final Map<String,QuiltID> ids = [:]
+
+    private static final String[] DEFAULT_PACKAGE = ['null', 'default']
+    private static final Map<String,QuiltID> QIDS = [:]
 
     private final String bucket
     private final String pkgPrefix
     private final String pkgSuffix
 
-    static public QuiltID Fetch(String bucket, String pkg_name) {
+    static QuiltID fetch(String bucket, String packageName) {
         if (!bucket) {
-            log.error "null == QuiltID.Fetch($bucket, $pkg_name)"
+            log.error "null == QuiltID.fetch($bucket, $packageName)"
             return null
         }
-        if (!pkg_name || pkg_name.size()<QuiltParser.MIN_SIZE) {
-            pkg_name = DEFAULT_PACKAGE.join(QuiltParser.SEP)
-            log.warn "QuiltID.Fetch: setting missing package to $pkg_name"
+        String pkgName = packageName
+        if (!packageName || packageName.size() < QuiltParser.MIN_SIZE) {
+            pkgName = DEFAULT_PACKAGE.join(QuiltParser.SEP)
+            log.warn "QuiltID.fetch: setting missing package to $packageName"
         }
-        String[] split = pkg_name.split(QuiltParser.SEP)
-        if (split.size()<QuiltParser.MIN_SIZE || split[1].size()<QuiltParser.MIN_SIZE) {
+        String[] split = pkgName.split(QuiltParser.SEP)
+        if (split.size() < QuiltParser.MIN_SIZE || split[1].size() < QuiltParser.MIN_SIZE) {
             split += DEFAULT_PACKAGE[1] as String
-            log.warn "QuiltID.Fetch: setting missing suffix to $split[1]"
+            log.warn "QuiltID.fetch: setting missing suffix to $split[1]"
         }
         String key = "${bucket}/${split[0]}/${split[1]}"
-        if (!ids.containsKey(key)) {
-            ids[key] = new QuiltID(bucket, split[0], split[1])
+        if (!QIDS.containsKey(key)) {
+            QIDS[key] = new QuiltID(bucket, split[0], split[1])
         }
-        ids[key]
+        return QIDS[key]
     }
 
     QuiltID(String bucket, String pkgPrefix, String pkgSuffix) {
@@ -58,6 +61,7 @@ class QuiltID {
     }
 
     String toString() {
-        "${bucket}.${pkgPrefix}.${pkgSuffix}"
+        return "${bucket}.${pkgPrefix}.${pkgSuffix}"
     }
+
 }

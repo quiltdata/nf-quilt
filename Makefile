@@ -16,7 +16,13 @@ compile:
 	@echo "DONE `date`"
 
 check:
-	./gradlew check
+	./gradlew check --warning-mode all
+
+coverage: compile
+	./gradlew cloverInstrumentCodeForTest
+
+.PHONY: clean test all
+test: clean compile check #coverage
 
 
 #

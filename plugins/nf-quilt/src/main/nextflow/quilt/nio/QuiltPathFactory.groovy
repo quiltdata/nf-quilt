@@ -13,18 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package nextflow.quilt.nio
 
 import java.nio.file.Path
 
 import groovy.transform.CompileStatic
-import nextflow.Global
-import nextflow.Session
-import nextflow.quilt.QuiltOpts
 import nextflow.quilt.jep.QuiltParser
 import nextflow.file.FileSystemPathFactory
 import nextflow.file.FileHelper
+
 /**
  * Implements FileSystemPathFactory interface for Google storage
  *
@@ -33,33 +30,34 @@ import nextflow.file.FileHelper
 @CompileStatic
 class QuiltPathFactory extends FileSystemPathFactory {
 
-    static public QuiltPath Parse(String path) {
+    static QuiltPath parse(String path) {
         QuiltPathFactory factory = new QuiltPathFactory()
-        (QuiltPath) factory.parseUri(path)
+        return (QuiltPath) factory.parseUri(path)
     }
 
     @Override
-    protected Path parseUri(String uri_string) {
-        if( !uri_string.startsWith(QuiltParser.PREFIX) )
+    protected Path parseUri(String uriString) {
+        if (!uriString.startsWith(QuiltParser.PREFIX)) {
             return null
-        final uri = new URI(uri_string)
+        }
+        final uri = new URI(uriString)
         return FileHelper.getOrCreateFileSystemFor(uri).provider().getPath(uri)
     }
 
     @Override
     protected String toUriString(Path p) {
-      if( p instanceof QuiltPath ) {
-          return p.toUriString()
-      }
-      return null
+        if (p in QuiltPath) {
+            return p.toUriString()
+        }
+        return null
     }
 
     protected String getBashLib(Path path) {
-        return path instanceof QuiltPath ? QuiltBashLib.script() : null
+        return path in QuiltPath ? QuiltBashLib.script() : null
     }
 
     protected String getUploadCmd(String source, Path target) {
-        return target instanceof QuiltPath ?  QuiltFileCopyStrategy.uploadCmd(source, target) : null
+        return target in QuiltPath ?  QuiltFileCopyStrategy.uploadCmd(source, target) : null
     }
 
 }

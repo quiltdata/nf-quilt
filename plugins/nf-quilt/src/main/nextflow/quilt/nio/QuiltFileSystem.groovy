@@ -13,11 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package nextflow.quilt.nio
 
-import java.nio.channels.Channels
-import java.nio.channels.SeekableByteChannel
 import java.nio.file.Files
 import java.nio.file.FileSystem
 import java.nio.file.FileStore
@@ -28,15 +25,11 @@ import java.nio.file.attribute.UserPrincipalLookupService
 import java.nio.file.spi.FileSystemProvider
 import java.nio.file.NoSuchFileException
 import java.nio.file.attribute.BasicFileAttributes
-import java.nio.file.attribute.FileTime
-import java.util.regex.Matcher
 
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
-import nextflow.Global
-import nextflow.Session
-import nextflow.quilt.QuiltOpts
 import nextflow.quilt.jep.QuiltParser
+
 /**
  * Implements FileSystem interface for Quilt registries
  * Each bucket/package pair (QuiltID) is a FileSystem
@@ -45,44 +38,44 @@ import nextflow.quilt.jep.QuiltParser
  * @author Ernest Prabhakar <ernest@quiltdata.io>
  */
 
-
-// cf. https://cloud.google.com/java/docs/reference/google-cloud-nio/latest/com.google.cloud.storage.contrib.nio.CloudStorageFileSystem
+// cf. https://cloud.google.com/java/docs/reference/google-cloud-nio/latest/
+//     com.google.cloud.storage.contrib.nio.CloudStorageFileSystem
 // https://github.com/nextflow-io/nextflow-s3fs/tree/master/src/main/java/com/upplication/s3fs
 @Slf4j
 @CompileStatic
-public final class QuiltFileSystem extends FileSystem {
+final class QuiltFileSystem extends FileSystem implements Closeable {
 
-    protected final String quiltIDS;
-    protected final QuiltFileSystemProvider provider
+    private final String quiltIDS
+    private final QuiltFileSystemProvider myProvider
 
-    public QuiltFileSystem(String quiltIDS, QuiltFileSystemProvider provider) {
-      this.quiltIDS = quiltIDS;
-      this.provider = provider;
+    QuiltFileSystem(String quiltIDS, QuiltFileSystemProvider provider) {
+        this.quiltIDS = quiltIDS
+        this.myProvider = provider
     }
 
     @Override
     String toString() {
-        quiltIDS
+        return quiltIDS
     }
 
     void copy(QuiltPath source, QuiltPath target) {
-      throw new UnsupportedOperationException("NOT Implemented 'QuiltFileSystem.copy' `$source` -> `$target`")
+        throw new UnsupportedOperationException("NOT Implemented 'QuiltFileSystem.copy' `$source` -> `$target`")
     }
 
     void delete(QuiltPath path) {
         log.debug "QuiltFileSystem.delete: $path"
         path.deinstall()
-      //throw new UnsupportedOperationException("Operation 'delete' is not supported by QuiltFileSystem")
+    //throw new UnsupportedOperationException("Operation 'delete' is not supported by QuiltFileSystem")
     }
 
     @Override
     FileSystemProvider provider() {
-        return provider
+        return myProvider
     }
 
     @Override
     void close() throws IOException {
-        // nothing to do
+    // nothing to do
     }
 
     @Override
@@ -102,7 +95,7 @@ public final class QuiltFileSystem extends FileSystem {
 
     QuiltFileAttributesView getFileAttributeView(QuiltPath path) {
         log.debug "QuiltFileAttributesView QuiltFileSystem.getFileAttributeView($path)"
-        def pathString = path.toUriString()
+        String pathString = path.toUriString()
         try {
             QuiltFileAttributes attrs = readAttributes(path)
             return new QuiltFileAttributesView(attrs)
@@ -117,7 +110,7 @@ public final class QuiltFileSystem extends FileSystem {
         Path installedPath = path.localPath()
         try {
             BasicFileAttributes attrs = Files.readAttributes(installedPath, BasicFileAttributes)
-            return new QuiltFileAttributes(path,path.toString(),attrs)
+            return new QuiltFileAttributes(path, path.toString(), attrs)
         }
         catch (NoSuchFileException e) {
             log.debug "No attributes yet for: ${installedPath}"
@@ -141,29 +134,27 @@ public final class QuiltFileSystem extends FileSystem {
     @Override
     Set<String> supportedFileAttributeViews() {
         log.debug "Calling `supportedFileAttributeViews`: ${this}"
-        return Collections.unmodifiableSet( ['basic'] as Set )
+        return Collections.unmodifiableSet(['basic'] as Set)
     }
 
     @Override
     QuiltPath getPath(String root, String... more) {
         log.debug "QuiltFileSystem.getPath`[${root}]: $more"
 
-        QuiltParser p = QuiltParser.ForBarePath(root)
-        new QuiltPath(this, p)
+        QuiltParser p = QuiltParser.forBarePath(root)
+        return new QuiltPath(this, p)
     }
 
-    protected String toUriString(Path path) {
-        return path instanceof QuiltPath ? ((QuiltPath)path).toUriString() : null
+    String toUriString(Path path) {
+        return path in QuiltPath ? ((QuiltPath)path).toUriString() : null
     }
 
-    protected String getBashLib(Path path) {
-        throw new UnsupportedOperationException("Operation 'getBashLib' is not supported by QuiltFileSystem")
-        return path instanceof QuiltPath ? QuiltBashLib.script() : null
+    String getBashLib(Path path) {
+        return path in QuiltPath ? QuiltBashLib.script() : null
     }
 
-    protected String getUploadCmd(String source, Path target) {
-        throw new UnsupportedOperationException("Operation 'getUploadCmd' is not supported by QuiltFileSystem")
-        return target instanceof QuiltPath ?  QuiltFileCopyStrategy.uploadCmd(source, target) : null
+    String getUploadCmd(String source, Path target) {
+        return target in QuiltPath ?  QuiltFileCopyStrategy.uploadCmd(source, target) : null
     }
 
     @Override
@@ -173,7 +164,9 @@ public final class QuiltFileSystem extends FileSystem {
 
     @Override
     UserPrincipalLookupService getUserPrincipalLookupService() {
-        throw new UnsupportedOperationException("Operation 'getUserPrincipalLookupService' is not supported by QuiltFileSystem")
+        throw new UnsupportedOperationException(
+            "Operation 'getUserPrincipalLookupService' is not supported by QuiltFileSystem"
+        )
     }
 
     @Override
