@@ -38,8 +38,7 @@ import groovy.transform.CompileDynamic
 class QuiltPackageTest extends QuiltSpecification {
 
     private final static String PACKAGE_URL = 'quilt+s3://quilt-example#package=examples%2fsmart-report@d68a7e9'
-    private final static String url = PACKAGE_URL + '&path=README.md'
-    private final static String OUT_URL = 'quilt+s3://quilt_dev_null#package=nf-quilt%2ftest'
+    private final static String TEST_URL = PACKAGE_URL + '&path=README.md'
 
     private QuiltPathFactory factory
     private QuiltPath qpath
@@ -47,7 +46,7 @@ class QuiltPackageTest extends QuiltSpecification {
 
     void setup() {
         factory = new QuiltPathFactory()
-        qpath = factory.parseUri(url)
+        qpath = factory.parseUri(TEST_URL)
         pkg = qpath.pkg()
     }
 
@@ -65,12 +64,12 @@ class QuiltPackageTest extends QuiltSpecification {
 
     void 'should distinguish Packages with same name in different Buckets '() {
         given:
-        def url2 = url.replace('quilt-', 'quilted-')
+        def url2 = TEST_URL.replace('quilt-', 'quilted-')
         def qpath2 = factory.parseUri(url2)
         def pkg2 = qpath2.pkg()
 
         expect:
-        url != url2
+        TEST_URL != url2
         pkg != pkg2
         pkg.toString() != pkg2.toString()
 

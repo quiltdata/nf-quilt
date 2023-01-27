@@ -38,8 +38,8 @@ class QuiltNioTest extends QuiltSpecification {
     private static final String READ_URL = packagePath('data/atlantic-storms.csv')
     private static final String TEXT = 'Hello world!'
 
-    static null_path(f) { NULL_URL + "&path=$f" }
-    static packagePath(f) { PACKAGE_URL + "&path=$f" }
+    static String null_path(String f) { return NULL_URL + "&path=$f" }
+    static String packagePath(String f) { return PACKAGE_URL + "&path=$f" }
 
     void 'should create valid URIs'() {
         given:
@@ -190,7 +190,7 @@ class QuiltNioTest extends QuiltSpecification {
         readObject(path).trim() == TEXT
 
         cleanup:
-        if (source) Files.delete(source)
+        if (source) { Files.delete(source) }
     }
 
     @Ignore
