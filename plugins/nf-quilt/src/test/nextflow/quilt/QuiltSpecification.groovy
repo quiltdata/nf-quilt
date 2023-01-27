@@ -88,25 +88,21 @@ class QuiltSpecification extends Specification {
 
     Path makeObject(Path path, String text) {
         assert path
-        log.debug "Write String[$text] to '$path'"
         Files.write(path, text.bytes)
         return path.localPath()
     }
 
     boolean existsPath(String path) {
         assert path
-        log.debug "Check path string exists '$path'"
         return Files.exists(Paths.get(path))
     }
 
     boolean existsPath(QuiltPath path) {
-        log.debug "Check path object exists '$path'"
         final local = path.localPath()
         return existsPath(local.toString())
     }
 
     String readObject(Path path) {
-        log.debug "Read String from '$path'"
         return new String(Files.readAllBytes(path))
     }
 
