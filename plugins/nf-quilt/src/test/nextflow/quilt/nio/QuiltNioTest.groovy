@@ -479,7 +479,7 @@ class QuiltNioTest extends QuiltSpecification {
 
         when:
         Path p = Paths.get(new URI(NULL_URL))
-        List<String> list = Files.newDirectoryStream(p).collect { 
+        List<String> list = Files.newDirectoryStream(p).collect {
             path -> path.getFileName().toString()
         }
         then:
@@ -488,7 +488,7 @@ class QuiltNioTest extends QuiltSpecification {
 
         when:
         list = Files.newDirectoryStream(Paths.get(new URI(null_path('foo')))).collect {
-             path -> path.getFileName().toString() 
+             path -> path.getFileName().toString()
         }
         then:
         list.size() == 4

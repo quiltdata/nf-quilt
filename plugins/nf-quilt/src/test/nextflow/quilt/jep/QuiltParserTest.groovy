@@ -18,7 +18,7 @@ class QuiltParserTest extends QuiltSpecification {
          'quilt+s3://quilt-ernest-staging#package=nf-quilt/sarek/pipeline_info/execution_trace_2022-10-13_01-01-31.txt'
     // private static final String PATH_URL = 'quilt+s3://bucket-name#package=quilt/test@abc1&path=sub%2Fpath'
     // private static final String TAG_URL = 'quilt+s3://bucket-name#package=quilt/test:later&path=sub%2Fpath'
-    // private static final String HASH_URL = 
+    // private static final String HASH_URL =
     // 'quilt+s3://quilt-ernest-staging#package=test/hurdat@e4bed47503f9dde90a00b915ef75bd1ad294378870ba2e388084266e4f7ed909'
 
     void 'should host Quilt URL scheme'() {
