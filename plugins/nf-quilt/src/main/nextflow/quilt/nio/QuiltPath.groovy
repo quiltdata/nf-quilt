@@ -48,7 +48,7 @@ final class QuiltPath implements Path, Comparable {
         this.filesystem = filesystem
         this.parsed = parsed
         this.paths = parsed.getPaths()
-        log.debug "Creating QuiltPath[$parsed]@$filesystem"
+        log.debug "Creating QuiltPath: $paths"
     }
 
     String getBucket() {
@@ -90,7 +90,7 @@ final class QuiltPath implements Path, Comparable {
 
     @Override
     boolean isAbsolute() {
-        log.debug "isAbsolute[${getPackageName()}] : ${parsed}"
+        log.debug "isAbsolute[${getPackageName()}]"
         return filesystem && getPackageName()
     }
 
@@ -216,10 +216,12 @@ final class QuiltPath implements Path, Comparable {
 
     @Override
     String toString() {
+        log.debug("QuiltPath.toString")
         return parsed.toString()
     }
 
     String toUriString() {
+        log.debug("QuiltPath.toUriString")
         return parsed.toUriString()
     }
 

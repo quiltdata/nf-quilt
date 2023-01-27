@@ -51,7 +51,7 @@ class QuiltPackage {
         pkg = new QuiltPackage(parsed)
         PKGS[pkgKey] = pkg
         try {
-            log.debug "Installing `${pkg}` forParsed(${parsed}) "
+            log.debug "Installing `${pkg}` for.pkgKey $pkgKey"
             pkg.install()
         }
         catch (Exception e) {
@@ -84,7 +84,7 @@ class QuiltPackage {
         this.packageName = parsed.getPackageName()
         this.hash = parsed.getHash()
         this.folder = Paths.get(INSTALL_ROOT.toString(), this.toString())
-        log.debug "QuiltParser.folder[${this.folder}] ${parsed}"
+        log.debug "QuiltParser.folder[${this.folder}]"
         assert this.folder
         this.setup()
     }

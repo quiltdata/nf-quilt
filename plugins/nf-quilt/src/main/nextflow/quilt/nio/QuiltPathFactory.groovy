@@ -18,6 +18,7 @@ package nextflow.quilt.nio
 import java.nio.file.Path
 
 import groovy.transform.CompileStatic
+import groovy.util.logging.Slf4j
 import nextflow.quilt.jep.QuiltParser
 import nextflow.file.FileSystemPathFactory
 import nextflow.file.FileHelper
@@ -27,6 +28,8 @@ import nextflow.file.FileHelper
  *
  * @author Ernest Prabhakar <ernest@quiltdata.io>
  */
+
+@Slf4j
 @CompileStatic
 class QuiltPathFactory extends FileSystemPathFactory {
 
