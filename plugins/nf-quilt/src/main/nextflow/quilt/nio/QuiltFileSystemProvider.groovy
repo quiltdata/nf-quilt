@@ -248,7 +248,7 @@ class QuiltFileSystemProvider extends FileSystemProvider {
     */
     void notifyFilePublish(QuiltPath destination, Path source=null) {
         final sess = Global.session
-        /* groovylint-disable-next-line InstanceOf */
+        /* groovylint-disable-next-line Instanceof */
         if (sess instanceof Session) {
             sess.notifyFilePublish((Path)destination, source)
         }
@@ -288,7 +288,7 @@ class QuiltFileSystemProvider extends FileSystemProvider {
                 return Collections.emptyIterator()
             }
 
-            /* groovylint-disable-next-line Closeable */
+            /* groovylint-disable-next-line CloseWithoutCloseable */
             @Override void close() throws IOException { }
 
         }
@@ -309,20 +309,20 @@ class QuiltFileSystemProvider extends FileSystemProvider {
                 return new QuiltPathIterator(qPath, filter)
             }
 
-            /* groovylint-disable-next-line Closeable */
+            /* groovylint-disable-next-line CloseWithoutCloseable */
             @Override void close() throws IOException { }
 
         }
     }
 
-    /* groovylint-disable CreateNotFactory */
+    /* groovylint-disable BuilderMethodWithSideEffects */
     @Override
     void createDirectory(Path dir, FileAttribute<?>... attrs) throws IOException {
         final path = asQuiltPath(dir).localPath()
         log.debug "Calling createDirectory[${path}]: ${dir} "
         Files.createDirectories(path)
     }
-    /* groovylint-enable */
+    /* groovylint-enable BuilderMethodWithSideEffects */
 
     @Override
     void delete(Path obj) throws IOException {
