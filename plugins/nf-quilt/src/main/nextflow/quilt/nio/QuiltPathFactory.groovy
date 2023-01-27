@@ -49,7 +49,8 @@ class QuiltPathFactory extends FileSystemPathFactory {
 
     @Override
     protected String toUriString(Path p) {
-        if (p in QuiltPath) {
+        /* groovylint-disable-next-line Instanceof */
+        if (p instanceof QuiltPath) {
             return p.toUriString()
         }
         return null
