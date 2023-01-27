@@ -68,7 +68,12 @@ class QuiltPackage {
     }
 
     static boolean deleteDirectory(Path rootPath) {
-        if (!Files.exists(rootPath)) { return false }
+        try {
+            if (!Files.exists(rootPath)) { return false }
+        }
+        catch (SecurityException e) {
+            log.warn "Cannnot verify whether `$rootPath` exists: $e"
+        }
         try {
             final List<Path> pathsToDelete = listDirectory(rootPath)
             for (Path path : pathsToDelete) {
