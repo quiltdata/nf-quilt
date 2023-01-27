@@ -216,12 +216,10 @@ final class QuiltPath implements Path, Comparable {
 
     @Override
     String toString() {
-        log.debug("QuiltPath.toString")
         return parsed.toString()
     }
 
     String toUriString() {
-        log.debug("QuiltPath.toUriString")
         return parsed.toUriString()
     }
 
