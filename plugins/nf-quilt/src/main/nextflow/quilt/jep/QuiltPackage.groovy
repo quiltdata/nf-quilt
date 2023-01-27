@@ -21,6 +21,9 @@ import groovy.util.logging.Slf4j
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.nio.file.SimpleFileVisitor
+import java.nio.file.FileVisitResult
+import java.nio.file.attribute.BasicFileAttributes
 import java.util.stream.Collectors
 import java.time.LocalDate
 
@@ -170,7 +173,27 @@ class QuiltPackage {
             call('install', packageName, key_registry(), key_hash(), key_dest())
         }
         installed = true
+        recursiveDeleteOnExit()
         return packageDest()
+    }
+
+    // https://stackoverflow.com/questions/15022219/does-files-createtempdirectory-remove-the-directory-after-jvm-exits-normally
+    void recursiveDeleteOnExit() throws IOException {
+      Path path = packageDest()
+      Files.walkFileTree(path, new SimpleFileVisitor<Path>() {
+        @Override
+        public FileVisitResult visitFile(Path file,
+            @SuppressWarnings("unused") BasicFileAttributes attrs) {
+          file.toFile().deleteOnExit()
+          return FileVisitResult.CONTINUE
+        }
+        @Override
+        public FileVisitResult preVisitDirectory(Path dir,
+            @SuppressWarnings("unused") BasicFileAttributes attrs) {
+          dir.toFile().deleteOnExit()
+          return FileVisitResult.CONTINUE
+        }
+      })
     }
 
     boolean isInstalled() {
