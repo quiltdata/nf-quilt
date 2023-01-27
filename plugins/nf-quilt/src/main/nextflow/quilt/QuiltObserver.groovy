@@ -49,7 +49,6 @@ class QuiltObserver implements TraceObserver {
     private Map quiltConfig
     private Session session
 
-
     static void printMap(Map map, String title) {
         log.debug "\n\n\n# $title"
         map.each {

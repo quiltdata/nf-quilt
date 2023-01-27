@@ -1,5 +1,4 @@
 /* groovylint-disable MethodName */
-
 package nextflow.quilt.jep
 
 import nextflow.quilt.QuiltSpecification
