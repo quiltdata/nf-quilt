@@ -394,7 +394,7 @@ class QuiltFileSystemProvider extends FileSystemProvider {
     @Override
     def <A extends BasicFileAttributes> A readAttributes(Path path, Class<A> type, LinkOption... options)
          throws IOException {
-        log.debug "<A>BasicFileAttributes QuiltFileSystemProvider.readAttributes()"
+        log.debug '<A>BasicFileAttributes QuiltFileSystemProvider.readAttributes()'
         def attr = attributesCache.get(path)
         if (attr) {
             return attr
@@ -415,7 +415,7 @@ class QuiltFileSystemProvider extends FileSystemProvider {
 
     @Override
     Map<String, Object> readAttributes(Path path, String attributes, LinkOption... options) throws IOException {
-        log.debug "Map<String, Object> QuiltFileSystemProvider.readAttributes()"
+        log.debug 'Map<String, Object> QuiltFileSystemProvider.readAttributes()'
         throw new UnsupportedOperationException("Operation Map 'readAttributes' is not supported by QuiltFileSystem")
     }
 
