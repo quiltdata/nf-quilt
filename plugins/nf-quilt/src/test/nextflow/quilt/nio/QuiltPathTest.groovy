@@ -23,18 +23,12 @@ class QuiltPathTest extends QuiltSpecification {
     private static final String BKT = 'bucket'
     private static final String PKG_URL = "${QuiltParser.PREFIX}${BKT}#package=so%2fme"
     private static final String SUB_PATH = "${BKT}#package=s/d&path=f%2ffile.txt"
-    private static QuiltPath PKG_PATH
-    private static QuiltFileSystem QFS
-
-    static QuiltFileSystem getQFS() {
-        PKG_PATH ?: Paths.get(new URI(PKG_URL))
-        QFS ?: PKG_PATH.getFileSystem()
-        return QFS
-    }
 
     QuiltPath pathify(String path) {
-        QuiltFileSystem qfs = getQFS()
         if (!path.contains(BKT)) {
+            URI uri = new URI(PKG_URL)
+            QuiltPath pkgPath = Paths.get(uri)
+            QuiltFileSystem qfs = pkgPath.getFileSystem()
             return qfs.getPath(path)
         }
         String url = QuiltParser.PREFIX + path
