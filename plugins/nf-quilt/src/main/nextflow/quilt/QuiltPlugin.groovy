@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package nextflow.quilt
 
 import groovy.transform.CompileStatic
@@ -21,6 +20,7 @@ import nextflow.plugin.BasePlugin
 import nextflow.file.FileHelper
 import org.pf4j.PluginWrapper
 import nextflow.quilt.nio.QuiltFileSystemProvider
+
 /**
  * Implement the plugin entry point for Quilt support
  *

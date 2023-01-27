@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package nextflow.quilt.nio
 
 import java.nio.file.attribute.BasicFileAttributeView
@@ -31,11 +30,11 @@ import groovy.util.logging.Slf4j
 @CompileStatic
 class QuiltFileAttributesView implements BasicFileAttributeView {
 
-    private final QuiltFileAttributes target;
+    private final QuiltFileAttributes target
 
     QuiltFileAttributesView(QuiltFileAttributes target) {
         log.debug "QuiltFileAttributesView: $target"
-        this.target = target;
+        this.target = target
     }
 
     @Override
@@ -59,7 +58,7 @@ class QuiltFileAttributesView implements BasicFileAttributeView {
      */
     @Override
     void setTimes(FileTime lastModifiedTime, FileTime lastAccessTime, FileTime createTime) throws IOException {
-        // TBD
+    // TBD
     }
 
 }

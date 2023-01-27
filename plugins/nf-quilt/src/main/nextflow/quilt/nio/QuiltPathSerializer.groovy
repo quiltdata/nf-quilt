@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package nextflow.quilt.nio
 
 import groovy.transform.CompileStatic
@@ -29,8 +28,10 @@ import org.pf4j.Extension
 @Extension
 @CompileStatic
 class QuiltPathSerializer implements SerializerRegistrant  {
+
     @Override
     void register(Map<Class, Object> serializers) {
         serializers.put(QuiltPath, PathSerializer)
     }
+
 }
