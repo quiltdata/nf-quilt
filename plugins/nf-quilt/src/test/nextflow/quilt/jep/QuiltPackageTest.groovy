@@ -37,15 +37,15 @@ import groovy.transform.CompileDynamic
 @CompileDynamic
 class QuiltPackageTest extends QuiltSpecification {
 
-    private final static String packageURL = 'quilt+s3://quilt-example#package=examples%2fsmart-report@d68a7e9'
-    private final static String url = packageURL + '&path=README.md'
-    private final static String out_url = 'quilt+s3://quilt_dev_null#package=nf-quilt%2ftest'
+    private final static String PACKAGE_URL = 'quilt+s3://quilt-example#package=examples%2fsmart-report@d68a7e9'
+    private final static String url = PACKAGE_URL + '&path=README.md'
+    private final static String OUT_URL = 'quilt+s3://quilt_dev_null#package=nf-quilt%2ftest'
 
     private QuiltPathFactory factory
     private QuiltPath qpath
     private QuiltPackage pkg
 
-    def setup() {
+    void setup() {
         factory = new QuiltPathFactory()
         qpath = factory.parseUri(url)
         pkg = qpath.pkg()
@@ -59,7 +59,7 @@ class QuiltPackageTest extends QuiltSpecification {
         expect:
         pkg != null
         pkg.toString() == 'quilt_example_examples_smart_report'
-        pkgPath.toUriString() == packageURL
+        pkgPath.toUriString() == PACKAGE_URL
         pkg == pkg2
     }
 
@@ -89,7 +89,7 @@ class QuiltPackageTest extends QuiltSpecification {
     void 'should get attributes for package folder'() {
         given:
         def root = qpath.getRoot()
-        def qroot = factory.parseUri(packageURL)
+        def qroot = factory.parseUri(PACKAGE_URL)
         expect:
         root == qroot
         qroot.isJustPackage()
@@ -123,7 +123,7 @@ class QuiltPackageTest extends QuiltSpecification {
     void 'should iterate over installed files '() {
         given:
         def root = qpath.getRoot()
-        def qroot = factory.parseUri(packageURL)
+        def qroot = factory.parseUri(PACKAGE_URL)
 
         expect:
         root
@@ -137,7 +137,7 @@ class QuiltPackageTest extends QuiltSpecification {
     void 'should write new files back to bucket '() {
         given:
         def cleanDate = QuiltPackage.today()
-        //def qout = factory.parseUri(out_url)
+        //def qout = factory.parseUri(OUT_URL)
         def opkg = qpath.pkg()
         def outPath = Paths.get(opkg.packageDest().toString(), "${cleanDate}.txt")
         // remove path
@@ -152,7 +152,6 @@ class QuiltPackageTest extends QuiltSpecification {
     //pkg.isInstalled()
     }
 
-    void 'Package should return Attributes IFF the file exists'() {
-    }
+    // void 'Package should return Attributes IFF the file exists'() { }
 
 }

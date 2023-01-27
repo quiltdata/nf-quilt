@@ -31,7 +31,7 @@ import groovy.transform.CompileDynamic
 @CompileDynamic
 class QuiltPathSerializerTest extends QuiltSpecification {
 
-    static String url = 'quilt+s3://bucket#package=pkg%2fname&path=sample.csv'
+    private static final String URL = 'quilt+s3://bucket#package=pkg%2fname&path=sample.csv'
 
     void 'should serialize a Quilt path'() {
         given:
@@ -40,12 +40,12 @@ class QuiltPathSerializerTest extends QuiltSpecification {
         }
 
         when:
-        URI uri = URI.create(url)
+        URI uri = URI.create(URL)
         Path path  = Paths.get(uri)
         then:
         path in QuiltPath
         path.toUri() == uri
-        path.toUriString() == url
+        path.toUriString() == URL
     }
 
 }

@@ -60,7 +60,7 @@ final class QuiltPath implements Path, Comparable {
     }
 
     String sub_paths() {
-        return parsed.path()
+        return parsed.getPath()
     }
 
     QuiltPackage pkg() {
@@ -201,7 +201,7 @@ final class QuiltPath implements Path, Comparable {
     Path relativize(Path other) {
         if (this == other) { return null }
         String file = (other in QuiltPath) ? ((QuiltPath)other).localPath() : other.toString()
-        String base = [pkg().toString(), parsed.path()].join(QuiltParser.SEP)
+        String base = [pkg().toString(), parsed.getPath()].join(QuiltParser.SEP)
         log.debug "relativize[$base] in [$file]"
         int i = file.indexOf(base)
         if (i < 1) {

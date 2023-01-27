@@ -31,18 +31,19 @@ import groovy.transform.CompileDynamic
 @CompileDynamic
 class QuiltNioTest extends QuiltSpecification {
 
-    private static final String null_url = 'quilt+s3://quilt-dev-null#package=test/null'
-    private static null_path(f) { null_url + "&path=$f" }
+    private static final String NULL_URL = 'quilt+s3://quilt-dev-null#package=test/null'
     //https://open.quiltdata.com/b/quilt-example/tree/examples/hurdat/
-    private static final String packageURL = 'quilt+s3://quilt-example#package=examples/hurdat'
-    private static packagePath(f) { packageURL + "&path=$f" }
-    private static final String write_url = packagePath('folder/file-name.txt')
-    private static final String read_url = packagePath('data/atlantic-storms.csv')
+    private static final String PACKAGE_URL = 'quilt+s3://quilt-example#package=examples/hurdat'
+    private static final String WRITE_URL = packagePath('folder/file-name.txt')
+    private static final String READ_URL = packagePath('data/atlantic-storms.csv')
     private static final String TEXT = 'Hello world!'
+
+    static null_path(f) { NULL_URL + "&path=$f" }
+    static packagePath(f) { PACKAGE_URL + "&path=$f" }
 
     void 'should create valid URIs'() {
         given:
-        URI uri = new URI(write_url)
+        URI uri = new URI(WRITE_URL)
         expect:
         uri
         when:
@@ -53,10 +54,10 @@ class QuiltNioTest extends QuiltSpecification {
 
     void 'should write to a path'() {
         given:
-        Path path = Paths.get(new URI(write_url))
+        Path path = Paths.get(new URI(WRITE_URL))
 
         when:
-        Path dest = createObject(path, TEXT)
+        Path dest = makeObject(path, TEXT)
         then:
         existsPath(dest.toString())
         new String(Files.readAllBytes(path)).trim() == TEXT
@@ -67,7 +68,7 @@ class QuiltNioTest extends QuiltSpecification {
     @IgnoreIf({ System.getProperty('os.name').contains('ux') })
     void 'should read from a path'() {
         given:
-        Path path = Paths.get(new URI(read_url))
+        Path path = Paths.get(new URI(READ_URL))
 
         when:
         String text = readObject(path)
@@ -85,7 +86,7 @@ class QuiltNioTest extends QuiltSpecification {
         Path path = Paths.get(new URI(start_url))
 
         when:
-        createObject(path, TEXT)
+        makeObject(path, TEXT)
         and:
 
         //
@@ -139,7 +140,7 @@ class QuiltNioTest extends QuiltSpecification {
         // -- readAttributes for a package
         //
         when:
-        attrs = Files.readAttributes(Paths.get(new URI(packageURL)), BasicFileAttributes)
+        attrs = Files.readAttributes(Paths.get(new URI(PACKAGE_URL)), BasicFileAttributes)
         then:
         !attrs.isRegularFile()
         attrs.isDirectory()
@@ -178,7 +179,7 @@ class QuiltNioTest extends QuiltSpecification {
 
     void 'copy local file to a bucket'() {
         given:
-        Path path = Paths.get(new URI(write_url))
+        Path path = Paths.get(new URI(WRITE_URL))
         Path source = Files.createTempFile('test', 'nf')
         source.text = TEXT
         Files.deleteIfExists(path.localPath())
@@ -195,8 +196,8 @@ class QuiltNioTest extends QuiltSpecification {
     @Ignore
     void 'copy a remote file to a bucket'() {
         given:
-        Path path = Paths.get(new URI(write_url))
-        final source_url = write_url.replace('test_folder', 'source')
+        Path path = Paths.get(new URI(WRITE_URL))
+        final source_url = WRITE_URL.replace('test_folder', 'source')
         final source = Paths.get(new URI(source_url))
         Files.write(source, TEXT.bytes)
         and:
@@ -210,8 +211,8 @@ class QuiltNioTest extends QuiltSpecification {
     @Ignore
     void 'move a remote file to a bucket'() {
         given:
-        Path path = Paths.get(new URI(write_url))
-        final source_url = write_url.replace('test_folder', 'source')
+        Path path = Paths.get(new URI(WRITE_URL))
+        final source_url = WRITE_URL.replace('test_folder', 'source')
         final source = Paths.get(new URI(source_url))
         Files.write(source, TEXT.bytes)
         and:
@@ -224,7 +225,7 @@ class QuiltNioTest extends QuiltSpecification {
 
     void 'should create a package'() {
         given:
-        Path path = Paths.get(new URI(packageURL))
+        Path path = Paths.get(new URI(PACKAGE_URL))
         when:
         QuiltPackage pkg = path.pkg()
         then:
@@ -235,7 +236,7 @@ class QuiltNioTest extends QuiltSpecification {
     @IgnoreIf({ System.getProperty('os.name').contains('ux') })
     void 'should iterate over package folders/files'() {
         given:
-        Path path = Paths.get(new URI(packageURL))
+        Path path = Paths.get(new URI(PACKAGE_URL))
         when:
         QuiltPathIterator itr = new QuiltPathIterator(path, null)
         then:
@@ -258,7 +259,7 @@ class QuiltNioTest extends QuiltSpecification {
 
     void 'should create a directory'() {
         given:
-        Path dir = Paths.get(new URI(packageURL))
+        Path dir = Paths.get(new URI(PACKAGE_URL))
 
         when:
         Files.createDirectory(dir)
@@ -294,7 +295,7 @@ class QuiltNioTest extends QuiltSpecification {
     @Ignore
     void 'should create temp file and directory'() {
         given:
-        Path base = Paths.get(new URI(packageURL))
+        Path base = Paths.get(new URI(PACKAGE_URL))
 
         when:
         Path t1 = Files.createTempDirectory(base, 'test')
@@ -309,8 +310,8 @@ class QuiltNioTest extends QuiltSpecification {
 
     void 'should delete a file'() {
         given:
-        Path path = Paths.get(new URI(write_url))
-        Path dest = createObject(path, TEXT)
+        Path path = Paths.get(new URI(WRITE_URL))
+        Path dest = makeObject(path, TEXT)
 
         when:
         Files.delete(dest)
@@ -321,7 +322,7 @@ class QuiltNioTest extends QuiltSpecification {
 
     void 'should throw a NoSuchFileException when deleting an object not existing'() {
         when:
-        Path path  = Paths.get(new URI(write_url))
+        Path path  = Paths.get(new URI(WRITE_URL))
         Files.delete(path)
         then:
         thrown(NoSuchFileException)
@@ -331,7 +332,7 @@ class QuiltNioTest extends QuiltSpecification {
         when:
         String vurl = packagePath('bolder/file.txt')
         Path path  = Paths.get(new URI(vurl))
-        createObject(path, TEXT)
+        makeObject(path, TEXT)
         QuiltPath p = Paths.get(new URI(file)) as QuiltPath
         then:
         existsPath(p) == flag
@@ -345,14 +346,14 @@ class QuiltNioTest extends QuiltSpecification {
 
     void 'should check if it is a directory'() {
         given:
-        Path dir = Paths.get(new URI(packageURL))
+        Path dir = Paths.get(new URI(PACKAGE_URL))
         expect:
         Files.isDirectory(dir)
         !Files.isRegularFile(dir)
 
         when:
         Path file = dir.resolve('this/and/that')
-        createObject(file, 'Hello world')
+        makeObject(file, 'Hello world')
         then:
         !Files.isDirectory(file)
         Files.isRegularFile(file)
@@ -383,8 +384,8 @@ class QuiltNioTest extends QuiltSpecification {
 
     void 'should create a newBufferedReader'() {
         given:
-        Path path  = Paths.get(new URI(write_url))
-        createObject(path, TEXT)
+        Path path  = Paths.get(new URI(WRITE_URL))
+        makeObject(path, TEXT)
 
         when:
         def reader = Files.newBufferedReader(path, Charset.forName('UTF-8'))
@@ -400,7 +401,7 @@ class QuiltNioTest extends QuiltSpecification {
 
     void 'should create a newBufferedWriter'() {
         given:
-        Path path  = Paths.get(new URI(write_url))
+        Path path  = Paths.get(new URI(WRITE_URL))
         def writer = Files.newBufferedWriter(path, Charset.forName('UTF-8'))
         TEXT.readLines().each { line -> writer.println(line) }
         writer.close()
@@ -410,8 +411,8 @@ class QuiltNioTest extends QuiltSpecification {
 
     void 'should create a newInputStream'() {
         given:
-        Path path  = Paths.get(new URI(write_url))
-        createObject(path, TEXT)
+        Path path  = Paths.get(new URI(WRITE_URL))
+        makeObject(path, TEXT)
 
         when:
         def reader = Files.newInputStream(path)
@@ -421,7 +422,7 @@ class QuiltNioTest extends QuiltSpecification {
 
     void 'should create a newOutputStream'() {
         given:
-        Path path  = Paths.get(new URI(write_url))
+        Path path  = Paths.get(new URI(WRITE_URL))
         def writer = Files.newOutputStream(path)
         TEXT.readLines().each { line ->
             writer.write(line.bytes)
@@ -434,8 +435,8 @@ class QuiltNioTest extends QuiltSpecification {
 
     void 'should read a newByteChannel'() {
         given:
-        Path path  = Paths.get(new URI(write_url))
-        createObject(path, TEXT)
+        Path path  = Paths.get(new URI(WRITE_URL))
+        makeObject(path, TEXT)
 
         when:
         def channel = Files.newByteChannel(path)
@@ -445,7 +446,7 @@ class QuiltNioTest extends QuiltSpecification {
 
     void 'should write a byte channel'() {
         given:
-        Path path  = Paths.get(new URI(write_url))
+        Path path  = Paths.get(new URI(WRITE_URL))
         def channel = Files.newByteChannel(path, StandardOpenOption.WRITE, StandardOpenOption.CREATE)
         writeChannel(channel, TEXT, 200)
         channel.close()
@@ -455,8 +456,8 @@ class QuiltNioTest extends QuiltSpecification {
 
     void 'should check file size'() {
         given:
-        Path path  = Paths.get(new URI(write_url))
-        createObject(path, TEXT)
+        Path path  = Paths.get(new URI(WRITE_URL))
+        makeObject(path, TEXT)
         expect:
         Files.size(path) == TEXT.size()
 
@@ -469,36 +470,42 @@ class QuiltNioTest extends QuiltSpecification {
     @Ignore
     void 'should stream directory content'() {
         given:
-        createObject(null_path('foo/file1.txt'), 'A')
-        createObject(null_path('foo/file2.txt'), 'BB')
-        createObject(null_path('foo/bar/file3.txt'), 'CCC')
-        createObject(null_path('foo/bar/baz/file4.txt'), 'DDDD')
-        createObject(null_path('foo/bar/file5.txt'), 'EEEEE')
-        createObject(null_path('foo/file6.txt'), 'FFFFFF')
+        makeObject(null_path('foo/file1.txt'), 'A')
+        makeObject(null_path('foo/file2.txt'), 'BB')
+        makeObject(null_path('foo/bar/file3.txt'), 'CCC')
+        makeObject(null_path('foo/bar/baz/file4.txt'), 'DDDD')
+        makeObject(null_path('foo/bar/file5.txt'), 'EEEEE')
+        makeObject(null_path('foo/file6.txt'), 'FFFFFF')
 
         when:
-        Path p = Paths.get(new URI(null_url))
-        List<String> list = Files.newDirectoryStream(p).collect {
-            it.getFileName().toString()
+        Path p = Paths.get(new URI(NULL_URL))
+        List<String> list = Files.newDirectoryStream(p).collect { 
+            path -> path.getFileName().toString()
         }
         then:
         list.size() == 1
         list == [ 'foo' ]
 
         when:
-        list = Files.newDirectoryStream(Paths.get(new URI(null_path('foo')))).collect { path -> path.getFileName().toString() }
+        list = Files.newDirectoryStream(Paths.get(new URI(null_path('foo')))).collect {
+             path -> path.getFileName().toString() 
+        }
         then:
         list.size() == 4
         list as Set == [ 'file1.txt', 'file2.txt', 'bar', 'file6.txt' ] as Set
 
         when:
-        list = Files.newDirectoryStream(Paths.get(new URI(null_path('foo/bar')))).collect { path -> path.getFileName().toString() }
+        list = Files.newDirectoryStream(Paths.get(new URI(null_path('foo/bar')))).collect {
+            path -> path.getFileName().toString()
+        }
         then:
         list.size() == 3
         list as Set == [ 'file3.txt', 'baz', 'file5.txt' ] as Set
 
         when:
-        list = Files.newDirectoryStream(Paths.get(new URI(null_path('foo/bar/baz')))).collect { path -> path.getFileName().toString() }
+        list = Files.newDirectoryStream(Paths.get(new URI(null_path('foo/bar/baz')))).collect {
+            path -> path.getFileName().toString()
+        }
         then:
         list.size() == 1
         list  == [ 'file4.txt' ]
@@ -507,17 +514,17 @@ class QuiltNioTest extends QuiltSpecification {
     @Ignore
     void 'should check walkTree'() {
         given:
-        createObject(null_path('foo/file1.txt'), 'A')
-        createObject(null_path('foo/file2.txt'), 'BB')
-        createObject(null_path('foo/bar/file3.txt'), 'CCC')
-        createObject(null_path('foo/bar/baz/file4.txt'), 'DDDD')
-        createObject(null_path('foo/bar/file5.txt'), 'EEEEE')
-        createObject(null_path('foo/file6.txt'), 'FFFFFF')
+        makeObject(null_path('foo/file1.txt'), 'A')
+        makeObject(null_path('foo/file2.txt'), 'BB')
+        makeObject(null_path('foo/bar/file3.txt'), 'CCC')
+        makeObject(null_path('foo/bar/baz/file4.txt'), 'DDDD')
+        makeObject(null_path('foo/bar/file5.txt'), 'EEEEE')
+        makeObject(null_path('foo/file6.txt'), 'FFFFFF')
 
         when:
         List<String> dirs = []
         Map<String,BasicFileAttributes> files = [:]
-        Path base = Paths.get(new URI(null_url))
+        Path base = Paths.get(new URI(NULL_URL))
         Files.walkFileTree(base, new SimpleFileVisitor<Path>() {
 
             @Override
@@ -581,11 +588,11 @@ class QuiltNioTest extends QuiltSpecification {
     @Ignore
     void 'should handle dir and files having the same name'() {
         given:
-        createObject(packagePath('foo'), 'file-1')
-        createObject(packagePath('foo/bar'), 'file-2')
-        createObject(packagePath('foo/baz'), 'file-3')
+        makeObject(packagePath('foo'), 'file-1')
+        makeObject(packagePath('foo/bar'), 'file-2')
+        makeObject(packagePath('foo/baz'), 'file-3')
         and:
-        Path root = Paths.get(new URI(packageURL))
+        Path root = Paths.get(new URI(PACKAGE_URL))
 
         when:
         Path file1 = root.resolve('foo')
@@ -643,9 +650,9 @@ class QuiltNioTest extends QuiltSpecification {
 
     void 'should handle file names with same prefix'() {
         given:
-        createObject(packagePath('transcript_index.junctions.fa'), 'foo')
-        createObject(packagePath('alpha-beta/file1'), 'bar')
-        createObject(packagePath('alpha/file2'), 'baz')
+        makeObject(packagePath('transcript_index.junctions.fa'), 'foo')
+        makeObject(packagePath('alpha-beta/file1'), 'bar')
+        makeObject(packagePath('alpha/file2'), 'baz')
 
         when:
         URI uri = new URI(packagePath(file))

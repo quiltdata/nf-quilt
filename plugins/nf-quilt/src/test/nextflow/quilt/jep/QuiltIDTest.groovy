@@ -17,7 +17,7 @@ class QuiltIDTest extends QuiltSpecification {
         when:
         QuiltID id = QuiltID.fetch(null, 'pkg/name')
         then:
-        null == id
+        id == null
     }
 
     void 'should default on missing pgk_suffix'() {

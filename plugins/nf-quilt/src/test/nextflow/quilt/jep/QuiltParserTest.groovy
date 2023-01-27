@@ -13,11 +13,13 @@ import groovy.transform.CompileDynamic
 @CompileDynamic
 class QuiltParserTest extends QuiltSpecification {
 
-    private static final String path_url = 'quilt+s3://bucket-name#package=quilt/test@abc1&path=sub%2Fpath'
-    private static final String rel_url = 'quilt+s3://bucket-name#package=quilt/test@abc1&path=sub%2F..%2Fpath'
-    private static final String tag_url = 'quilt+s3://bucket-name#package=quilt/test:later&path=sub%2Fpath'
-    private static final String hash_url = 'quilt+s3://quilt-ernest-staging#package=test/hurdat@e4bed47503f9dde90a00b915ef75bd1ad294378870ba2e388084266e4f7ed909'
-    private static final String test_url = 'quilt+s3://quilt-ernest-staging#package=nf-quilt/sarek/pipeline_info/execution_trace_2022-10-13_01-01-31.txt'
+    private static final String REL_URL = 'quilt+s3://bucket-name#package=quilt/test@abc1&path=sub%2F..%2Fpath'
+    private static final String TEST_URL =
+         'quilt+s3://quilt-ernest-staging#package=nf-quilt/sarek/pipeline_info/execution_trace_2022-10-13_01-01-31.txt'
+    // private static final String PATH_URL = 'quilt+s3://bucket-name#package=quilt/test@abc1&path=sub%2Fpath'
+    // private static final String TAG_URL = 'quilt+s3://bucket-name#package=quilt/test:later&path=sub%2Fpath'
+    // private static final String HASH_URL = 
+    // 'quilt+s3://quilt-ernest-staging#package=test/hurdat@e4bed47503f9dde90a00b915ef75bd1ad294378870ba2e388084266e4f7ed909'
 
     void 'should host Quilt URL scheme'() {
         expect:
@@ -34,28 +36,28 @@ class QuiltParserTest extends QuiltSpecification {
 
     void 'should parse over-long packages into path'() {
         when:
-        QuiltParser parser = QuiltParser.forUriString(test_url)
+        QuiltParser parser = QuiltParser.forUriString(TEST_URL)
         then:
         parser.getBucket() == 'quilt-ernest-staging'
         parser.getPackageName() == 'nf-quilt/sarek'
-        parser.path() == 'pipeline_info/execution_trace_2022-10-13_01-01-31.txt'
+        parser.getPath() == 'pipeline_info/execution_trace_2022-10-13_01-01-31.txt'
     }
 
     void 'should modify path segments appropriately'() {
         when:
-        QuiltParser parser = QuiltParser.forUriString(rel_url)
+        QuiltParser parser = QuiltParser.forUriString(REL_URL)
         then:
-        parser.path() == 'sub/../path'
-        parser.appendPath('child').path() == 'sub/../path/child'
-        parser.normalized().path() == 'path'
+        parser.getPath() == 'sub/../path'
+        parser.appendPath('child').getPath() == 'sub/../path/child'
+        parser.normalized().getPath() == 'path'
         QuiltParser p1 = parser.dropPath()
-        p1.path() == 'sub/..'
+        p1.getPath() == 'sub/..'
         QuiltParser p2 = p1.dropPath()
-        p2.path() == 'sub'
+        p2.getPath() == 'sub'
         QuiltParser p3 = p2.dropPath()
-        p3.path() == ''
+        p3.getPath() == ''
         QuiltParser p4 = p3.dropPath()
-        p4.path() == ''
+        p4.getPath() == ''
     }
 
     void 'should decompose URIs'() {
@@ -64,9 +66,9 @@ class QuiltParserTest extends QuiltSpecification {
         then:
         parser.getBucket() == bucket
         parser.getPackageName() == pkg
-        parser.path() == path
-        parser.hash() == hash
-        parser.tag() == tag
+        parser.getPath() == path
+        parser.getHash() == hash
+        parser.getTag() == tag
 
         where:
         bare                                 | bucket   | query                    | pkg    | path | hash     | tag

@@ -43,7 +43,7 @@ import spock.lang.Specification
  */
 @Slf4j
 @CompileDynamic
-abstract class QuiltSpecification extends Specification {
+class QuiltSpecification extends Specification {
 
     @Shared String pluginsMode
 
@@ -80,13 +80,13 @@ abstract class QuiltSpecification extends Specification {
         pluginsMode ? System.setProperty('pf4j.mode', pluginsMode) : System.clearProperty('pf4j.mode')
     }
 
-    Path createObject(String url, String text) {
+    Path makeObject(String url, String text) {
         assert url
         Path path  = Paths.get(new URI(url))
-        return createObject(path, text)
+        return makeObject(path, text)
     }
 
-    Path createObject(Path path, String text) {
+    Path makeObject(Path path, String text) {
         assert path
         log.debug "Write String[$text] to '$path'"
         Files.write(path, text.bytes)
@@ -165,7 +165,7 @@ abstract class QuiltSpecification extends Specification {
         result.toString() >> file
         result.getFileSystem() >> fs
         result.toUri() >> uri
-        result.resolve(_) >> { mockQuiltPath("${path}/${it[0]}") }
+        result.resolve(_) >> { p -> mockQuiltPath("${path}/${p[0]}") }
         result.toAbsolutePath() >> result
         result.asBoolean() >> true
         result.getParent() >> {

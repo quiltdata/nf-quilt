@@ -43,8 +43,8 @@ class QuiltObserverTest extends QuiltSpecification {
         Path pkg = Paths.get('/var/tmp/output/quilt-example#package=examples%2fhurdat')
         Path unpkg = Paths.get('/var/tmp/output/quilt-example/examples/hurdat')
         expect:
-        null == QuiltObserver.asQuiltPath(unpkg)
-        'quilt-example#package=examples%2fhurdat' == QuiltObserver.asQuiltPath(pkg).toString()
+        QuiltObserver.asQuiltPath(unpkg) == null
+        QuiltObserver.asQuiltPath(pkg).toString() == 'quilt-example#package=examples%2fhurdat'
     }
 
 }

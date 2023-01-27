@@ -7,6 +7,7 @@ import nextflow.quilt.jep.QuiltParser
 import java.nio.file.Path
 import java.nio.file.Paths
 import groovy.util.logging.Slf4j
+import groovy.transform.CompileDynamic
 
 import spock.lang.Unroll
 import spock.lang.Ignore
@@ -16,22 +17,28 @@ import spock.lang.Ignore
  * @author Paolo Di Tommaso <paolo.ditommaso@gmail.com>
  */
 @Slf4j
+@CompileDynamic
 class QuiltPathTest extends QuiltSpecification {
 
     private static final String BKT = 'bucket'
     private static final String PKG_URL = "${QuiltParser.PREFIX}${BKT}#package=so%2fme"
-    private static final String sub_path = "${BKT}#package=s/d&path=f%2ffile.txt"
-    private static QuiltPath pkgPath
+    private static final String SUB_PATH = "${BKT}#package=s/d&path=f%2ffile.txt"
+    private static QuiltPath PKG_PATH
     private static QuiltFileSystem QFS
 
+    static QuiltFileSystem getQFS() {
+        PKG_PATH ?: Paths.get(new URI(PKG_URL))
+        QFS ?: PKG_PATH.getFileSystem()
+        return QFS
+    }
+
     QuiltPath pathify(String path) {
-        if (!pkgPath) { pkgPath = Paths.get(new URI(PKG_URL)) }
-        if (!QFS) { QFS = pkgPath.getFileSystem() }
+        QuiltFileSystem qfs = getQFS()
         if (!path.contains(BKT)) {
-            return QFS.getPath(path)
+            return qfs.getPath(path)
         }
         String url = QuiltParser.PREFIX + path
-        Paths.get(new URI(url))
+        return Paths.get(new URI(url))
     }
 
     @Unroll
@@ -205,10 +212,10 @@ class QuiltPathTest extends QuiltSpecification {
 
         where:
         path             | suffix            | expected
-        sub_path         | 'file.txt'        | true
-        sub_path         | 'f%2ffile.txt'    | true
-        sub_path         | '/f%2ffile.txt'   | false
-        sub_path         | 'bucket'          | false
+        SUB_PATH         | 'file.txt'        | true
+        SUB_PATH         | 'f%2ffile.txt'    | true
+        SUB_PATH         | '/f%2ffile.txt'   | false
+        SUB_PATH         | 'bucket'          | false
         'data%2ffile.txt' | 'data' | false
         'data%2ffile.txt' | 'file.txt' | true
     }

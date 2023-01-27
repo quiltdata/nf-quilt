@@ -30,12 +30,12 @@ import groovy.transform.CompileDynamic
 @CompileDynamic
 class QuiltPathFactoryTest extends QuiltSpecification {
 
-    static String packageURL = 'quilt+s3://quilt-example#package=examples/hurdat@f8d1478d93'
-    static String url = packageURL + '&path=scripts/build.py'
+    private final static String PACKAGE_URL = 'quilt+s3://quilt-example#package=examples/hurdat@f8d1478d93'
+    private final static String URL = PACKAGE_URL + '&path=scripts/build.py'
 
     void 'should decompose Quilt URLs'() {
         given:
-        Path qpath = QuiltPathFactory.parse(url)
+        Path qpath = QuiltPathFactory.parse(URL)
         expect:
         qpath != null
         qpath.getBucket() == 'quilt-example'
@@ -59,7 +59,7 @@ class QuiltPathFactoryTest extends QuiltSpecification {
 
     void 'should create Channel from URL'() {
         expect:
-        def channel = Channel.fromPath(url) // +'/*'
+        def channel = Channel.fromPath(URL) // +'/*'
         channel
     }
 

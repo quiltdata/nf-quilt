@@ -98,7 +98,7 @@ class QuiltParser {
     }
 
     QuiltParser appendPath(String tail) {
-        String path2 = [path(), tail].join(SEP)
+        String path2 = [getPath(), tail].join(SEP)
         while (path2.startsWith(SEP)) {
             path2 = path2.substring(1)
         }
@@ -157,15 +157,15 @@ class QuiltParser {
         return packageName
     }
 
-    String hash() {
+    String getHash() {
         return hash
     }
 
-    String tag() {
+    String getTag() {
         return tag
     }
 
-    String path() {
+    String getPath() {
         return paths.join(SEP)
     }
 
@@ -201,7 +201,7 @@ class QuiltParser {
         String str = toPackageString()
         if (!hasPath()) { return str }
         str += (packageName) ? '&' : '#'
-        str += "path=${path().replace('/', '%2f')}"
+        str += "path=${getPath().replace('/', '%2f')}"
         return str
     }
 
