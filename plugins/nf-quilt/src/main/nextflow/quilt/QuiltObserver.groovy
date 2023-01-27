@@ -59,7 +59,12 @@ class QuiltObserver implements TraceObserver {
     static void writeString(String text, QuiltPackage pkg, String filename) {
         String dir = pkg.packageDest()
         Path path  = Paths.get(dir, filename)
-        Files.write(path, text.bytes)
+        try {
+            Files.write(path, text.bytes)
+        }
+        catch (Exception e) {
+            log.error "writeString: cannot write `$text` to `$path` for `${pkg}`"
+        }
     }
 
     static String now() {
