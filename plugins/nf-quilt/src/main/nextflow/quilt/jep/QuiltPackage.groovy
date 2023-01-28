@@ -205,13 +205,13 @@ class QuiltPackage {
 
             @Override
             FileVisitResult visitFile(Path file, @SuppressWarnings('unused') BasicFileAttributes attrs) {
-                    file.toFile().deleteOnExit()
-                    return FileVisitResult.CONTINUE
+                file.toFile().deleteOnExit()
+                return FileVisitResult.CONTINUE
             }
             @Override
             FileVisitResult preVisitDirectory(Path dir, @SuppressWarnings('unused') BasicFileAttributes attrs) {
-                    dir.toFile().deleteOnExit()
-                    return FileVisitResult.CONTINUE
+                dir.toFile().deleteOnExit()
+                return FileVisitResult.CONTINUE
             }
 
         })
