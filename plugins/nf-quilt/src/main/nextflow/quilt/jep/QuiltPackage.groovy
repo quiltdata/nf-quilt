@@ -111,7 +111,6 @@ class QuiltPackage {
      *          folder inside the package (use '' for top-level)
      *
      * @return  List of the child object keys, as Strings
-     *
      */
     List<String> relativeChildren(String subpath) {
         Path subfolder = folder.resolve(subpath)
@@ -198,19 +197,20 @@ class QuiltPackage {
         return packageDest()
     }
 
-    // https://stackoverflow.com/questions/15022219/does-files-createtempdirectory-remove-the-directory-after-jvm-exits-normally
+    // https://stackoverflow.com/questions/15022219
+    // /does-files-createtempdirectory-remove-the-directory-after-jvm-exits-normally
     void recursiveDeleteOnExit() throws IOException {
         Path path = packageDest()
         Files.walkFileTree(path, new SimpleFileVisitor<Path>() {
 
         @Override
-            public FileVisitResult visitFile(Path file,
+        FileVisitResult visitFile(Path file,
             @SuppressWarnings('unused') BasicFileAttributes attrs) {
                 file.toFile().deleteOnExit()
                 return FileVisitResult.CONTINUE
             }
         @Override
-            public FileVisitResult preVisitDirectory(Path dir,
+        FileVisitResult preVisitDirectory(Path dir,
             @SuppressWarnings('unused') BasicFileAttributes attrs) {
                 dir.toFile().deleteOnExit()
                 return FileVisitResult.CONTINUE
