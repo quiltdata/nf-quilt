@@ -16,7 +16,7 @@ class QuiltIDTest extends QuiltSpecification {
     void 'should fetch by bucket and package'() {
         when:
         QuiltID id = QuiltID.fetch(bucket, pkg)
-        String ids = id?.toString()
+        String ids = id ? id.toString() : '<null>'
         then:
         ids == result
 
@@ -28,7 +28,7 @@ class QuiltIDTest extends QuiltSpecification {
         'bucket' | '/'        | 'bucket.null.default'
         'bucket' | 'p'        | 'bucket.null.default'
         'bucket' | '/name'    | 'bucket..name'
-        null     | 'pkg/name' | 'null'
+        null     | 'pkg/name' | '<null>'
         'bucket' | null       | 'bucket.null.default'
     }
 
