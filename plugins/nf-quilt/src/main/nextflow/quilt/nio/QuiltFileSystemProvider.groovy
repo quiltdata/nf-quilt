@@ -185,10 +185,10 @@ class QuiltFileSystemProvider extends FileSystemProvider {
     @Override
     FileSystem getFileSystem(URI uri) {
         final quiltIDS = getQuiltIDS(uri)
-        return getFileSystem0(quiltIDS, false)
+        return getFileSystem(quiltIDS, false)
     }
 
-    QuiltFileSystem getFileSystem0(String quiltIDS, boolean canCreate) {
+    QuiltFileSystem getFileSystem(String quiltIDS, boolean canCreate) {
         QuiltFileSystem fs = fileSystems.get(quiltIDS)
         if (fs) { return fs }
         if (canCreate) {
@@ -227,7 +227,7 @@ class QuiltFileSystemProvider extends FileSystemProvider {
     QuiltPath getPath(URI uri) {
         QuiltParser parsed = QuiltParser.forURI(uri)
         log.debug "QuiltFileSystemProvider.getPath`[${uri}]"
-        final fs = getFileSystem0(parsed.quiltIDS(), true)
+        final fs = getFileSystem(parsed.quiltIDS(), true)
         return new QuiltPath(fs, parsed)
     }
 
