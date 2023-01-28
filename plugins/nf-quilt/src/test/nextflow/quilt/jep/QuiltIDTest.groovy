@@ -13,32 +13,23 @@ import groovy.transform.CompileDynamic
 @CompileDynamic
 class QuiltIDTest extends QuiltSpecification {
 
-    void 'should null on missing bucket'() {
+    void 'should fetch by bucket and package'() {
         when:
-        QuiltID id = QuiltID.fetch(null, 'pkg/name')
+        QuiltID id = QuiltID.fetch(bucket, pkg)
+        String ids = id?.toString()
         then:
-        id == null
-    }
+        ids == result
 
-    void 'should default on missing pgk_suffix'() {
-        when:
-        QuiltID id = QuiltID.fetch('bucket', 'pkg')
-        then:
-        id.toString() == 'bucket.pkg.default'
-    }
-
-    void 'should default on missing pgk_name'() {
-        when:
-        QuiltID id = QuiltID.fetch('bucket', null)
-        then:
-        id.toString() == 'bucket.null.default'
-    }
-
-    void 'should decompose pkg names'() {
-        when:
-        QuiltID id = QuiltID.fetch('bucket', 'pkg/name')
-        then:
-        id.toString() == 'bucket.pkg.name'
+        where:
+        bucket   | pkg        | result
+        null     | 'pkg/name' | null
+        'bucket' | null       | 'bucket.null.default'
+        'bucket' | '/'        | 'bucket.null.default'
+        'bucket' | 'p'        | 'bucket.null.default'
+        'bucket' | 'pkg'      | 'bucket.pkg.default'
+        'bucket' | 'pkg/'     | 'bucket.pkg.default'
+        'bucket' | 'pkg/name' | 'bucket.pkg.name'
+        'bucket' | '/name'    | 'bucket..name'
     }
 
 }
