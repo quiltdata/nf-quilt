@@ -116,19 +116,19 @@ class QuiltObserver implements TraceObserver {
 
     String readme(Map meta, String msg) {
         return """
-# ${now()}
-## $msg
+            # ${now()}
+            ## $msg
 
-## workflow
-### scriptFile: ${meta['workflow']['scriptFile']}
-### sessionId: ${meta['workflow']['sessionId']}
-- start: ${meta['time_start']}
-- complete: ${meta['time_complete']}
+            ## workflow
+            ### scriptFile: ${meta['workflow']['scriptFile']}
+            ### sessionId: ${meta['workflow']['sessionId']}
+            - start: ${meta['time_start']}
+            - complete: ${meta['time_complete']}
 
-## processes
-${meta['workflow']['stats']['processes']}
+            ## processes
+            ${meta['workflow']['stats']['processes']}
 
-"""
+            """.stripIndent()
     }
 
     void publish(QuiltPackage pkg) {
