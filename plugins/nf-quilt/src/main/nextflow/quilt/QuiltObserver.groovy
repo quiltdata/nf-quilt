@@ -144,7 +144,7 @@ class QuiltObserver implements TraceObserver {
             jsonMeta = JsonOutput.toJson(meta)
         }
         catch (Exception e) {
-            log.error("publish: cannot generate metadata (QuiltObserver uninitialized?)", e)
+            log.error('publish: cannot generate metadata (QuiltObserver uninitialized?)', e)
         }
         writeString(text, pkg, 'README.md')
         writeString("$meta", pkg, 'quilt_metadata.txt')

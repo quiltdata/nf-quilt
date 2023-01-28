@@ -16,7 +16,7 @@ class QuiltIDTest extends QuiltSpecification {
     void 'should fetch by bucket and package'() {
         when:
         QuiltID id = QuiltID.fetch(bucket, pkg)
-        String ids = id?.toString()
+        String ids = id?
         then:
         ids == result
 

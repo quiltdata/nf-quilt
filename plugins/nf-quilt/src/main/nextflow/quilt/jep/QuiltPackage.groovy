@@ -96,7 +96,6 @@ class QuiltPackage {
         this.setup()
     }
 
-
     /**
      * Returns {@code List<String>} of object keys below a subpath.
      *
@@ -201,21 +200,23 @@ class QuiltPackage {
 
     // https://stackoverflow.com/questions/15022219/does-files-createtempdirectory-remove-the-directory-after-jvm-exits-normally
     void recursiveDeleteOnExit() throws IOException {
-      Path path = packageDest()
-      Files.walkFileTree(path, new SimpleFileVisitor<Path>() {
+        Path path = packageDest()
+        Files.walkFileTree(path, new SimpleFileVisitor<Path>() {
+
         @Override
-        public FileVisitResult visitFile(Path file,
-            @SuppressWarnings("unused") BasicFileAttributes attrs) {
-          file.toFile().deleteOnExit()
-          return FileVisitResult.CONTINUE
-        }
+            public FileVisitResult visitFile(Path file,
+            @SuppressWarnings('unused') BasicFileAttributes attrs) {
+                file.toFile().deleteOnExit()
+                return FileVisitResult.CONTINUE
+            }
         @Override
-        public FileVisitResult preVisitDirectory(Path dir,
-            @SuppressWarnings("unused") BasicFileAttributes attrs) {
-          dir.toFile().deleteOnExit()
-          return FileVisitResult.CONTINUE
-        }
-      })
+            public FileVisitResult preVisitDirectory(Path dir,
+            @SuppressWarnings('unused') BasicFileAttributes attrs) {
+                dir.toFile().deleteOnExit()
+                return FileVisitResult.CONTINUE
+            }
+
+        })
     }
 
     boolean isInstalled() {
