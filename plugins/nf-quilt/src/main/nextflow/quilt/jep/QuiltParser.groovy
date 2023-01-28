@@ -75,6 +75,7 @@ class QuiltParser {
         if (!pkg) { return null }
         if (!pkg.contains('/')) {
             log.error("Invalid package[$pkg]")
+            return null
         }
         if (pkg.contains('@')) {
             def split = pkg.split('@')
