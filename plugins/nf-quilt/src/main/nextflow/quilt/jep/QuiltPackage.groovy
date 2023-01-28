@@ -96,6 +96,24 @@ class QuiltPackage {
         this.setup()
     }
 
+
+    /**
+     * Returns {@code List<String>} of object keys below a subpath.
+     *
+     * <p> Because the `quilt3` CLI does not provide a direct way to list
+     * the logical keys ("files") inside a package, we have to infer it
+     * from the actual files inside the install folder.
+     *
+     * <p> To do this, we list the full path of the files directly inside
+     * the subfolder, then remove the top-level folder ("base") to get
+     * the relative keys.
+     *
+     * @param   subpath
+     *          folder inside the package (use '' for top-level)
+     *
+     * @return  List of the child object keys, as Strings
+     *
+     */
     List<String> relativeChildren(String subpath) {
         Path subfolder = folder.resolve(subpath)
         String base = subfolder.toString() + '/'
