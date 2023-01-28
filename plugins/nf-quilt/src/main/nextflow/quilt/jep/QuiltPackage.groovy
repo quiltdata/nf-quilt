@@ -203,17 +203,15 @@ class QuiltPackage {
         Path path = packageDest()
         Files.walkFileTree(path, new SimpleFileVisitor<Path>() {
 
-        @Override
-            FileVisitResult visitFile(Path file,
-            @SuppressWarnings('unused') BasicFileAttributes attrs) {
-                file.toFile().deleteOnExit()
-                return FileVisitResult.CONTINUE
+            @Override
+            FileVisitResult visitFile(Path file, @SuppressWarnings('unused') BasicFileAttributes attrs) {
+                    file.toFile().deleteOnExit()
+                    return FileVisitResult.CONTINUE
             }
-        @Override
-            FileVisitResult preVisitDirectory(Path dir,
-            @SuppressWarnings('unused') BasicFileAttributes attrs) {
-                dir.toFile().deleteOnExit()
-                return FileVisitResult.CONTINUE
+            @Override
+            FileVisitResult preVisitDirectory(Path dir, @SuppressWarnings('unused') BasicFileAttributes attrs) {
+                    dir.toFile().deleteOnExit()
+                    return FileVisitResult.CONTINUE
             }
 
         })
