@@ -233,7 +233,7 @@ class QuiltPackage {
             call('push', packageName, key_dir(), key_registry(), key_meta(meta), key_msg(msg))
         }
         catch (Exception e) {
-            log.error "Failed `push` ${this}: ${e}"
+            log.error("Failed `push` ${this}", e)
             return false
         }
         return true
