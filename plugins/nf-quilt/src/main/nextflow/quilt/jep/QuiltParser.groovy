@@ -75,6 +75,7 @@ class QuiltParser {
         if (!pkg) { return null }
         if (!pkg.contains('/')) {
             log.error("Invalid package[$pkg]")
+            return null
         }
         if (pkg.contains('@')) {
             def split = pkg.split('@')
@@ -135,9 +136,7 @@ class QuiltParser {
             }
         }
 
-        log.debug("normalized: ${paths} -> ${rnorms}")
         String path2 = rnorms.reverse().join(SEP)
-        log.debug("normalized: -> ${path2}")
         return new QuiltParser(getBucket(), getPackageName(), path2, options)
     }
 

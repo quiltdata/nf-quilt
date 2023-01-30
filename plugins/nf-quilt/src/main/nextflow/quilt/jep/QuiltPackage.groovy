@@ -21,6 +21,9 @@ import groovy.util.logging.Slf4j
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.nio.file.SimpleFileVisitor
+import java.nio.file.FileVisitResult
+import java.nio.file.attribute.BasicFileAttributes
 import java.util.stream.Collectors
 import java.time.LocalDate
 
@@ -51,11 +54,11 @@ class QuiltPackage {
         pkg = new QuiltPackage(parsed)
         PKGS[pkgKey] = pkg
         try {
-            log.debug "Installing `${pkg}` for.pkgKey $pkgKey"
+            log.debug("Installing `${pkg}` for.pkgKey $pkgKey")
             pkg.install()
         }
         catch (Exception e) {
-            log.warn "Package `${parsed.toUriString()}` does not yet exist"
+            log.warn("Package `${parsed.toUriString()}` does not yet exist")
         }
         return pkg
     }
@@ -65,7 +68,12 @@ class QuiltPackage {
     }
 
     static boolean deleteDirectory(Path rootPath) {
-        if (!Files.exists(rootPath)) { return false }
+        try {
+            if (!Files.exists(rootPath)) { return false }
+        }
+        catch (SecurityException e) {
+            log.warn("Cannnot verify whether `$rootPath` exists: $e")
+        }
         try {
             final List<Path> pathsToDelete = listDirectory(rootPath)
             for (Path path : pathsToDelete) {
@@ -84,17 +92,32 @@ class QuiltPackage {
         this.packageName = parsed.getPackageName()
         this.hash = parsed.getHash()
         this.folder = Paths.get(INSTALL_ROOT.toString(), this.toString())
-        log.debug "QuiltParser.folder[${this.folder}]"
-        assert this.folder
+        log.debug("QuiltParser.folder[${this.folder}]")
         this.setup()
     }
 
+    /**
+     * Returns {@code List<String>} of object keys below a subpath.
+     *
+     * <p> Because the `quilt3` CLI does not provide a direct way to list
+     * the logical keys ("files") inside a package, we have to infer it
+     * from the actual files inside the install folder.
+     *
+     * <p> To do this, we list the full path of the files directly inside
+     * the subfolder, then remove the top-level folder ("base") to get
+     * the relative keys.
+     *
+     * @param   subpath
+     *          folder inside the package (use '' for top-level)
+     *
+     * @return  List of the child object keys, as Strings
+     */
     List<String> relativeChildren(String subpath) {
         Path subfolder = folder.resolve(subpath)
         String base = subfolder.toString() + '/'
         List<String> result = []
         final String[] children = subfolder.list().sort()
-        log.debug "relativeChildren[${base}] $children"
+        log.debug("relativeChildren[${base}] $children")
         for (String pathString : children) {
             def relative = pathString.replace(base, '')
             result.add(relative)
@@ -147,7 +170,7 @@ class QuiltPackage {
         def command = ['quilt3']
         command.addAll(args)
         def cmd = command.join(' ')
-        log.debug "call `${cmd}`"
+        log.debug("call `${cmd}`")
 
         ProcessBuilder pb = new ProcessBuilder('bash', '-c', cmd)
         pb.redirectErrorStream(true)
@@ -156,7 +179,7 @@ class QuiltPackage {
         String result = new String(p.getInputStream().readAllBytes())
         int exitCode = p.waitFor()
         if (exitCode > 0) {
-            log.warn "`call.exitCode` ${exitCode}: ${result}"
+            log.warn("`call.exitCode` ${exitCode}: ${result}")
         }
         return exitCode
     }
@@ -170,7 +193,28 @@ class QuiltPackage {
             call('install', packageName, key_registry(), key_hash(), key_dest())
         }
         installed = true
+        recursiveDeleteOnExit()
         return packageDest()
+    }
+
+    // https://stackoverflow.com/questions/15022219
+    // /does-files-createtempdirectory-remove-the-directory-after-jvm-exits-normally
+    void recursiveDeleteOnExit() throws IOException {
+        Path path = packageDest()
+        Files.walkFileTree(path, new SimpleFileVisitor<Path>() {
+
+            @Override
+            FileVisitResult visitFile(Path file, @SuppressWarnings('unused') BasicFileAttributes attrs) {
+                file.toFile().deleteOnExit()
+                return FileVisitResult.CONTINUE
+            }
+            @Override
+            FileVisitResult preVisitDirectory(Path dir, @SuppressWarnings('unused') BasicFileAttributes attrs) {
+                dir.toFile().deleteOnExit()
+                return FileVisitResult.CONTINUE
+            }
+
+        })
     }
 
     boolean isInstalled() {
@@ -183,12 +227,12 @@ class QuiltPackage {
 
     // https://docs.quiltdata.com/v/version-5.0.x/examples/gitlike#install-a-package
     boolean push(String msg = 'update', String meta = '[]') {
-        log.debug "`push` $this"
+        log.debug("`push` $this")
         try {
             call('push', packageName, key_dir(), key_registry(), key_meta(meta), key_msg(msg))
         }
         catch (Exception e) {
-            log.error "Failed `push` ${this}: ${e}"
+            log.error("Failed `push` ${this}", e)
             return false
         }
         return true

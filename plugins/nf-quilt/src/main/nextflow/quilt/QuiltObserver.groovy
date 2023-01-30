@@ -50,16 +50,21 @@ class QuiltObserver implements TraceObserver {
     private Session session
 
     static void printMap(Map map, String title) {
-        log.debug "\n\n\n# $title"
+        log.info("\n\n\n# $title")
         map.each {
-            key, value -> log.debug "\n## ${key}: ${value}"
+            key, value -> log.info("\n## ${key}: ${value}")
         }
     }
 
     static void writeString(String text, QuiltPackage pkg, String filename) {
         String dir = pkg.packageDest()
         Path path  = Paths.get(dir, filename)
-        Files.write(path, text.bytes)
+        try {
+            Files.write(path, text.bytes)
+        }
+        catch (Exception e) {
+            log.error("writeString: cannot write `$text` to `$path` for `${pkg}`")
+        }
     }
 
     static String now() {
@@ -81,7 +86,7 @@ class QuiltObserver implements TraceObserver {
 
     @Override
     void onFlowCreate(Session session) {
-        log.debug "`onFlowCreate` $this"
+        log.debug("`onFlowCreate` $this")
         this.session = session
         this.config = session.config
         this.quiltConfig = session.config.navigate('quilt') as Map
@@ -90,40 +95,40 @@ class QuiltObserver implements TraceObserver {
 
     @Override
     void onFilePublish(Path path, Path source) { //
-        log.debug "onFilePublish.Path[$path].Source[$source]"
+        log.debug("onFilePublish.Path[$path].Source[$source]")
         QuiltPath qPath = asQuiltPath(path)
 
         if (qPath) {
             QuiltPackage pkg = qPath.pkg()
             this.pkgs.add(pkg)
-            log.debug "onFilePublish.QuiltPath[$qPath]: pkgs=${pkgs}"
+            log.debug("onFilePublish.QuiltPath[$qPath]: pkgs=${pkgs}")
         } else {
-            log.warn "onFilePublish.QuiltPath missing: $path"
+            log.warn("onFilePublish.QuiltPath missing: $path")
         }
     }
 
     @Override
     void onFlowComplete() {
-        log.debug "`onFlowComplete` ${pkgs}"
+        log.debug("`onFlowComplete` ${pkgs}")
         // publish pkgs to repository
         this.pkgs.each { pkg -> publish(pkg) }
     }
 
     String readme(Map meta, String msg) {
         return """
-# ${now()}
-## $msg
+            # ${now()}
+            ## $msg
 
-## workflow
-### scriptFile: ${meta['workflow']['scriptFile']}
-### sessionId: ${meta['workflow']['sessionId']}
-- start: ${meta['time_start']}
-- complete: ${meta['time_complete']}
+            ## workflow
+            ### scriptFile: ${meta['workflow']['scriptFile']}
+            ### sessionId: ${meta['workflow']['sessionId']}
+            - start: ${meta['time_start']}
+            - complete: ${meta['time_complete']}
 
-## processes
-${meta['workflow']['stats']['processes']}
+            ## processes
+            ${meta['workflow']['stats']['processes']}
 
-"""
+            """.stripIndent()
     }
 
     void publish(QuiltPackage pkg) {
@@ -139,12 +144,12 @@ ${meta['workflow']['stats']['processes']}
             jsonMeta = JsonOutput.toJson(meta)
         }
         catch (Exception e) {
-            log.error "publish: cannot generate metadata (QuiltObserver uninitialized?)[$e]"
+            log.error('publish: cannot generate metadata (QuiltObserver uninitialized?)', e)
         }
         writeString(text, pkg, 'README.md')
         writeString("$meta", pkg, 'quilt_metadata.txt')
         def rc = pkg.push(msg, jsonMeta)
-        log.info "$rc: pushed package[$pkg] $msg"
+        log.info("$rc: pushed package[$pkg] $msg")
     }
 
     Map getMetadata() {
@@ -165,7 +170,7 @@ ${meta['workflow']['stats']['processes']}
         wf.remove('start')
         wf.remove('complete')
         printMap(wf, 'workflow')
-        log.info "\npublishing: ${wf['runName']}"
+        log.info("\npublishing: ${wf['runName']}")
         return [params: params, config: cf, workflow: wf, time_start: start, time_complete: complete]
     }
 
