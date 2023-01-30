@@ -79,7 +79,7 @@ class QuiltParserTest extends QuiltSpecification {
     void 'should parse package into components'() {
         when:
         QuiltParser parser = QuiltParser.forUriString(TEST_URL)
-        // log.info "QuiltParserTest[parse package] ${parser.class.getDeclaredMethods()}"
+        // log.info("QuiltParserTest[parse package] ${parser.class.getDeclaredMethods()}")
         then:
         parser
         when:

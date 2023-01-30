@@ -50,9 +50,9 @@ class QuiltObserver implements TraceObserver {
     private Session session
 
     static void printMap(Map map, String title) {
-        log.debug "\n\n\n# $title"
+        log.info("\n\n\n# $title")
         map.each {
-            key, value -> log.debug "\n## ${key}: ${value}"
+            key, value -> log.info("\n## ${key}: ${value}")
         }
     }
 
@@ -63,7 +63,7 @@ class QuiltObserver implements TraceObserver {
             Files.write(path, text.bytes)
         }
         catch (Exception e) {
-            log.error "writeString: cannot write `$text` to `$path` for `${pkg}`"
+            log.error("writeString: cannot write `$text` to `$path` for `${pkg}`")
         }
     }
 
@@ -86,7 +86,7 @@ class QuiltObserver implements TraceObserver {
 
     @Override
     void onFlowCreate(Session session) {
-        log.debug "`onFlowCreate` $this"
+        log.debug("`onFlowCreate` $this")
         this.session = session
         this.config = session.config
         this.quiltConfig = session.config.navigate('quilt') as Map
@@ -95,21 +95,21 @@ class QuiltObserver implements TraceObserver {
 
     @Override
     void onFilePublish(Path path, Path source) { //
-        log.debug "onFilePublish.Path[$path].Source[$source]"
+        log.debug("onFilePublish.Path[$path].Source[$source]")
         QuiltPath qPath = asQuiltPath(path)
 
         if (qPath) {
             QuiltPackage pkg = qPath.pkg()
             this.pkgs.add(pkg)
-            log.debug "onFilePublish.QuiltPath[$qPath]: pkgs=${pkgs}"
+            log.debug("onFilePublish.QuiltPath[$qPath]: pkgs=${pkgs}")
         } else {
-            log.warn "onFilePublish.QuiltPath missing: $path"
+            log.warn("onFilePublish.QuiltPath missing: $path")
         }
     }
 
     @Override
     void onFlowComplete() {
-        log.debug "`onFlowComplete` ${pkgs}"
+        log.debug("`onFlowComplete` ${pkgs}")
         // publish pkgs to repository
         this.pkgs.each { pkg -> publish(pkg) }
     }
@@ -149,7 +149,7 @@ class QuiltObserver implements TraceObserver {
         writeString(text, pkg, 'README.md')
         writeString("$meta", pkg, 'quilt_metadata.txt')
         def rc = pkg.push(msg, jsonMeta)
-        log.info "$rc: pushed package[$pkg] $msg"
+        log.info("$rc: pushed package[$pkg] $msg")
     }
 
     Map getMetadata() {
@@ -170,7 +170,7 @@ class QuiltObserver implements TraceObserver {
         wf.remove('start')
         wf.remove('complete')
         printMap(wf, 'workflow')
-        log.info "\npublishing: ${wf['runName']}"
+        log.info("\npublishing: ${wf['runName']}")
         return [params: params, config: cf, workflow: wf, time_start: start, time_complete: complete]
     }
 

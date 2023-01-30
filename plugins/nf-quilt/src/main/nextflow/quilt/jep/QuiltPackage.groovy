@@ -54,11 +54,11 @@ class QuiltPackage {
         pkg = new QuiltPackage(parsed)
         PKGS[pkgKey] = pkg
         try {
-            log.debug "Installing `${pkg}` for.pkgKey $pkgKey"
+            log.debug("Installing `${pkg}` for.pkgKey $pkgKey")
             pkg.install()
         }
         catch (Exception e) {
-            log.warn "Package `${parsed.toUriString()}` does not yet exist"
+            log.warn("Package `${parsed.toUriString()}` does not yet exist")
         }
         return pkg
     }
@@ -72,7 +72,7 @@ class QuiltPackage {
             if (!Files.exists(rootPath)) { return false }
         }
         catch (SecurityException e) {
-            log.warn "Cannnot verify whether `$rootPath` exists: $e"
+            log.warn("Cannnot verify whether `$rootPath` exists: $e")
         }
         try {
             final List<Path> pathsToDelete = listDirectory(rootPath)
@@ -92,7 +92,7 @@ class QuiltPackage {
         this.packageName = parsed.getPackageName()
         this.hash = parsed.getHash()
         this.folder = Paths.get(INSTALL_ROOT.toString(), this.toString())
-        log.debug "QuiltParser.folder[${this.folder}]"
+        log.debug("QuiltParser.folder[${this.folder}]")
         this.setup()
     }
 
@@ -117,7 +117,7 @@ class QuiltPackage {
         String base = subfolder.toString() + '/'
         List<String> result = []
         final String[] children = subfolder.list().sort()
-        log.debug "relativeChildren[${base}] $children"
+        log.debug("relativeChildren[${base}] $children")
         for (String pathString : children) {
             def relative = pathString.replace(base, '')
             result.add(relative)
@@ -170,7 +170,7 @@ class QuiltPackage {
         def command = ['quilt3']
         command.addAll(args)
         def cmd = command.join(' ')
-        log.debug "call `${cmd}`"
+        log.debug("call `${cmd}`")
 
         ProcessBuilder pb = new ProcessBuilder('bash', '-c', cmd)
         pb.redirectErrorStream(true)
@@ -179,7 +179,7 @@ class QuiltPackage {
         String result = new String(p.getInputStream().readAllBytes())
         int exitCode = p.waitFor()
         if (exitCode > 0) {
-            log.warn "`call.exitCode` ${exitCode}: ${result}"
+            log.warn("`call.exitCode` ${exitCode}: ${result}")
         }
         return exitCode
     }
@@ -227,7 +227,7 @@ class QuiltPackage {
 
     // https://docs.quiltdata.com/v/version-5.0.x/examples/gitlike#install-a-package
     boolean push(String msg = 'update', String meta = '[]') {
-        log.debug "`push` $this"
+        log.debug("`push` $this")
         try {
             call('push', packageName, key_dir(), key_registry(), key_meta(meta), key_msg(msg))
         }
