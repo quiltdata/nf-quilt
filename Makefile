@@ -75,6 +75,7 @@ fast:
 # Upload JAR artifacts to Maven Central
 
 publish:
+	echo "Ensure you have set 'github_organization=<owner>' in gradle.properties"
 	ls gradle.properties # create locally or globally if it does not exist
 	./gradlew :plugins:$(PROJECT):upload
 	./gradlew :plugins:publishIndex
