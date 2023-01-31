@@ -73,12 +73,8 @@ fast:
 
 #
 # Upload JAR artifacts to Maven Central
-#
-upload:
-	./gradlew upload
 
-upload-plugins:
-	./gradlew plugins:upload
-
-publish-index:
-	./gradlew plugins:publishIndex
+publish:
+	ls gradle.properties # create locally or globally if it does not exist
+	./gradlew :plugins:$(PROJECT):upload
+	./gradlew :plugins:publishIndex
