@@ -50,7 +50,7 @@ String metaFromManifest(String meta, File file) {
     def m = regex.matcher(str)
     if( m.find() ) {
         def ver = m.group(1)
-        //println "Set plugin '${file.parentFile.parentFile.parentFile.parentFile.name}' version=${ver}"
+        println "Set plugin '${file.parentFile.parentFile.parentFile.parentFile.name}' version=${ver}"
         return ver
     }
     throw new GradleException("Cannot find '$meta' for plugin: $file")
