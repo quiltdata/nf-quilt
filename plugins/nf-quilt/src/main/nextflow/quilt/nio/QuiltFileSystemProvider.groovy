@@ -250,7 +250,7 @@ class QuiltFileSystemProvider extends FileSystemProvider {
         final sess = Global.session
         /* groovylint-disable-next-line Instanceof */
         if (sess instanceof Session) {
-            sess.notifyFilePublish((Path)destination, source)
+            sess.notifyFilePublish((Path)destination) //, source)
         }
     }
 
