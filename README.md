@@ -7,6 +7,18 @@ to Quilt packages using `quilt+` URLs wherever you currently use `s3`, `az` or `
 
 Inspired by the original `nf-quilt` plugin developed by Seqera labs
 
+## QuickStart
+
+```
+git clone https://github.com/quiltdata/nf-quilt.git
+cd nf-quilt
+git clone https://github.com/nextflow.io/nextflow ../nextflow
+pip install quilt3
+make # ./gradlew check
+make pkg-test BUCKET=bucket-I-can-write-to
+make sarek
+```
+
 ## Getting Started
 
 To add the `nf-quilt` plugin to your workflow, you may need Nextflow 23.01 (or later) and Python 3.9 (or later).  Note this assumes you have already [installed groovy](https://groovy-lang.org/install.html).
@@ -20,6 +32,8 @@ You must install the `quilt3` Python module and ensure the CLI is in your path:
 pip3 install quilt3
 which quilt3 # e.g., /usr/local/bin/quilt3
 ```
+
+Of course, in general you should do this using a virtual environment for your project.
 
 ### Loading the nf-quilt plugin
 
