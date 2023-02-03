@@ -27,6 +27,7 @@ import java.time.LocalDateTime
 
 import groovy.json.JsonOutput
 import groovy.transform.CompileStatic
+import groovy.util.MapEntry
 import groovy.util.logging.Slf4j
 import nextflow.Session
 import nextflow.trace.TraceObserver
@@ -84,6 +85,22 @@ class QuiltObserver implements TraceObserver {
         return null
     }
 
+    static String toJson(Map dict) {
+        List<String> entries = dict.collect() { key, value ->
+            String prefix = JsonOutput.toJson(key)
+            String suffix = "Cannot generate JSON for: ${value}"
+            try {
+               suffix = JsonOutput.toJson(value)
+            }
+            catch (Exception e) {
+                log.error(suffix, e)
+            }
+            return "${prefix}:${suffix}".toString()
+        }
+        return "{${entries.join(',')}}".toString()
+
+    }
+
     @Override
     void onFlowCreate(Session session) {
         log.debug("`onFlowCreate` $this")
@@ -94,8 +111,8 @@ class QuiltObserver implements TraceObserver {
     }
 
     @Override
-    void onFilePublish(Path path, Path source) { //
-        log.debug("onFilePublish.Path[$path].Source[$source]")
+    void onFilePublish(Path path) { //, Path source
+        log.debug("onFilePublish.Path[$path]") //.Source[$source]
         QuiltPath qPath = asQuiltPath(path)
 
         if (qPath) {
@@ -141,7 +158,7 @@ class QuiltObserver implements TraceObserver {
             msg = "${meta['config']['runName']}: ${meta['workflow']['commandLine']}"
             text = readme(meta, msg)
             //meta.remove('config')
-            jsonMeta = JsonOutput.toJson(meta)
+            jsonMeta = QuiltObserver.toJson(meta)
         }
         catch (Exception e) {
             log.error('publish: cannot generate metadata (QuiltObserver uninitialized?)', e)
