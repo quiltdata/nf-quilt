@@ -22,6 +22,7 @@ import nextflow.quilt.QuiltObserver
 import java.nio.file.Path
 import java.nio.file.Paths
 import groovy.transform.CompileDynamic
+import groovy.json.JsonOutput
 
 /**
  *
@@ -36,6 +37,16 @@ class QuiltObserverTest extends QuiltSpecification {
         then:
         now
         now.contains('T')
+    }
+
+    void 'should generate piecewise JSON'() {
+        when:
+        def map = [key1: 'value1', key2: ['l1', 'l2']]
+
+        def j1 = JsonOutput.toJson(map)
+        def j2 = QuiltObserver.toJson(map)
+        then:
+        j1  == j2
     }
 
     void 'should extract Quilt path from appropriate UNIX Path'() {

@@ -84,6 +84,22 @@ class QuiltObserver implements TraceObserver {
         return null
     }
 
+    static String toJson(Map dict) {
+        List<String> entries = dict.collect { key, value ->
+            String prefix = JsonOutput.toJson(key)
+            String suffix = "Cannot generate JSON for: ${value}"
+            log.info("QuiltObserver.toJson: ${prefix} [${suffix.length()}]")
+            try {
+                suffix = JsonOutput.toJson(value)
+            }
+            catch (Exception e) {
+                log.error(suffix, e)
+            }
+            return "${prefix}:${suffix}".toString()
+        }
+        return "{${entries.join(',')}}".toString()
+    }
+
     @Override
     void onFlowCreate(Session session) {
         log.debug("`onFlowCreate` $this")
@@ -94,8 +110,8 @@ class QuiltObserver implements TraceObserver {
     }
 
     @Override
-    void onFilePublish(Path path, Path source) { //
-        log.debug("onFilePublish.Path[$path].Source[$source]")
+    void onFilePublish(Path path) { //, Path source
+        log.debug("onFilePublish.Path[$path]") //.Source[$source]
         QuiltPath qPath = asQuiltPath(path)
 
         if (qPath) {
@@ -138,10 +154,10 @@ class QuiltObserver implements TraceObserver {
         String jsonMeta = JsonOutput.toJson(meta)
         try {
             meta = getMetadata()
-            msg = "${meta['config']['runName']}: ${meta['workflow']['commandLine']}"
+            msg = "${meta['config']['runName']}: ${meta['cmd']}"
             text = readme(meta, msg)
-            //meta.remove('config')
-            jsonMeta = JsonOutput.toJson(meta)
+            meta.remove('config')
+            jsonMeta = QuiltObserver.toJson(meta)
         }
         catch (Exception e) {
             log.error('publish: cannot generate metadata (QuiltObserver uninitialized?)', e)
@@ -161,17 +177,21 @@ class QuiltObserver implements TraceObserver {
         printMap(cf, 'config')
         Map params = session.getParams()
         params.remove('genomes')
+        params.remove('test_data')
         printMap(params, 'params')
         Map wf = session.getWorkflowMetadata().toMap()
         String start = wf['start']
         String complete = wf['complete']
+        String cmd = wf['commandLine']
         BIG_KEYS.each { k -> wf[k] = "${wf[k]}" }
         wf.remove('container')
         wf.remove('start')
         wf.remove('complete')
+        wf.remove('workflowStats')
+        wf.remove('commandLine')
         printMap(wf, 'workflow')
         log.info("\npublishing: ${wf['runName']}")
-        return [params: params, config: cf, workflow: wf, time_start: start, time_complete: complete]
+        return [params: params, config: cf, workflow: wf, cmd: cmd, time_start: start, time_complete: complete]
     }
 
 }
