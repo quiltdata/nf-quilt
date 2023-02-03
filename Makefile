@@ -9,7 +9,12 @@ verify: #compile
 
 clean:
 	./gradlew clean
-	rm -rf work/
+	rm -rf work
+	rm -rf build
+	rm -rf modules/*/build
+	rm -rf plugins/*/build
+	rm -f .nextflow.log*
+	rm -f .launch.classpath
 
 compile:
 	./gradlew compileGroovy exportClasspath
