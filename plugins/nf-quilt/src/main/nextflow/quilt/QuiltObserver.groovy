@@ -27,8 +27,6 @@ import java.time.LocalDateTime
 
 import groovy.json.JsonOutput
 import groovy.transform.CompileStatic
-import groovy.util.MapEntry
-import groovy.util.logging.Slf4j
 import nextflow.Session
 import nextflow.trace.TraceObserver
 
@@ -86,11 +84,11 @@ class QuiltObserver implements TraceObserver {
     }
 
     static String toJson(Map dict) {
-        List<String> entries = dict.collect() { key, value ->
+        List<String> entries = dict.collect { key, value ->
             String prefix = JsonOutput.toJson(key)
             String suffix = "Cannot generate JSON for: ${value}"
             try {
-               suffix = JsonOutput.toJson(value)
+                suffix = JsonOutput.toJson(value)
             }
             catch (Exception e) {
                 log.error(suffix, e)
@@ -98,7 +96,6 @@ class QuiltObserver implements TraceObserver {
             return "${prefix}:${suffix}".toString()
         }
         return "{${entries.join(',')}}".toString()
-
     }
 
     @Override

@@ -41,7 +41,7 @@ class QuiltObserverTest extends QuiltSpecification {
 
     void 'should generate piecewise JSON'() {
         when:
-        def map = [key1: 'value1', key2: ['l1','l2']]
+        def map = [key1: 'value1', key2: ['l1', 'l2']]
 
         def j1 = JsonOutput.toJson(map)
         def j2 = QuiltObserver.toJson(map)
