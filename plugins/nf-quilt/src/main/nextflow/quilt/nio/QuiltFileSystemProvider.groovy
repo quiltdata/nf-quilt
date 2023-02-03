@@ -246,7 +246,7 @@ class QuiltFileSystemProvider extends FileSystemProvider {
     * @return
     * @throws IOException
     */
-    void notifyFilePublish(QuiltPath destination) {//, Path source=null) {
+    void notifyFilePublish(QuiltPath destination) { //, Path source=null) {
         final sess = Global.session
         /* groovylint-disable-next-line Instanceof */
         if (sess instanceof Session) {
