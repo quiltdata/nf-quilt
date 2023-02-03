@@ -87,9 +87,8 @@ class QuiltObserver implements TraceObserver {
     static String toJson(Map dict) {
         List<String> entries = dict.collect { key, value ->
             String prefix = JsonOutput.toJson(key)
-            log.info(prefix)
             String suffix = "Cannot generate JSON for: ${value}"
-            // log.info(suffix)
+            log.info("QuiltObserver.toJson: ${prefix} [${suffix.length()}]")
             try {
                 suffix = JsonOutput.toJson(value)
             }
@@ -155,7 +154,7 @@ class QuiltObserver implements TraceObserver {
         String jsonMeta = JsonOutput.toJson(meta)
         try {
             meta = getMetadata()
-            msg = "${meta['config']['runName']}: ${meta['workflow']['commandLine']}"
+            msg = "${meta['config']['runName']}: ${meta['cmd']}"
             text = readme(meta, msg)
             meta.remove('config')
             jsonMeta = QuiltObserver.toJson(meta)
@@ -178,17 +177,21 @@ class QuiltObserver implements TraceObserver {
         printMap(cf, 'config')
         Map params = session.getParams()
         params.remove('genomes')
+        params.remove('test_data')
         printMap(params, 'params')
         Map wf = session.getWorkflowMetadata().toMap()
         String start = wf['start']
         String complete = wf['complete']
+        String cmd = wf['commandLine']
         BIG_KEYS.each { k -> wf[k] = "${wf[k]}" }
         wf.remove('container')
         wf.remove('start')
         wf.remove('complete')
+        wf.remove('workflowStats')
+        wf.remove('commandLine')
         printMap(wf, 'workflow')
         log.info("\npublishing: ${wf['runName']}")
-        return [params: params, config: cf, workflow: wf, time_start: start, time_complete: complete]
+        return [params: params, config: cf, workflow: wf, cmd: cmd, time_start: start, time_complete: complete]
     }
 
 }
