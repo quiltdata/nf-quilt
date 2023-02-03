@@ -27,6 +27,7 @@ import java.time.LocalDateTime
 
 import groovy.json.JsonOutput
 import groovy.transform.CompileStatic
+import groovy.util.logging.Slf4j
 import nextflow.Session
 import nextflow.trace.TraceObserver
 
