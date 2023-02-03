@@ -87,7 +87,9 @@ class QuiltObserver implements TraceObserver {
     static String toJson(Map dict) {
         List<String> entries = dict.collect { key, value ->
             String prefix = JsonOutput.toJson(key)
+            log.info(prefix)
             String suffix = "Cannot generate JSON for: ${value}"
+            // log.info(suffix)
             try {
                 suffix = JsonOutput.toJson(value)
             }
@@ -155,7 +157,7 @@ class QuiltObserver implements TraceObserver {
             meta = getMetadata()
             msg = "${meta['config']['runName']}: ${meta['workflow']['commandLine']}"
             text = readme(meta, msg)
-            //meta.remove('config')
+            meta.remove('config')
             jsonMeta = QuiltObserver.toJson(meta)
         }
         catch (Exception e) {
