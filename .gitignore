@@ -1,4 +1,5 @@
 .DS_*
+.env
 *.log
 .gradle
 .idea

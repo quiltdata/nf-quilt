@@ -1,3 +1,4 @@
+sinclude .env # create from example.env
 PROJECT := nf-quilt
 REPORT := ./plugins/$(PROJECT)/build/reports/tests/test/index.html
 BUCKET := quilt-ernest-staging
@@ -19,8 +20,8 @@ compile:
 	@echo "DONE `date`"
 
 nextflow-compile: compile
-	cd ../nextflow
-	make compile
+	pushd ../nextflow; git checkout 4f776ef && make compile; popd
+	# https://github.com/nextflow-io/nextflow/releases/tag/v22.10.6
 
 check:
 	./gradlew check --warning-mode all
@@ -31,7 +32,6 @@ coverage: compile
 .PHONY: clean test all
 test: clean compile check #coverage
 
-
 #
 # Create packages
 #
@@ -40,6 +40,9 @@ test: clean compile check #coverage
 
 pkg-test: nextflow-compile
 	./launch.sh run ./main.nf -profile standard -plugins $(PROJECT) --pub "quilt+s3://$(BUCKET)#package=test/hurdat"
+
+tower-test: nextflow-compile
+	./launch.sh run ./main.nf -with-tower -profile standard -plugins $(PROJECT) --pub "quilt+s3://$(BUCKET)#package=test/hurdat"
 
 # use `make $(PIPELINE) BUCKET=my-s3-bucket` to publish `--outdir` to a Quilt package
 

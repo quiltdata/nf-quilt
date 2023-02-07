@@ -7,9 +7,23 @@ to Quilt packages using `quilt+` URLs wherever you currently use `s3`, `az` or `
 
 Inspired by the original `nf-quilt` plugin developed by Seqera labs
 
-## QuickStart
+## QuickStart (Tower)
 
+```bash
+git clone https://github.com/quiltdata/nf-quilt.git
+cd nf-quilt
+cp example.env .env # edit to add your tower configuration
+pip install quilt3
+make # ./gradlew check
+make tower-test BUCKET=bucket-I-can-write-to
 ```
+
+See [Tower Documentation](https://help.tower.nf/22.3/getting-started/usage/) for how to use `-with-tower` directly.
+
+
+## QuickStart (Local)
+
+```bash
 git clone https://github.com/quiltdata/nf-quilt.git
 cd nf-quilt
 git clone https://github.com/nextflow.io/nextflow ../nextflow
@@ -18,6 +32,7 @@ make # ./gradlew check
 make pkg-test BUCKET=bucket-I-can-write-to
 make sarek
 ```
+
 
 ## Getting Started
 
