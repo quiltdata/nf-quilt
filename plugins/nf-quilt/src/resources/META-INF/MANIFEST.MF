@@ -3,4 +3,5 @@ Plugin-Class: nextflow.quilt.QuiltPlugin
 Plugin-Id: nf-quilt
 Plugin-Version: 0.3.2
 Plugin-Provider: Quilt Data
-Plugin-Requires: >=22.10.6
+Plugin-Requires: <22.11.0-edge
+

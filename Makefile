@@ -18,6 +18,10 @@ compile:
 	./gradlew compileGroovy exportClasspath
 	@echo "DONE `date`"
 
+nextflow-compile: compile
+	cd ../nextflow
+	make compile
+
 check:
 	./gradlew check --warning-mode all
 
@@ -34,12 +38,12 @@ test: clean compile check #coverage
 
 # use 'make pkg-test BUCKET=my-s3-bucket' to publish test output to a Quilt package
 
-pkg-test: compile
+pkg-test: nextflow-compile
 	./launch.sh run ./main.nf -profile standard -plugins $(PROJECT) --pub "quilt+s3://$(BUCKET)#package=test/hurdat"
 
 # use `make $(PIPELINE) BUCKET=my-s3-bucket` to publish `--outdir` to a Quilt package
 
-$(PIPELINE): compile
+$(PIPELINE): nextflow-compile
 	./launch.sh pull nf-core/$(PIPELINE)
 	./launch.sh run nf-core/$(PIPELINE) -profile test,docker -plugins $(PROJECT) --outdir "$(QUILT_URI)"
 
