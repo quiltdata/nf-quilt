@@ -21,7 +21,7 @@ make sarek
 
 ## Getting Started
 
-To add the `nf-quilt` plugin to your workflow, you may need Nextflow 23.01 (or later) and Python 3.9 (or later).  Note this assumes you have already [installed groovy](https://groovy-lang.org/install.html).
+To add the `nf-quilt` plugin to your workflow, you may need Nextflow 22.10.6 (or later) and Python 3.9 (or later).  Note this assumes you have already [downloaded and installed Java](https://www.java.com/en/download/help/download_options.html).
 
 ### Quilt Configuration
 
