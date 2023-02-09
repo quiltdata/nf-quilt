@@ -2,8 +2,8 @@
 
 Nextflow plugin for interacting with Quilt packages as a FileSystem
 
-`nf-quilt` (v0.3.2 or later) is a NextFlow [plugin](https://www.nextflow.io/docs/latest/plugins.html) 
-developed by [Quilt Data]((https://quiltdata.com/) that enables you read and write directly
+`nf-quilt` (v0.3.2 or later) is a NextFlow [plugin](https://www.nextflow.io/docs/latest/plugins.html)
+developed by [Quilt Data]((<https://quiltdata.com/>) that enables you read and write directly
 to Quilt packages using `quilt+` URIs wherever you currently use `s3`, `az` or `gs` URIs.
 
 Inspired by the original `nf-quilt` plugin (v0.2.0) developed by Seqera labs
@@ -21,7 +21,7 @@ make check # ./gradlew check
 make pkg-test BUCKET=bucket-I-can-write-to
 ```
 
-See "Running in Tower" below for how to use development versions of `nf-quilt` with 
+See "Running in Tower" below for how to use development versions of `nf-quilt` with
 [NextFlow Tower](https://cloud.tower.nf).
 
 
@@ -34,10 +34,10 @@ Quilt packages. Please note that it has only been tested on NextFlow version 22.
 
 Each Quilt+ package URI has the form `quilt+s3://_bucket_#package=_prefix/suffix_`.
 You must have read or write permissions to that `bucket`,
-and your environment must have the corresponding 
+and your environment must have the corresponding
 [AWS credentials](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html).
 
-If you are running the Quilt web catalog, you can find the Quilt+ URI 
+If you are running the Quilt web catalog, you can find the Quilt+ URI
 for an existing package in the `<> CODE | URI` section at the top.
 Note that you can write to package that does not yet exist,
 as long as you can access the bucket.
@@ -115,7 +115,7 @@ However, you can use `nextflow -with-tower` to push local plugins to Tower.
 
 #### Local Tower Configuration
 
-If you have not previously run with Tower locally, you need to first 
+If you have not previously run with Tower locally, you need to first
 [configure](https://help.tower.nf/22.3/getting-started/usage/) your local environment:
 ```bash
 export NXF_VER=22.10.6
