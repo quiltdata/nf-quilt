@@ -3,7 +3,7 @@
 Nextflow plugin for interacting with Quilt packages as a FileSystem
 
 `nf-quilt` (v0.3.2 or later) is a NextFlow [plugin](https://www.nextflow.io/docs/latest/plugins.html)
-developed by [Quilt Data]((<https://quiltdata.com/>) that enables you read and write directly
+developed by [Quilt Data](https://quiltdata.com/) that enables you read and write directly
 to Quilt packages using `quilt+` URIs wherever you currently use `s3`, `az` or `gs` URIs.
 
 Inspired by the original `nf-quilt` plugin (v0.2.0) developed by Seqera labs
@@ -102,7 +102,7 @@ From inside the `nf-quilt` directory, call `./launch.sh` with a path to your pip
 
 For example, with a standard `nf-core` pipeline like `sarek`:
 
-```
+```bash
 ./launch.sh run nf-core/sarek -profile test,docker -plugins nf-quilt --outdir "quilt+s3://bucket#package=nf-quilt/sarek&path=."
 ```
 
