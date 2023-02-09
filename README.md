@@ -125,7 +125,7 @@ export TOWER_WORKSPACE_ID=000000000000000
 
 #### Testing Tower Configuration
 
-To verify that Tower has been properly configure, try:
+To verify that Tower has been properly configured, try:
 
 ```bash
 make tower-test BUCKET=my-s3-bucket #  copies the `test/hurdat` package to `s3://my-s3-bucket`
@@ -140,12 +140,12 @@ Before adding `nf-quilt`, you should ensure your pipeline can be invoked locally
 
 To start with, you can run your pipeline in Tower and copy the Launch command, e.g.:
 ```bash
-nextflow run https://github.com/example/my-pipeline \
-   -name astonishing_gilbert \
-   -params-file https://api.tower.nf/ephemeral/random-string.json \
-   -with-tower \
-   -r main \
-   -latest \
+nextflow run 'https://github.com/nf-core/rnaseq'
+       -name hopeful_lavoisier
+       -params-file 'https://api.tower.nf/ephemeral/LqmfOXbqlUvw5d2CzE2nYg.json'
+       -with-tower
+       -r 3.10.1
+       -profile test
 ```
 
 However, you usually cannot access `api.tower.nf` from your command-line.
@@ -159,12 +159,12 @@ Instead, you need to:
 Then run the resulting command locally on your machine, e.g.:
 
 ```bash
-./launch.sh run https://github.com/example/my-pipeline \
+./launch.sh run 'https://github.com/nf-core/rnaseq' \
    -name quilt_test_1 \
    -params-file params.json \
    -with-tower \
-   -r main \
-   -latest \
+   -r 3.10.1 \
+   -profile test \
 ```
 
 #### Running Your Pipeline with `nf-quilt`
@@ -175,123 +175,24 @@ Once that works, you can extend it as described in section II:
 2. Overrid them with appropriate Quilt+ URIs
 3. Tell NextFlow to use `-plugins nf-quilt`
 
-
 ```bash
-./launch.sh run nf-core/sarek \
+./launch.sh run 'https://github.com/nf-core/rnaseq' \
    -name quilt_test_2 \
-   -params-file "test-params.json" \
+   -params-file params.json \
    -with-tower \
-   -latest \
+   -r 3.10.1 \
+   -profile test \
    -plugins nf-quilt \
-   -step "mapping" \
-   -input "test-input.csv" \
-   -output_dir "quilt+s3://quilt-ernest-staging#package=test/tower"
+   -outdir "quilt+s3://quilt-ernest-staging#package=test/tower"
 ```
 
+See [Tower Documentation](https://help.tower.nf/22.3/getting-started/usage/) for more on how to use `-with-tower` directly.
 
 
-## QuickStart (Tower)
+## IV. Package, upload and publish
 
-
-```bash
-git clone https://github.com/quiltdata/nf-quilt.git
-cd nf-quilt
-git clone https://github.com/nextflow.io/nextflow ../nextflow
-cp example.env .env # edit to add your tower configuration
-pip install quilt3
-make # ./gradlew check
-make tower-test BUCKET=bucket-I-can-write-to # reads config from .env
-```
-
-See [Tower Documentation](https://help.tower.nf/22.3/getting-started/usage/) for how to use `-with-tower` directly.
-
-
-
-
-## Getting Started
-
-To add the `nf-quilt` plugin to your workflow, you may need [Nextflow](https://nextflow.io/docs/latest/getstarted.html) 22.10.6 (or later) and Python 3.9 (or later).  Note this assumes you have already [downloaded and installed Java](https://www.java.com/en/download/help/download_options.html).
-
-### Quilt Configuration
-
-This plugin uses the `quilt3` CLI to call the Quilt API.
-You must install the `quilt3` Python module and ensure the CLI is in your path:
-
-```bash
-pip3 install quilt3
-which quilt3 # e.g., /usr/local/bin/quilt3
-```
-
-Of course, in general you should do this using a virtual environment for your project.
-
-### Loading the nf-quilt plugin
-
-
-### Reading and Writing Quilt URLs
-
-Next, create a Quilt URL for the S3 bucket where you want to store (and eventually read) your results.
-You must specify a package name containing exactly one '/', such as `instrument/experiment`
-e.g. "quilt+s3://raw-bucket#package=nf-quilt/sarek"
-
-Note your command-line environment must have
-[AWS credentials](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html)
-that allow you to read/write that bucket.
-
-Finally, run your Nextflow pipeline as usual, setting that URL as your output directory, .e.g.:
-
-```bash
-./launch.sh run nf-core/sarek -profile test,docker --outdir quilt+s3://raw-bucket#package=nf-quilt/sarek&path=.
-```
-
-You can also use Quilt packages as input to nextflow jobs, e.g.:
-
-```bash
-nextflow run my/analysis --indir quilt+s3://raw-bucket#package=experiment/instrument --outdir quilt+s3://prod-bucket#package=experiment/analysis
-```
-
-
-## Development
-
-_Based on [nf-hello](https://github.com/nextflow-io/nf-hello)_
-
-### Unit testing
-
-Run the following command in the project root directory (ie. where the file `settings.gradle` is located):
-
-```bash
-make check
-```
-
-### Testing and debugging
-
-1. Clone the Nextflow repository into a sibling directory, .e.g:
-
-```bash
-git clone --depth 1 https://github.com/nextflow-io/nextflow ../nextflow
-```
-
-2. Compile the plugin alongside the Nextflow code:
-
-```bash
-make compile
-```
-
-3. Run Nextflow with the plugin, using `./launch.sh` as a drop-in replacement for the `nextflow` command, and adding the option `-plugins nf-quilt` to load the plugin:
-
-```bash
-./launch.sh run nextflow-io/hello -plugins nf-quilt
-```
-
-4. Use Makefile to run tests against your own writeable S3 Bucket
-
-```bash
-make pkg-test BUCKET=my-s3-bucket # default, simply copies a package
-make sarek BUCKET=my-s3-bucket # runs nf-core/sarek, or any other pipeline that uses `--outdir`
-```
-
-### Package, upload and publish
-
-The project should be hosted in a GitHub repository whose name should match the name of the plugin, that is the name of the directory in the `plugins` folder (e.g. `nf-quilt`).
+The project should be hosted in a GitHub repository whose name should match the name of the plugin, 
+that is the name of the directory in the `plugins` folder (e.g. `nf-quilt`).
 
 Follow these steps to package, upload and publish the plugin:
 
@@ -302,16 +203,16 @@ Follow these steps to package, upload and publish the plugin:
    * `github_access_token`: The GitHub access token required to upload and commit changes to the plugin repository.
    * `github_commit_email`: The email address associated with your GitHub account.
 
-3. Use the following command to package and create a release for your plugin on GitHub:
+2. Use the following command to package and create a release for your plugin on GitHub:
 ```bash
 ./gradlew :plugins:nf-quilt:upload
 ```
 
-4. Fork the [nextflow-io/plugins](https://github.com/nextflow-io/plugins) repository to one you can write to
+3. Fork the [nextflow-io/plugins](https://github.com/nextflow-io/plugins) repository to one you can write to
 
-5. Use the following command to publish your plugin to your fork:
+4. Use the following command to publish your plugin to your fork:
  ```bash
  ./gradlew :plugins:publishIndex
  ```
 
-6. Create a pull request to push your changes back to [nextflow-io/plugins](https://github.com/nextflow-io/plugins/blob/main/plugins.json)
+5. Create a pull request to push your changes back to [nextflow-io/plugins](https://github.com/nextflow-io/plugins/blob/main/plugins.json)
