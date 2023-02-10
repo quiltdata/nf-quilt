@@ -19,16 +19,20 @@ pip install quilt3
 which quilt3
 ```
 
-## I. QuickStart (Local)
+## I. QuickStart
 
 To quickly run `nf-quilt` from this GitHub repository:
 
 ```bash
+pip install quilt3
 git clone https://github.com/nextflow.io/nextflow.git
 git clone https://github.com/quiltdata/nf-quilt.git
 cd nf-quilt
 make test # runs unit tests 
-make pkg-test BUCKET=bucket-I-can-write-to # create "test/hurdat" package
+make pkg-test BUCKET=destination-bucket # create "test/hurdat" package
+./launch.sh run nf-core/sarek -profile test,docker -plugins nf-quilt \
+            --outdir "quilt+s3://destination-bucket#package=nf-quilt/sarek&path=."
+
 ```
 ## II. Usage
 
@@ -42,15 +46,35 @@ Quilt packages. Please note that it has only been tested on NextFlow version 22.
 
 ### 1. Construct a Quilt+ URI for each package
 
-Each Quilt+ package URI has the form `quilt+s3://_bucket_#package=_prefix/suffix_`.
+Each Quilt+ package URI has the form: 
+
+```string
+quilt+s3://bucket#package=prefix/suffix
+```
+
 You must have read or write permissions to that `bucket`,
 and your environment must have the corresponding
 [AWS credentials](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html).
 
 If you are running the Quilt web catalog, you can find the Quilt+ URI
 for an existing package in the `<> CODE | URI` section at the top.
-Note that you can write to package that does not yet exist,
-as long as you can access the bucket.
+You can also manually create URIs for new packages that don't exist.
+
+#### Quilt+ URIs for Metadata Workflows 
+
+Sometimes you may want to ensure the created package contains specific metadata.
+This is done using [Quilt workflows](https://docs.quiltdata.com/advanced/workflows).
+Specify the workflow name as an additional `workflow=` hash parameter,
+and any metadata properties as part of the query string.
+
+```string
+quilt+s3://bucket#package=prefix/suffix&workflow=my_workflow?mkey1=val1&mkey2=val2
+```
+
+Note that specifying a workflow means that package creation will fail (and nothing will be saved)
+if the query string does not contain all the required metadata,
+so you should carefully test it beforehand.
+
 
 ### 2. Set the appropriate parameter(s) in your pipeline
 
