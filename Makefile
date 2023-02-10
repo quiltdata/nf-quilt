@@ -54,15 +54,16 @@ test-all: clean compile-all check #coverage
 
 # use 'make pkg-test BUCKET=my-s3-bucket' to publish test output to a Quilt package
 
-pkg-test: compile-all
+pkg-test: compile
 	./launch.sh run ./main.nf -profile standard -plugins $(PROJECT) --pub "quilt+s3://$(BUCKET)#package=test/hurdat"
 
-tower-test: compile-all
+tower-test: compile
 	./launch.sh run ./main.nf -with-tower -profile standard -plugins $(PROJECT) --pub "quilt+s3://$(BUCKET)#package=test/hurdat"
 
-# use `make $(PIPELINE) BUCKET=my-s3-bucket` to publish `--outdir` to a Quilt package
+meta-test: compile
+	./launch.sh run ./main.nf -with-tower -profile standard -plugins $(PROJECT) --pub "quilt+s3://quilt-bio-staging#package=test/hurdat&workflow=experiment-universal?Date=2023-02-10"
 
-$(PIPELINE): compile-all
+$(PIPELINE): compile
 	./launch.sh pull nf-core/$(PIPELINE)
 	./launch.sh run nf-core/$(PIPELINE) -profile test,docker -plugins $(PROJECT) --outdir "$(QUILT_URI)"
 
