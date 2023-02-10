@@ -24,11 +24,9 @@ which quilt3
 To quickly run `nf-quilt` from this GitHub repository:
 
 ```bash
-pip install quilt3
-git clone https://github.com/nextflow.io/nextflow.git
 git clone https://github.com/quiltdata/nf-quilt.git
 cd nf-quilt
-make test # runs unit tests 
+make test # runs unit tests  and installs depdencies
 make pkg-test BUCKET=destination-bucket # create "test/hurdat" package
 ./launch.sh run nf-core/sarek -profile test,docker -plugins nf-quilt \
             --outdir "quilt+s3://destination-bucket#package=nf-quilt/sarek&path=."
