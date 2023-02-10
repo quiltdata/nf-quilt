@@ -29,7 +29,7 @@ cd nf-quilt
 make test-all # runs unit tests and installs depdencies
 make pkg-test BUCKET=destination-bucket # create "test/hurdat" package
 ./launch.sh run nf-core/sarek -profile test,docker -plugins nf-quilt \
-            --outdir "quilt+s3://destination-bucket#package=nf-quilt/sarek&path=."
+            --outdir "quilt+s3://destination-bucket#package=nf-quilt/sarek"
 
 ```
 ## II. Usage
@@ -119,25 +119,48 @@ pip install quilt3
 which quilt3
 ```
 
+### Unit Testing 
+
+You can compile run unit tests with:
+
+```bash
+make check
+```
+
+### Verifying NextFlow
+
+If this is your first time using NextFlow, you may also need to install a recent 
+[version of Java](https://www.java.com/en/download/help/download_options.html) for your platform.
+NextFlow itself will take care of all the other dependencies.
+
+You can verify and compile NextFlow with:
+
+```bash
+make nextflow-22-10
+```
+
 ### Testing Installation
 
 To verify that the plugin, nextflow, and your AWS credentials have been properly installed,
 type:
 ```bash
-make pkg-test BUCKET=my-s3-bucket #  copies the `test/hurdat` package to `s3://my-s3-bucket`
+   ./launch.sh run ./main.nf -profile standard -plugins $(PROJECT) --pub "quilt+s3://bucket#package=test/hurdat"
 ```
 
-### Running Locally
+Replace "bucket" with an S3 bucket those credentials can write to.
+
+### Running a Pipeine Locally
 
 From inside the `nf-quilt` directory, call `./launch.sh` with a path to your pipeline.
 
 For example, with a standard `nf-core` pipeline like `sarek`:
 
 ```bash
-./launch.sh run nf-core/sarek -profile test,docker -plugins nf-quilt --outdir "quilt+s3://bucket#package=nf-quilt/sarek&path=."
+./launch.sh run nf-core/sarek -profile test,docker -plugins nf-quilt --outdir "quilt+s3://bucket#package=nf-quilt/sarek"
 ```
 
-Otherwise, replace `nf-core/sarek` with the local path to your pipeline's `.nf` file
+Otherwise, replace `nf-core/sarek` with the local path to your pipeline's `.nf` file,
+and replace `outdir` with the appropriate parameter for `publishDir`.
 
 ## IV. Package, upload and publish
 

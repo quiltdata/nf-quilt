@@ -5,7 +5,7 @@ NF_DIR := ../nextflow
 PID := $$$$
 PIP := python -m pip
 PIPELINE := sarek
-QUILT_URI :=  quilt+s3://$(BUCKET)\#package=$(PROJECT)/$(PIPELINE)&path=.
+QUILT_URI :=  quilt+s3://$(BUCKET)\#package=$(PROJECT)/$(PIPELINE)
 QUILT3 := /usr/local/bin/pip3
 REPORT := ./plugins/$(PROJECT)/build/reports/tests/test/index.html
 
@@ -43,7 +43,9 @@ coverage: compile
 .PHONY: clean test test-all all
 
 test: clean compile check #coverage
-	
+
+test-nextflow: clean nextflow-22-10 compile check #coverage
+
 test-all: clean compile-all check #coverage
 
 #
