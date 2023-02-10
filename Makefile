@@ -1,8 +1,13 @@
+sinclude .env # create from example.env
 PROJECT := nf-quilt
-REPORT := ./plugins/$(PROJECT)/build/reports/tests/test/index.html
 BUCKET := quilt-ernest-staging
+NF_DIR := ../nextflow
+PID := $$$$
+PIP := python -m pip
 PIPELINE := sarek
-QUILT_URI :=  quilt+s3://$(BUCKET)\#package=$(PROJECT)/$(PIPELINE)&path=.
+QUILT_URI :=  quilt+s3://$(BUCKET)\#package=$(PROJECT)/$(PIPELINE)
+QUILT3 := /usr/local/bin/pip3
+REPORT := ./plugins/$(PROJECT)/build/reports/tests/test/index.html
 
 verify: #compile
 	./gradlew check || open $(REPORT)
@@ -18,15 +23,30 @@ compile:
 	./gradlew compileGroovy exportClasspath
 	@echo "DONE `date`"
 
+nextflow-22-10:
+	if [ ! -d "$(NF_DIR)" ]; then git clone https://github.com/nextflow.io/nextflow.git  "$(NF_DIR)"; fi
+	pushd "$(NF_DIR)"; git checkout 4f776ef -b v22_10_6_$(PID) && make compile && git restore .; popd
+	# https://github.com/nextflow-io/nextflow/releases/tag/v22.10.6
+
+install-python:
+	if [ ! -x "$(QUILT3)" ]; then $(PIP) install quilt3 ; fi
+	which quilt3
+
+compile-all: install-python nextflow-22-10 compile
+
 check:
 	./gradlew check --warning-mode all
 
 coverage: compile
 	./gradlew cloverInstrumentCodeForTest
 
-.PHONY: clean test all
+.PHONY: clean test test-all all
+
 test: clean compile check #coverage
 
+test-nextflow: clean nextflow-22-10 compile check #coverage
+
+test-all: clean compile-all check #coverage
 
 #
 # Create packages
@@ -34,12 +54,15 @@ test: clean compile check #coverage
 
 # use 'make pkg-test BUCKET=my-s3-bucket' to publish test output to a Quilt package
 
-pkg-test: compile
+pkg-test: compile-all
 	./launch.sh run ./main.nf -profile standard -plugins $(PROJECT) --pub "quilt+s3://$(BUCKET)#package=test/hurdat"
+
+tower-test: compile-all
+	./launch.sh run ./main.nf -with-tower -profile standard -plugins $(PROJECT) --pub "quilt+s3://$(BUCKET)#package=test/hurdat"
 
 # use `make $(PIPELINE) BUCKET=my-s3-bucket` to publish `--outdir` to a Quilt package
 
-$(PIPELINE): compile
+$(PIPELINE): compile-all
 	./launch.sh pull nf-core/$(PIPELINE)
 	./launch.sh run nf-core/$(PIPELINE) -profile test,docker -plugins $(PROJECT) --outdir "$(QUILT_URI)"
 
