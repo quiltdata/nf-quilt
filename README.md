@@ -26,7 +26,7 @@ To quickly run `nf-quilt` from this GitHub repository:
 ```bash
 git clone https://github.com/quiltdata/nf-quilt.git
 cd nf-quilt
-make test # runs unit tests  and installs depdencies
+make test-all # runs unit tests and installs depdencies
 make pkg-test BUCKET=destination-bucket # create "test/hurdat" package
 ./launch.sh run nf-core/sarek -profile test,docker -plugins nf-quilt \
             --outdir "quilt+s3://destination-bucket#package=nf-quilt/sarek&path=."

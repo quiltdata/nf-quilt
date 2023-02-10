@@ -40,8 +40,11 @@ check:
 coverage: compile
 	./gradlew cloverInstrumentCodeForTest
 
-.PHONY: clean test all
-test: clean compile-all check #coverage
+.PHONY: clean test test-all all
+
+test: clean compile check #coverage
+	
+test-all: clean compile-all check #coverage
 
 #
 # Create packages
