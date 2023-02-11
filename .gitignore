@@ -26,3 +26,4 @@ gradle-app.setting
 # gradle/wrapper/gradle-wrapper.properties
 *.classpath
 *.icloud
+plugins/nf-quilt/bin
