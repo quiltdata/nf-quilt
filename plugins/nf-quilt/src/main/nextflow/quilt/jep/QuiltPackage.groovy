@@ -35,6 +35,7 @@ class QuiltPackage {
     private static final String INSTALL_PREFIX = 'QuiltPackage'
     static final Path INSTALL_ROOT = Files.createTempDirectory(INSTALL_PREFIX)
 
+    private final QuiltParser parsed
     private final String bucket
     private final String packageName
     private final String hash
@@ -87,6 +88,7 @@ class QuiltPackage {
     }
 
     QuiltPackage(QuiltParser parsed) {
+        this.parsed = parsed
         this.installed = false
         this.bucket = parsed.getBucket()
         this.packageName = parsed.getPackageName()
@@ -150,7 +152,7 @@ class QuiltPackage {
         return "--top-hash $hash"
     }
 
-    String key_meta(String meta='[]') {
+    String key_meta(String meta='{}') {
         return "--meta '$meta'"
     }
 
