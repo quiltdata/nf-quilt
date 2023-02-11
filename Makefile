@@ -24,7 +24,7 @@ compile:
 	@echo "DONE `date`"
 
 nextflow-22-10:
-	if [ ! -d "$(NF_DIR)" ]; then git clone https://github.com/nextflow.io/nextflow.git  "$(NF_DIR)"; fi
+	if [ ! -d "$(NF_DIR)" ]; then git clone https://github.com/nextflow-io/nextflow.git  "$(NF_DIR)"; fi
 	pushd "$(NF_DIR)"; git checkout 4f776ef -b v22_10_6_$(PID) && make compile && git restore .; popd
 	# https://github.com/nextflow-io/nextflow/releases/tag/v22.10.6
 
