@@ -29,13 +29,20 @@ class QuiltParser {
 
     static final String P_PKG = 'package'
     static final String P_PATH = 'path'
+    static final String P_PROP = 'property'
+    static final String P_WORK = 'workflow'
+    static final String P_CAT = 'catalog'
 
     private final String bucket
     private final String packageName
+    private final String propertyName
+    private final String workflowName
+    private final String catalogName
     private String[] paths
     private String hash
     private String tag
     private final Map<String,Object> options
+    private final Map<String,Object> metadata
 
     static QuiltParser forBarePath(String path) {
         return QuiltParser.forUriString(PREFIX + path)
@@ -53,9 +60,10 @@ class QuiltParser {
             throw new IllegalArgumentException(msg)
         }
         def options = parseQuery(uri.fragment)
+        def metadata = parseQuery(uri.query)
         String pkg = options.get(P_PKG)
         String path = options.get(P_PATH)
-        return new QuiltParser(uri.authority, pkg, path, options)
+        return new QuiltParser(uri.authority, pkg, path, options, metadata)
     }
 
     static Map<String,Object> parseQuery(String query) {
@@ -64,11 +72,16 @@ class QuiltParser {
         return queryParams.collectEntries { params -> params.split('=').collect { param -> URLDecoder.decode(param) } }
     }
 
-    QuiltParser(String bucket, String pkg, String path, Map<String,Object> options = [:]) {
+    QuiltParser(String bucket, String pkg, String path,
+                Map<String,Object> options = [:], Map<String,Object> metadata = [:]) {
         this.bucket = bucket
         this.paths = path ? path.split(SEP) : [] as String[]
         this.packageName = parsePkg(pkg)
+        this.propertyName = options.get(P_PROP)
+        this.workflowName = options.get(P_WORK)
+        this.catalogName = options.get(P_CAT)
         this.options = options
+        this.metadata = metadata
     }
 
     String parsePkg(String pkg) {
@@ -156,6 +169,18 @@ class QuiltParser {
         return packageName
     }
 
+    String getPropertyName() {
+        return propertyName
+    }
+
+    String getWorkflowName() {
+        return workflowName
+    }
+
+    String getCatalogName() {
+        return catalogName
+    }
+
     String getHash() {
         return hash
     }
@@ -166,6 +191,10 @@ class QuiltParser {
 
     String getPath() {
         return paths.join(SEP)
+    }
+
+    Map<String,Object> getMetadata() {
+        return metadata
     }
 
     String path(int beginIndex, int endIndex) {
