@@ -40,6 +40,7 @@ class QuiltPackage {
     private final String packageName
     private final String hash
     private final Path folder
+    private final Map<String,Comparable> kwargs
     private boolean installed
 
     static String today() {
@@ -134,6 +135,26 @@ class QuiltPackage {
     void setup() {
         Files.createDirectories(this.folder)
         this.installed = false
+        this.kwargs = [
+            dest: packageDest(),
+            dir: packageDest(),
+            force: 'true',
+            registry: "s3://${bucket}".toString()
+        ]
+        if (hash != null && hash != 'null' && hash != 'latest') {
+            this.kwargs['top-hash'] = hash
+        }
+    }
+
+    String argify(String[] keys) {
+        String[] args = []
+        keys.each { String key ->
+            String value = kwargs.get(key)
+            if (value) {
+                args += "--${key} ${value}".toString()
+            }
+        }
+        return args.join(' ')
     }
 
     String key_dest() {
@@ -189,11 +210,7 @@ class QuiltPackage {
     // usage: quilt3 install [-h] [--registry REGISTRY] [--top-hash TOP_HASH]
     // [--dest DEST] [--dest-registry DEST_REGISTRY] [--path PATH] name
     Path install() {
-        if (hash == 'latest' || hash == null || hash == 'null') {
-            call('install', packageName, key_registry(), key_dest())
-        } else {
-            call('install', packageName, key_registry(), key_hash(), key_dest())
-        }
+        call('install', argify(QuiltParser.INSTALL_KEYS))
         installed = true
         recursiveDeleteOnExit()
         return packageDest()
@@ -231,7 +248,7 @@ class QuiltPackage {
     boolean push(String msg = 'update', String meta = '[]') {
         log.debug("`push` $this")
         try {
-            call('push', packageName, key_dir(), key_registry(), key_meta(meta), key_msg(msg))
+            call('push', packageName, argify(QuiltParser.PUSH_KEYS), key_meta(meta), key_msg(msg))
         }
         catch (Exception e) {
             log.error("Failed `push` ${this}", e)

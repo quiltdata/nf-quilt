@@ -27,11 +27,18 @@ class QuiltParser {
     static final String PREFIX = SCHEME + '://'
     static final int MIN_SIZE = 2
 
-    static final String P_PKG = 'package'
-    static final String P_PATH = 'path'
-    static final String P_PROP = 'property'
-    static final String P_WORK = 'workflow'
     static final String P_CAT = 'catalog'
+    static final String P_DEST = 'dest'
+    static final String P_DREG = 'dest-registry'
+    static final String P_DIR = 'dir'
+    static final String P_HASH = 'top-hash'
+    static final String P_PATH = 'path'
+    static final String P_PKG = 'package'
+    static final String P_PROP = 'property'
+    static final String P_REG = 'registry'
+    static final String P_WORK = 'workflow'
+    static final String[] INSTALL_KEYS = [P_REG, P_DEST, P_DREG, P_HASH, P_PATH]
+    static final String[] PUSH_KEYS = [P_REG, P_DIR, P_WORK]
 
     private final String bucket
     private final String packageName
