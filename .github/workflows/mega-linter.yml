@@ -13,7 +13,7 @@ env: # Comment env block if you do not want to apply fixes
   #APPLY_FIXES_MODE: pull_request # If APPLY_FIXES is used, defines if the fixes are directly committed (commit) or posted in a PR (pull_request)
   DISABLE_LINTERS: SPELL_CSPELL,COPYPASTE_JSCPD
   FILTER_REGEX_EXCLUDE: .*/.*gradle
-  
+ 
 concurrency:
   group: ${{ github.ref }}-${{ github.workflow }}
   cancel-in-progress: true
