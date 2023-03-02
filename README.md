@@ -8,7 +8,7 @@ to Quilt packages using `quilt+s3` URIs wherever you currently use `s3`, `az` or
 
 Inspired by the original [`nf-quilt`](https://github.com/nextflow-io/nf-quilt) plugin (v0.2.0) developed by Seqera labs
 
-# Prerequisite:  `quilt3` command-line tool
+## Prerequisite:  `quilt3` command-line tool
 
 Depending on your configuration, you may need to first install the `quilt3` command-line tool.
 This is distributed as an open source Python package you can install using `pip`,
