@@ -40,7 +40,7 @@ class QuiltPackage {
     private final String packageName
     private final String hash
     private final Path folder
-    private final Map<String,Comparable> kwargs
+    private Map<String,Comparable> kwargs
     private boolean installed
 
     static String today() {
