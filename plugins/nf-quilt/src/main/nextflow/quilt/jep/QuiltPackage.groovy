@@ -179,7 +179,8 @@ class QuiltPackage {
         String result = new String(p.getInputStream().readAllBytes())
         int exitCode = p.waitFor()
         if (exitCode > 0) {
-            log.warn("`call.exitCode` ${exitCode}: ${result}")
+            log.error("`call.exitCode` ${exitCode}: ${result}")
+            print("`call.exitCode` ${exitCode}: ${result}")
         }
         return exitCode
     }
