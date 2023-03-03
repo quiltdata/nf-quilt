@@ -30,14 +30,9 @@ jobs:
     - name: Run Gradle Tests
       run: make test
 
-    - run: pwd
-      if: ${{ success() }} || ${{ failure() }}
-    - run: ls /home/runner/work/nf-quilt/nf-quilt/plugins/nf-quilt/build/reports/tests/test/index.html
-      if: ${{ success() }} || ${{ failure() }}
-
     - name: Archive production artifacts
       if: ${{ success() }} || ${{ failure() }}
       uses: actions/upload-artifact@v3
       with:
         name: Test reports
-        path: /home/runner/work/nf-quilt/nf-quilt/plugins/nf-quilt/build/reports/tests/test/index.html
+        path: build/reports/tests/test

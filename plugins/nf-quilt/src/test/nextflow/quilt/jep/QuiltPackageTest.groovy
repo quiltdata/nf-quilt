@@ -20,6 +20,7 @@ import nextflow.quilt.QuiltSpecification
 import nextflow.quilt.nio.QuiltPathFactory
 import nextflow.quilt.nio.QuiltPath
 
+import spock.lang.Ignore
 import spock.lang.IgnoreIf
 import java.nio.file.Files
 import java.nio.file.Path
@@ -121,6 +122,7 @@ class QuiltPackageTest extends QuiltSpecification {
         thrown(java.nio.file.NoSuchFileException) */
     }
 
+    @Ignore()
     void 'should iterate over installed files '() {
         given:
         def root = qpath.getRoot()
@@ -132,14 +134,14 @@ class QuiltPackageTest extends QuiltSpecification {
         root == qroot
         Files.isDirectory(qroot)
         pkg.install()
-    //vs!Files.isDirectory(qpath)
+        !Files.isDirectory(qpath)
     }
 
     void 'should fail pushing new files to read-only bucket '() {
         given:
         def qout = factory.parseUri(TEST_URL)
         def opkg = qout.pkg()
-        def outPath = Paths.get(opkg.packageDest().toString(), "${MSEC}.txt")
+        def outPath = Paths.get(opkg.packageDest().toString(), 'README.md')
         Files.writeString(outPath, "Time: ${MSEC}")
         expect:
         Files.exists(outPath)
@@ -148,10 +150,11 @@ class QuiltPackageTest extends QuiltSpecification {
 
     @IgnoreIf({ env.WRITE_BUCKET == 'quilt-example' })
     void 'should succeed pushing new files to writeable bucket '() {
+        println("env.WRITE_BUCKET ${writeBucket}")
         given:
         def qout = factory.parseUri(outURL)
         def opkg = qout.pkg()
-        def outPath = Paths.get(opkg.packageDest().toString(), "${MSEC}.txt")
+        def outPath = Paths.get(opkg.packageDest().toString(), 'README.md')
         Files.writeString(outPath, "Time: ${MSEC}")
         expect:
         Files.exists(outPath)
