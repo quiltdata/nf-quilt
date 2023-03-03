@@ -35,4 +35,5 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: Test reports
-        path: build/reports/tests/test
+        path: |
+          /home/runner/work/nf-quilt/nf-quilt/plugins/nf-quilt/build/reports/tests/test/
