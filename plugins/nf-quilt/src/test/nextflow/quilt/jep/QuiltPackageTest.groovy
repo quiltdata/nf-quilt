@@ -40,7 +40,7 @@ class QuiltPackageTest extends QuiltSpecification {
     private final static String PACKAGE_URL = 'quilt+s3://quilt-example#package=examples%2fsmart-report@d68a7e9'
     private final static String TEST_URL = PACKAGE_URL + '&path=README.md'
     private final static Integer MSEC =  System.currentTimeMillis()
-    private final String outURL = "quilt+s3://${writeBucket}#package=test/observer_${MSEC}"
+    private final String outURL = "quilt+s3://${writeBucket}#package=test/observer${MSEC}"
 
     private QuiltPathFactory factory
     private QuiltPath qpath
@@ -59,7 +59,7 @@ class QuiltPackageTest extends QuiltSpecification {
 
         expect:
         pkg != null
-        pkg.toString() == 'quilt_example_examples_smart_report'
+        pkg.toString() == 'QuiltPackage.quilt_example_examples_smart_report'
         pkgPath.toUriString() == PACKAGE_URL
         pkg == pkg2
     }
@@ -136,7 +136,6 @@ class QuiltPackageTest extends QuiltSpecification {
     }
 
     void 'should fail pushing new files to read-only bucket '() {
-        println TEST_URL
         given:
         def qout = factory.parseUri(TEST_URL)
         def opkg = qout.pkg()
@@ -144,7 +143,7 @@ class QuiltPackageTest extends QuiltSpecification {
         Files.writeString(outPath, "Time: ${MSEC}")
         expect:
         Files.exists(outPath)
-        opkg.push() > 0
+        opkg.push() != 0
     }
 
     @IgnoreIf({ env.WRITE_BUCKET == 'quilt-example' })
@@ -159,7 +158,7 @@ class QuiltPackageTest extends QuiltSpecification {
         opkg.push() == 0
         opkg.reset()
         !Files.exists(outPath)
-        pkg.install()
+        opkg.install() // returns Path
         Files.exists(outPath)
     }
 
