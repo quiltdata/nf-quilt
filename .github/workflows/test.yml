@@ -18,6 +18,13 @@ jobs:
         token: ${{ secrets.PAT || secrets.GITHUB_TOKEN }}
         fetch-depth: 0
 
+    - name: Install Quilt3
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10' 
+    - run: python -m pip install quilt3
+    - run: which quilt3
+
     - name: Setup Java
       uses: actions/setup-java@v3
       with:
@@ -27,10 +34,6 @@ jobs:
     - name: Setup Gradle
       uses: gradle/gradle-build-action@v2
 
-    - name: Setup Python
-      uses: actions/setup-python@v4
-    - run: python -m pip install quilt3
-
     - name: Run Gradle Tests
       run: make test
 
@@ -38,6 +41,6 @@ jobs:
       if: ${{ success() }} || ${{ failure() }}
       uses: actions/upload-artifact@v3
       with:
-        name: Test reports
+        name: nf-quilt-test-reports
         path: |
           /home/runner/work/nf-quilt/nf-quilt/plugins/nf-quilt/build/reports/tests/test/

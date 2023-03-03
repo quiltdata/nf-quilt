@@ -157,7 +157,7 @@ class QuiltPackageTest extends QuiltSpecification {
         opkg.push() != 0
     }
 
-    @IgnoreIf({ env.WRITE_BUCKET == 'quilt-example' })
+    @IgnoreIf({ env.WRITE_BUCKET == 'quilt-example' || env.WRITE_BUCKET ==  null })
     void 'should succeed pushing new files to writeable bucket '() {
         println("env.WRITE_BUCKET ${writeBucket}")
         given:
