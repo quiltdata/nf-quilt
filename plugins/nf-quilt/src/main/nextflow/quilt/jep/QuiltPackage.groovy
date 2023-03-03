@@ -151,8 +151,8 @@ class QuiltPackage {
     }
 
     String key_meta(String meta='[]') {
-        // TODO: strip out internal single-quotes to avoid de-quoting
-        return "--meta '$meta'"
+        String meta_sane = meta.replace('\'', '_')
+        return "--meta '$meta_sane'"
     }
 
     String key_msg(prefix='') {

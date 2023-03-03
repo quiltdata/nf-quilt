@@ -175,17 +175,15 @@ class QuiltPackageTest extends QuiltSpecification {
         Files.exists(outPath)
     }
 
-    @Ignore
+    // TODO: ensure metadata is parsed into package
+    @IgnoreIf({ env.WRITE_BUCKET == 'quilt-example' || env.WRITE_BUCKET ==  null })
     void 'should not fail pushing invalid metadata '() {
         given:
-        String metaValue = 'key="v=\'val\'"'
-        String meta = URLEncoder.encode(metaValue, 'UTF-8')
-        print("meta=$meta")
-        String metaURL = PACKAGE_URL.replace('#', "?${meta}#")
-        QuiltPath metaPath = factory.parseUri(metaURL)
-        QuiltPackage metaPkg = metaPath.pkg()
+        def qout = factory.parseUri(outURL)
+        def opkg = qout.pkg()
+        String jsonMeta = '{"key": "val=\'(key)\'"}'
         expect:
-        metaPkg.push() == 0
+        opkg.push('msg', jsonMeta) == 0
     }
 
     // void 'Package should return Attributes IFF the file exists'() { }
