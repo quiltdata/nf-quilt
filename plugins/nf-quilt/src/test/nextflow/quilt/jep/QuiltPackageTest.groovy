@@ -99,8 +99,7 @@ class QuiltPackageTest extends QuiltSpecification {
         Files.readAttributes(qroot, BasicFileAttributes)
     }
 
-    // @IgnoreIf({ System.getProperty('os.name').contains('ux') })
-    void 'should pre-install files and get attributes'() {
+    void 'should successfully install files and get attributes'() {
         expect:
         pkg.install()
         pkg.isInstalled()
@@ -108,7 +107,16 @@ class QuiltPackageTest extends QuiltSpecification {
         Files.readAttributes(qpath, BasicFileAttributes)
     }
 
-   // @IgnoreIf({ System.getProperty('os.name').contains('ux') })
+    void 'should return null on failed install'() {
+        given:
+        def url2 = TEST_URL.replace('quilt-', 'quilted-')
+        def qpath2 = factory.parseUri(url2)
+        def pkg2 = qpath2.pkg()
+
+        expect:
+        pkg2.install() == null
+    }
+
     void 'should deinstall files'() {
         expect:
         Files.exists(qpath.localPath())
@@ -135,14 +143,6 @@ class QuiltPackageTest extends QuiltSpecification {
         Files.isDirectory(qroot)
         pkg.install()
         !Files.isDirectory(qpath)
-    }
-
-    void 'should return Path on succesful install '() {
-        println('return Path')
-    }
-
-    void 'should return null on failed install '() {
-        println('return null')
     }
 
     void 'should fail pushing new files to read-only bucket '() {

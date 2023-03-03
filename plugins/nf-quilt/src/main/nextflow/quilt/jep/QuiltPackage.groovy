@@ -147,7 +147,7 @@ class QuiltPackage {
     }
 
     String key_hash() {
-        return "--top-hash $hash"
+        return (hash == 'latest' || hash == null || hash == 'null') ? '' : "--top-hash $hash"
     }
 
     String key_meta(String meta='[]') {
@@ -205,12 +205,7 @@ class QuiltPackage {
     // usage: quilt3 install [-h] [--registry REGISTRY] [--top-hash TOP_HASH]
     // [--dest DEST] [--dest-registry DEST_REGISTRY] [--path PATH] name
     Path install() {
-        int exitCode = 0
-        if (hash == 'latest' || hash == null || hash == 'null') {
-            exitCode = call('install', packageName, key_registry(), key_dest())
-        } else {
-            exitCode = call('install', packageName, key_registry(), key_hash(), key_dest())
-        }
+        int exitCode = call('install', packageName, key_registry(), key_hash(), key_dest())
         if (exitCode != 0) {
             log.error("`install.fail.exitCode` ${exitCode}: ${packageName}")
             return null
