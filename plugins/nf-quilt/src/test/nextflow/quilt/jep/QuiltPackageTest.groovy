@@ -137,6 +137,15 @@ class QuiltPackageTest extends QuiltSpecification {
         !Files.isDirectory(qpath)
     }
 
+    void 'should return Path on succesful install '() {
+        println('return Path')
+    }
+
+    void 'should return null on failed install '() {
+        println('return null')
+    }
+
+
     void 'should fail pushing new files to read-only bucket '() {
         given:
         def qout = factory.parseUri(TEST_URL)
@@ -164,6 +173,11 @@ class QuiltPackageTest extends QuiltSpecification {
         opkg.install() // returns Path
         Files.exists(outPath)
     }
+
+    void 'should fail pushing invalid metadata '() {
+        println('invalid metadata')
+    }
+
 
     // void 'Package should return Attributes IFF the file exists'() { }
 
