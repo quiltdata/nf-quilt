@@ -1,16 +1,22 @@
 sinclude .env # create from example.env
 PROJECT := nf-quilt
-BUCKET := quilt-ernest-staging
+WRITE_BUCKET := quilt-example
 NF_DIR := ../nextflow
 PID := $$$$
 PIP := python -m pip
 PIPELINE := sarek
-QUILT_URI :=  quilt+s3://$(BUCKET)\#package=$(PROJECT)/$(PIPELINE)
+TEST_URI := "quilt+s3://$(WRITE_BUCKET)\#package=test/hurdat"
+QUILT_URI :=  quilt+s3://$(WRITE_BUCKET)\#package=$(PROJECT)/$(PIPELINE)
 QUILT3 := /usr/local/bin/pip3
 REPORT := ./plugins/$(PROJECT)/build/reports/tests/test/index.html
 
 verify: #compile
 	./gradlew check || open $(REPORT)
+
+check-env:
+	echo $(WRITE_BUCKET)
+	echo "Use 'make WRITE_BUCKET=<value>' to override" 
+	printenv MAKEFLAGS
 
 clean:
 	./gradlew clean
@@ -40,7 +46,7 @@ check:
 coverage: compile
 	./gradlew cloverInstrumentCodeForTest
 
-.PHONY: clean test test-all all
+.PHONY: clean test test-all all pkg-test tower-test
 
 test: clean compile check #coverage
 
@@ -52,15 +58,14 @@ test-all: clean compile-all check #coverage
 # Create packages
 #
 
-# use 'make pkg-test BUCKET=my-s3-bucket' to publish test output to a Quilt package
-
-pkg-test: compile-all
-	./launch.sh run ./main.nf -profile standard -plugins $(PROJECT) --pub "quilt+s3://$(BUCKET)#package=test/hurdat"
+pkg-test: #compile-all
+	echo $(TEST_URI)
+	./launch.sh run ./main.nf -profile standard -plugins $(PROJECT) --pub "$(TEST_URI)"
 
 tower-test: compile-all
-	./launch.sh run ./main.nf -with-tower -profile standard -plugins $(PROJECT) --pub "quilt+s3://$(BUCKET)#package=test/hurdat"
+	./launch.sh run ./main.nf -with-tower -profile standard -plugins $(PROJECT) --pub "$(TEST_URI)"
 
-# use `make $(PIPELINE) BUCKET=my-s3-bucket` to publish `--outdir` to a Quilt package
+# use `make $(PIPELINE) WRITE_BUCKET=my-s3-bucket` to publish `--outdir` to a Quilt package
 
 $(PIPELINE): compile-all
 	./launch.sh pull nf-core/$(PIPELINE)
