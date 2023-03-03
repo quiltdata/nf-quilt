@@ -1,14 +1,15 @@
 sinclude .env # create from example.env
-PROJECT := nf-quilt
-WRITE_BUCKET := quilt-example
-NF_DIR := ../nextflow
-PID := $$$$
-PIP := python -m pip
-PIPELINE := sarek
-TEST_URI := "quilt+s3://$(WRITE_BUCKET)\#package=test/hurdat"
-QUILT_URI :=  quilt+s3://$(WRITE_BUCKET)\#package=$(PROJECT)/$(PIPELINE)
-QUILT3 := /usr/local/bin/pip3
-REPORT := ./plugins/$(PROJECT)/build/reports/tests/test/index.html
+PROJECT ?= nf-quilt
+WRITE_BUCKET ?= quilt-example
+NF_DIR ?= ../nextflow
+PID ?= $$$$
+PIP ?= python -m pip
+PIPELINE ?= sarek
+TEST_URI ?= "quilt+s3://$(WRITE_BUCKET)\#package=test/hurdat"
+QUILT_URI ?=  quilt+s3://$(WRITE_BUCKET)\#package=$(PROJECT)/$(PIPELINE)
+PIP ?= pip3
+QUILT3 ?= /usr/local/bin/quilt3
+REPORT ?= ./plugins/$(PROJECT)/build/reports/tests/test/index.html
 
 verify: #compile
 	./gradlew check || open $(REPORT)
