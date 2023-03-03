@@ -12,6 +12,7 @@ build
 work
 out
 results
+bin
 
 # Ignore Gradle GUI config
 gradle-app.setting
