@@ -12,12 +12,19 @@ Inspired by the original [`nf-quilt`](https://github.com/nextflow-io/nf-quilt) p
 
 Depending on your configuration, you may need to first install the `quilt3` command-line tool.
 This is distributed as an open source Python package you can install using `pip`,
-and must be available in the PATH used by `nextflow`
+and must be available in the PATH used by `nextflow`.
+
+For NextFlow Tower, do this in the "Pre-run script" when you edit the Pipeline settings from the Launchpad:
 
 ```bash
-pip install quilt3
+yum install python3-pip -y # optional in CLI
+yum install git -y         # optional in CLI
+pip3 install quilt3
 which quilt3
 ```
+
+If you are running from the command-line, you likely already have Python and GIT,
+so the first two lines are optional.
 
 ## I. QuickStart
 
