@@ -145,7 +145,6 @@ class QuiltPackageTest extends QuiltSpecification {
         println('return null')
     }
 
-
     void 'should fail pushing new files to read-only bucket '() {
         given:
         def qout = factory.parseUri(TEST_URL)
@@ -177,7 +176,6 @@ class QuiltPackageTest extends QuiltSpecification {
     void 'should fail pushing invalid metadata '() {
         println('invalid metadata')
     }
-
 
     // void 'Package should return Attributes IFF the file exists'() { }
 
