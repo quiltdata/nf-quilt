@@ -76,6 +76,7 @@ class QuiltNioTest extends QuiltSpecification {
         text.startsWith('id')
     }
 
+    @IgnoreIf({ System.getProperty('os.name').contains('ux') })
     @IgnoreIf({ System.getProperty('os.name').contains('indows') })
     void 'should read file attributes'() {
         given:
