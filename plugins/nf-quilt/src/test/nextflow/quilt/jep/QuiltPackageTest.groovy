@@ -135,30 +135,32 @@ class QuiltPackageTest extends QuiltSpecification {
     //vs!Files.isDirectory(qpath)
     }
 
-    @IgnoreIf({ env.WRITE_BUCKET == 'quilt-example' })
-    void 'should publish package to writeable bucket'() {
+    void 'should fail pushing new files to read-only bucket '() {
+        println TEST_URL
+        given:
+        def qout = factory.parseUri(TEST_URL)
+        def opkg = qout.pkg()
+        def outPath = Paths.get(opkg.packageDest().toString(), "${MSEC}.txt")
+        Files.writeString(outPath, "Time: ${MSEC}")
         expect:
-        MSEC
-        outURL
+        Files.exists(outPath)
+        opkg.push() > 0
     }
 
     @IgnoreIf({ env.WRITE_BUCKET == 'quilt-example' })
-    void 'should write new files back to bucket '() {
+    void 'should succeed pushing new files to writeable bucket '() {
         given:
-        def cleanDate = QuiltPackage.today()
         def qout = factory.parseUri(outURL)
         def opkg = qout.pkg()
-        def outPath = Paths.get(opkg.packageDest().toString(), "${cleanDate}.txt")
-        // remove path
-        // re-install package
-        // verify file exists
-        Files.writeString(outPath, cleanDate)
+        def outPath = Paths.get(opkg.packageDest().toString(), "${MSEC}.txt")
+        Files.writeString(outPath, "Time: ${MSEC}")
         expect:
         Files.exists(outPath)
-        opkg.push()
+        opkg.push() == 0
         opkg.reset()
         !Files.exists(outPath)
-        pkg.isInstalled()
+        pkg.install()
+        Files.exists(outPath)
     }
 
     // void 'Package should return Attributes IFF the file exists'() { }

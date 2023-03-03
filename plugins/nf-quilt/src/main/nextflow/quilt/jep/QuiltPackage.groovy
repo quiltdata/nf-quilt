@@ -151,6 +151,7 @@ class QuiltPackage {
     }
 
     String key_meta(String meta='[]') {
+        // TODO: strip out internal single-quotes to avoid de-quoting
         return "--meta '$meta'"
     }
 
@@ -179,8 +180,7 @@ class QuiltPackage {
         String result = new String(p.getInputStream().readAllBytes())
         int exitCode = p.waitFor()
         if (exitCode > 0) {
-            log.error("`call.exitCode` ${exitCode}: ${result}")
-            print("`call.exitCode` ${exitCode}: ${result}")
+            print("`call.fail.exitCode` ${exitCode}[${result}]: ${cmd}")
         }
         return exitCode
     }
@@ -188,10 +188,15 @@ class QuiltPackage {
     // usage: quilt3 install [-h] [--registry REGISTRY] [--top-hash TOP_HASH]
     // [--dest DEST] [--dest-registry DEST_REGISTRY] [--path PATH] name
     Path install() {
+        Integer exitCode = 0
         if (hash == 'latest' || hash == null || hash == 'null') {
-            call('install', packageName, key_registry(), key_dest())
+            exitCode = call('install', packageName, key_registry(), key_dest())
         } else {
-            call('install', packageName, key_registry(), key_hash(), key_dest())
+            exitCode = call('install', packageName, key_registry(), key_hash(), key_dest())
+        }
+        if (exitCode != 0) {
+            log.error("`install.fail.exitCode` ${exitCode}: ${packageName}")
+            return null
         }
         installed = true
         recursiveDeleteOnExit()
@@ -227,16 +232,17 @@ class QuiltPackage {
     }
 
     // https://docs.quiltdata.com/v/version-5.0.x/examples/gitlike#install-a-package
-    boolean push(String msg = 'update', String meta = '[]') {
+    Integer push(String msg = 'update', String meta = '[]') {
         log.debug("`push` $this")
+        Integer exitCode = 0
         try {
-            call('push', packageName, key_dir(), key_registry(), key_meta(meta), key_msg(msg))
+            exitCode = call('push', packageName, key_dir(), key_registry(), key_meta(meta), key_msg(msg))
         }
         catch (Exception e) {
             log.error("Failed `push` ${this}", e)
-            return false
+            return -1
         }
-        return true
+        return exitCode
     }
 
     @Override
