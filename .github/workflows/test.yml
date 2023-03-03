@@ -29,3 +29,10 @@ jobs:
 
     - name: Run Gradle Tests
       run: make test
+
+    - name: Archive production artifacts
+      if: ${{ success() }} || ${{ failure() }}
+      uses: actions/upload-artifact@v3
+      with:
+        name: Test reports
+        path: nf-quilt/nf-quilt/plugins/nf-quilt/build/reports/tests/test/index.html
