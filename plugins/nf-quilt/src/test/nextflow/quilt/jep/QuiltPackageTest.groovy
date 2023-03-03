@@ -39,6 +39,8 @@ class QuiltPackageTest extends QuiltSpecification {
 
     private final static String PACKAGE_URL = 'quilt+s3://quilt-example#package=examples%2fsmart-report@d68a7e9'
     private final static String TEST_URL = PACKAGE_URL + '&path=README.md'
+    private final static Integer MSEC =  System.currentTimeMillis()
+    private final String outURL = "quilt+s3://${writeBucket}#package=test/observer_${MSEC}"
 
     private QuiltPathFactory factory
     private QuiltPath qpath
@@ -133,11 +135,19 @@ class QuiltPackageTest extends QuiltSpecification {
     //vs!Files.isDirectory(qpath)
     }
 
+    @IgnoreIf({ env.WRITE_BUCKET == 'quilt-example' })
+    void 'should publish package to writeable bucket'() {
+        expect:
+        MSEC
+        outURL
+    }
+
+    @IgnoreIf({ env.WRITE_BUCKET == 'quilt-example' })
     void 'should write new files back to bucket '() {
         given:
         def cleanDate = QuiltPackage.today()
-        //def qout = factory.parseUri(OUT_URL)
-        def opkg = qpath.pkg()
+        def qout = factory.parseUri(outURL)
+        def opkg = qout.pkg()
         def outPath = Paths.get(opkg.packageDest().toString(), "${cleanDate}.txt")
         // remove path
         // re-install package
@@ -145,10 +155,10 @@ class QuiltPackageTest extends QuiltSpecification {
         Files.writeString(outPath, cleanDate)
         expect:
         Files.exists(outPath)
-    //opkg.push()
-    //opkg.uninstall()
-    //!Files.exists(outPath)
-    //pkg.isInstalled()
+        opkg.push()
+        opkg.reset()
+        !Files.exists(outPath)
+        pkg.isInstalled()
     }
 
     // void 'Package should return Attributes IFF the file exists'() { }

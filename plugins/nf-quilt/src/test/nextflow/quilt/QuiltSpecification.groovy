@@ -47,10 +47,13 @@ class QuiltSpecification extends Specification {
 
     @Shared String pluginsMode
 
+    @Shared String writeBucket
+
     void setupSpec() {
         // reset previous instances
         PluginExtensionProvider.reset()
         // this need to be set *before* the plugin manager class is created
+        writeBucket =  System.getenv('WRITE_BUCKET')
         pluginsMode = System.getProperty('pf4j.mode')
         System.setProperty('pf4j.mode', 'dev')
         // the plugin root should

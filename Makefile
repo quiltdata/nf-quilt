@@ -12,6 +12,7 @@ QUILT3 ?= /usr/local/bin/quilt3
 REPORT ?= ./plugins/$(PROJECT)/build/reports/tests/test/index.html
 
 verify: #compile
+	echo $(WRITE_BUCKET)
 	./gradlew check || open $(REPORT)
 
 check-env:
