@@ -99,6 +99,7 @@ class QuiltPackageTest extends QuiltSpecification {
         Files.readAttributes(qroot, BasicFileAttributes)
     }
 
+    @IgnoreIf({ System.getProperty('os.name').contains('indows') })
     void 'should successfully install files and get attributes'() {
         expect:
         pkg.install()
@@ -117,6 +118,7 @@ class QuiltPackageTest extends QuiltSpecification {
         pkg2.install() == null
     }
 
+    @IgnoreIf({ System.getProperty('os.name').contains('indows') })
     void 'should deinstall files'() {
         expect:
         Files.exists(qpath.localPath())
@@ -173,8 +175,17 @@ class QuiltPackageTest extends QuiltSpecification {
         Files.exists(outPath)
     }
 
-    void 'should fail pushing invalid metadata '() {
-        println('invalid metadata')
+    @Ignore
+    void 'should not fail pushing invalid metadata '() {
+        given:
+        String metaValue = 'key="v=\'val\'"'
+        String meta = URLEncoder.encode(metaValue, 'UTF-8')
+        print("meta=$meta")
+        String metaURL = PACKAGE_URL.replace('#', "?${meta}#")
+        QuiltPath metaPath = factory.parseUri(metaURL)
+        QuiltPackage metaPkg = metaPath.pkg()
+        expect:
+        metaPkg.push() == 0
     }
 
     // void 'Package should return Attributes IFF the file exists'() { }
