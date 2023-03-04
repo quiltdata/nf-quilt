@@ -160,7 +160,6 @@ class QuiltPackageTest extends QuiltSpecification {
 
     @IgnoreIf({ env.WRITE_BUCKET == 'quilt-example' || env.WRITE_BUCKET ==  null })
     void 'should succeed pushing new files to writeable bucket '() {
-        println("env.WRITE_BUCKET ${writeBucket}")
         given:
         def qout = factory.parseUri(outURL)
         def opkg = qout.pkg()
