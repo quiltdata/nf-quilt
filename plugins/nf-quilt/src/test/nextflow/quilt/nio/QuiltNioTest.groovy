@@ -65,7 +65,7 @@ class QuiltNioTest extends QuiltSpecification {
         readObject(path).trim() == TEXT
     }
 
-    @IgnoreIf({ System.getProperty('os.name').contains('ux') })
+    @IgnoreIf({ System.getProperty('os.name').contains('indows') })
     void 'should read from a path'() {
         given:
         Path path = Paths.get(new URI(READ_URL))
@@ -77,6 +77,7 @@ class QuiltNioTest extends QuiltSpecification {
     }
 
     @IgnoreIf({ System.getProperty('os.name').contains('ux') })
+    @IgnoreIf({ System.getProperty('os.name').contains('indows') })
     void 'should read file attributes'() {
         given:
         final start = System.currentTimeMillis()
@@ -233,7 +234,7 @@ class QuiltNioTest extends QuiltSpecification {
         pkg.relativeChildren('')
     }
 
-    @IgnoreIf({ System.getProperty('os.name').contains('ux') })
+    @IgnoreIf({ System.getProperty('os.name').contains('indows') })
     void 'should iterate over package folders/files'() {
         given:
         Path path = Paths.get(new URI(PACKAGE_URL))

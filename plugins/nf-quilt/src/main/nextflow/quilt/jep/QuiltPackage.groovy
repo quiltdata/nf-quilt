@@ -147,11 +147,12 @@ class QuiltPackage {
     }
 
     String key_hash() {
-        return "--top-hash $hash"
+        return (hash == 'latest' || hash == null || hash == 'null') ? '' : "--top-hash $hash"
     }
 
     String key_meta(String meta='[]') {
-        return "--meta '$meta'"
+        String meta_sane = meta.replace('\'', '_')
+        return "--meta '$meta_sane'"
     }
 
     String key_msg(prefix='') {
@@ -166,31 +167,48 @@ class QuiltPackage {
         return "--registry s3://${bucket}"
     }
 
+    boolean isInstalled() {
+        return installed
+    }
+
+    Path packageDest() {
+        return folder
+    }
+
     int call(String... args) {
         def command = ['quilt3']
         command.addAll(args)
         def cmd = command.join(' ')
         log.debug("call `${cmd}`")
 
-        ProcessBuilder pb = new ProcessBuilder('bash', '-c', cmd)
-        pb.redirectErrorStream(true)
+        try {
+            ProcessBuilder pb = new ProcessBuilder('bash', '-c', cmd)
+            pb.redirectErrorStream(true)
 
-        Process p = pb.start()
-        String result = new String(p.getInputStream().readAllBytes())
-        int exitCode = p.waitFor()
-        if (exitCode > 0) {
-            log.warn("`call.exitCode` ${exitCode}: ${result}")
+            Process p = pb.start()
+            log.debug("call.start ${p}")
+            String result = new String(p.getInputStream().readAllBytes())
+            log.debug("call.result ${result}")
+            int exitCode = p.waitFor()
+            log.debug("call.exitCode ${exitCode}")
+            if (exitCode != 0) {
+                log.debug("`call.fail` rc=${exitCode}[${cmd}]: ${result}\n")
+            }
+            return exitCode
         }
-        return exitCode
+        catch (Exception e) {
+            log.error("Failed `${cmd}` ${this}", e)
+            return -1
+        }
     }
 
     // usage: quilt3 install [-h] [--registry REGISTRY] [--top-hash TOP_HASH]
     // [--dest DEST] [--dest-registry DEST_REGISTRY] [--path PATH] name
     Path install() {
-        if (hash == 'latest' || hash == null || hash == 'null') {
-            call('install', packageName, key_registry(), key_dest())
-        } else {
-            call('install', packageName, key_registry(), key_hash(), key_dest())
+        int exitCode = call('install', packageName, key_registry(), key_hash(), key_dest())
+        if (exitCode != 0) {
+            log.error("`install.fail.exitCode` ${exitCode}: ${packageName}")
+            return null
         }
         installed = true
         recursiveDeleteOnExit()
@@ -216,31 +234,16 @@ class QuiltPackage {
 
         })
     }
-
-    boolean isInstalled() {
-        return installed
-    }
-
-    Path packageDest() {
-        return folder
-    }
-
     // https://docs.quiltdata.com/v/version-5.0.x/examples/gitlike#install-a-package
-    boolean push(String msg = 'update', String meta = '[]') {
-        log.debug("`push` $this")
-        try {
-            call('push', packageName, key_dir(), key_registry(), key_meta(meta), key_msg(msg))
-        }
-        catch (Exception e) {
-            log.error("Failed `push` ${this}", e)
-            return false
-        }
-        return true
+    int push(String msg = 'update', String meta = '[]') {
+        int exitCode = 0
+        exitCode = call('push', packageName, key_dir(), key_registry(), key_meta(meta), key_msg(msg))
+        return exitCode
     }
 
     @Override
     String toString() {
-        return "${bucket}_${packageName}".replaceAll(/[-\/]/, '_')
+        return "QuiltPackage.${bucket}_${packageName}".replaceAll(/[-\/]/, '_')
     }
 
 }

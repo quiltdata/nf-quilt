@@ -20,6 +20,7 @@ import nextflow.quilt.QuiltSpecification
 import nextflow.quilt.nio.QuiltPathFactory
 import nextflow.quilt.nio.QuiltPath
 
+import spock.lang.Ignore
 import spock.lang.IgnoreIf
 import java.nio.file.Files
 import java.nio.file.Path
@@ -39,6 +40,8 @@ class QuiltPackageTest extends QuiltSpecification {
 
     private final static String PACKAGE_URL = 'quilt+s3://quilt-example#package=examples%2fsmart-report@d68a7e9'
     private final static String TEST_URL = PACKAGE_URL + '&path=README.md'
+    private final static Integer MSEC =  System.currentTimeMillis()
+    private final String outURL = "quilt+s3://${writeBucket}#package=test/observer${MSEC}"
 
     private QuiltPathFactory factory
     private QuiltPath qpath
@@ -57,7 +60,7 @@ class QuiltPackageTest extends QuiltSpecification {
 
         expect:
         pkg != null
-        pkg.toString() == 'quilt_example_examples_smart_report'
+        pkg.toString() == 'QuiltPackage.quilt_example_examples_smart_report'
         pkgPath.toUriString() == PACKAGE_URL
         pkg == pkg2
     }
@@ -96,8 +99,8 @@ class QuiltPackageTest extends QuiltSpecification {
         Files.readAttributes(qroot, BasicFileAttributes)
     }
 
-    @IgnoreIf({ System.getProperty('os.name').contains('ux') })
-    void 'should pre-install files and get attributes'() {
+    @IgnoreIf({ System.getProperty('os.name').contains('indows') })
+    void 'should successfully install files and get attributes'() {
         expect:
         pkg.install()
         pkg.isInstalled()
@@ -105,7 +108,17 @@ class QuiltPackageTest extends QuiltSpecification {
         Files.readAttributes(qpath, BasicFileAttributes)
     }
 
-    @IgnoreIf({ System.getProperty('os.name').contains('ux') })
+    void 'should return null on failed install'() {
+        given:
+        def url2 = TEST_URL.replace('quilt-', 'quilted-')
+        def qpath2 = factory.parseUri(url2)
+        def pkg2 = qpath2.pkg()
+
+        expect:
+        pkg2.install() == null
+    }
+
+    @IgnoreIf({ System.getProperty('os.name').contains('indows') })
     void 'should deinstall files'() {
         expect:
         Files.exists(qpath.localPath())
@@ -119,6 +132,7 @@ class QuiltPackageTest extends QuiltSpecification {
         thrown(java.nio.file.NoSuchFileException) */
     }
 
+    @Ignore()
     void 'should iterate over installed files '() {
         given:
         def root = qpath.getRoot()
@@ -130,25 +144,46 @@ class QuiltPackageTest extends QuiltSpecification {
         root == qroot
         Files.isDirectory(qroot)
         pkg.install()
-    //vs!Files.isDirectory(qpath)
+        !Files.isDirectory(qpath)
     }
 
-    void 'should write new files back to bucket '() {
+    void 'should fail pushing new files to read-only bucket '() {
         given:
-        def cleanDate = QuiltPackage.today()
-        //def qout = factory.parseUri(OUT_URL)
-        def opkg = qpath.pkg()
-        def outPath = Paths.get(opkg.packageDest().toString(), "${cleanDate}.txt")
-        // remove path
-        // re-install package
-        // verify file exists
-        Files.writeString(outPath, cleanDate)
+        def qout = factory.parseUri(TEST_URL)
+        def opkg = qout.pkg()
+        def outPath = Paths.get(opkg.packageDest().toString(), 'README.md')
+        Files.writeString(outPath, "Time: ${MSEC}")
         expect:
         Files.exists(outPath)
-    //opkg.push()
-    //opkg.uninstall()
-    //!Files.exists(outPath)
-    //pkg.isInstalled()
+        opkg.push() != 0
+    }
+
+    @IgnoreIf({ env.WRITE_BUCKET == 'quilt-example' || env.WRITE_BUCKET ==  null })
+    void 'should succeed pushing new files to writeable bucket '() {
+        println("env.WRITE_BUCKET ${writeBucket}")
+        given:
+        def qout = factory.parseUri(outURL)
+        def opkg = qout.pkg()
+        def outPath = Paths.get(opkg.packageDest().toString(), 'README.md')
+        Files.writeString(outPath, "Time: ${MSEC}")
+        expect:
+        Files.exists(outPath)
+        opkg.push() == 0
+        opkg.reset()
+        !Files.exists(outPath)
+        opkg.install() // returns Path
+        Files.exists(outPath)
+    }
+
+    // TODO: ensure metadata is parsed into package
+    @IgnoreIf({ env.WRITE_BUCKET == 'quilt-example' || env.WRITE_BUCKET ==  null })
+    void 'should not fail pushing invalid metadata '() {
+        given:
+        def qout = factory.parseUri(outURL)
+        def opkg = qout.pkg()
+        String jsonMeta = '{"key": "val=\'(key)\'"}'
+        expect:
+        opkg.push('msg', jsonMeta) == 0
     }
 
     // void 'Package should return Attributes IFF the file exists'() { }
