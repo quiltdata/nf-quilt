@@ -64,12 +64,13 @@ pkg-test: #compile-all
 	echo $(TEST_URI)
 	./launch.sh run ./main.nf -profile standard -plugins $(PROJECT) --pub "$(TEST_URI)"
 
-tower-test: compile-all
-	./launch.sh run ./main.nf -with-tower -profile standard -plugins $(PROJECT) --pub "$(TEST_URI)"
+tower-test:
+	nextflow run "https://github.com/quiltdata/nf-quilt" -name local_einstein  -with-tower -r main -latest --pub "$(TEST_URI)"
 
 # use `make $(PIPELINE) WRITE_BUCKET=my-s3-bucket` to publish `--outdir` to a Quilt package
 
 $(PIPELINE): compile-all
+	echo "Ensure you have docker running"
 	./launch.sh pull nf-core/$(PIPELINE)
 	./launch.sh run nf-core/$(PIPELINE) -profile test,docker -plugins $(PROJECT) --outdir "$(QUILT_URI)"
 
