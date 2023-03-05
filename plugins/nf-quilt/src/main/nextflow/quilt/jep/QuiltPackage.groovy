@@ -169,7 +169,8 @@ class QuiltPackage {
         return (hash == 'latest' || hash == null || hash == 'null') ? '' : "--top-hash $hash"
     }
 
-    String key_meta(Map meta = [:]) {
+    String key_meta(Map srcMeta = [:]) {
+        Map meta = srcMeta + parsed.getMetadata()
         String jsonMeta = QuiltPackage.toJson(meta)
         String meta_sane = jsonMeta.replace('\'', '_')
         return "--meta '$meta_sane'"
