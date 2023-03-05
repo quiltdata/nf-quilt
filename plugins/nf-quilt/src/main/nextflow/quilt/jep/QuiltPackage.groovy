@@ -37,6 +37,7 @@ class QuiltPackage {
 
     private final String bucket
     private final String packageName
+    private final QuiltParser parsed
     private final String hash
     private final Path folder
     private boolean installed
@@ -87,6 +88,7 @@ class QuiltPackage {
     }
 
     QuiltPackage(QuiltParser parsed) {
+        this.parsed = parsed
         this.installed = false
         this.bucket = parsed.getBucket()
         this.packageName = parsed.getPackageName()
