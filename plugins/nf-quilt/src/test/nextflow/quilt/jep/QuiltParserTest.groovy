@@ -15,7 +15,9 @@ class QuiltParserTest extends QuiltSpecification {
 
     private static final String REL_URL = 'quilt+s3://bucket-name#package=quilt/test@abc1&path=sub%2F..%2Fpath'
     private static final String TEST_URL =
-         'quilt+s3://quilt-ernest-staging#package=nf-quilt/sarek/pipeline_info/execution_trace_2022-10-13_01-01-31.txt'
+        'quilt+s3://quilt-ernest-staging#package=nf-quilt/sarek/pipeline_info/execution_trace_2022-10-13_01-01-31.txt'
+    private static final String FULL_URL =
+        'quilt+s3://bkt?key=val&key2=val2#package=pre/suf@ab&path=p/t&property=prop&workflow=wf&catalog=quiltdata.com'
 
     void 'should host Quilt URL scheme'() {
         expect:
@@ -95,6 +97,23 @@ class QuiltParserTest extends QuiltSpecification {
         'a/b'       | 'a/b'   | null   | null
         'a/b@hash'  | 'a/b'   | 'hash' | null
         'a/b:tag'   | 'a/b'   | null   | 'tag'
+    }
+
+    void 'should extract other parameters from URI'() {
+        when:
+        QuiltParser parser = QuiltParser.forUriString(FULL_URL)
+        Map<String,Object> meta = parser.getMetadata()
+
+        then:
+        parser.getBucket() == 'bkt'
+        parser.getPackageName() == 'pre/suf'
+        parser.getPath() == 'p/t'
+        parser.getPropertyName() == 'prop'
+        parser.getWorkflowName() == 'wf'
+        parser.getCatalogName() == 'quiltdata.com'
+        meta
+        meta['key'] == 'val'
+        meta['key2'] == 'val2'
     }
 
 }

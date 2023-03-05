@@ -161,12 +161,12 @@ class QuiltPackage {
         return "--message 'nf-quilt:${prefix}@${today()}'"
     }
 
-    String key_path() {
-        return "--path=${packageDest()}"
-    }
-
     String key_registry() {
         return "--registry s3://${bucket}"
+    }
+
+    String key_workflow() {
+        return (parsed.workflowName) ? "--workflow ${parsed.workflowName}" : ''
     }
 
     boolean isInstalled() {
@@ -239,7 +239,8 @@ class QuiltPackage {
     // https://docs.quiltdata.com/v/version-5.0.x/examples/gitlike#install-a-package
     int push(String msg = 'update', String meta = '[]') {
         int exitCode = 0
-        exitCode = call('push', packageName, key_dir(), key_registry(), key_meta(meta), key_msg(msg))
+        String args = [key_dir(), key_registry(), key_meta(meta), key_msg(msg)].join(' ')
+        exitCode = call('push', packageName, args, key_workflow())
         return exitCode
     }
 
