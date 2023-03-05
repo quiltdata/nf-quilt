@@ -60,11 +60,11 @@ test-all: clean compile-all check #coverage
 # Create packages
 #
 
-pkg-test: #compile-all
+pkg-test: compile-all
 	echo $(TEST_URI)
 	./launch.sh run ./main.nf -profile standard -plugins $(PROJECT) --pub "$(TEST_URI)"
 
-tower-test:
+tower-test: compile-all
 	nextflow run "https://github.com/quiltdata/nf-quilt" -name local_einstein  -with-tower -r main -latest --pub "$(TEST_URI)"
 
 # use `make $(PIPELINE) WRITE_BUCKET=my-s3-bucket` to publish `--outdir` to a Quilt package
