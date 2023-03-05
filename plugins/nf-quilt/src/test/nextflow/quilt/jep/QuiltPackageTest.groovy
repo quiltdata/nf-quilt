@@ -180,9 +180,9 @@ class QuiltPackageTest extends QuiltSpecification {
         given:
         def qout = factory.parseUri(outURL)
         def opkg = qout.pkg()
-        String jsonMeta = '{"key": "val=\'(key)\'"}'
+        Map meta =  ['key': "val=\'(key)\'"]
         expect:
-        opkg.push('msg', jsonMeta) == 0
+        opkg.push('msg', meta) == 0
     }
 
     // void 'Package should return Attributes IFF the file exists'() { }

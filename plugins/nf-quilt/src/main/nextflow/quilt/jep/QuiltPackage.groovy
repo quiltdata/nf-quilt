@@ -16,6 +16,7 @@
 // https://medium.com/geekculture/how-to-execute-python-modules-from-java-2384041a3d6d
 package nextflow.quilt.jep
 
+import groovy.json.JsonOutput
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import java.nio.file.Files
@@ -45,6 +46,22 @@ class QuiltPackage {
     static String today() {
         LocalDate date = LocalDate.now()
         return date.toString()
+    }
+
+    static String toJson(Map dict) {
+        List<String> entries = dict.collect { key, value ->
+            String prefix = JsonOutput.toJson(key)
+            String suffix = "Cannot generate JSON for: ${value}"
+            log.info("QuiltObserver.toJson: ${prefix} [${suffix.length()}]")
+            try {
+                suffix = JsonOutput.toJson(value)
+            }
+            catch (Exception e) {
+                log.error(suffix, e)
+            }
+            return "${prefix}:${suffix}".toString()
+        }
+        return "{${entries.join(',')}}".toString()
     }
 
     static QuiltPackage forParsed(QuiltParser parsed) {
@@ -152,8 +169,9 @@ class QuiltPackage {
         return (hash == 'latest' || hash == null || hash == 'null') ? '' : "--top-hash $hash"
     }
 
-    String key_meta(String meta='[]') {
-        String meta_sane = meta.replace('\'', '_')
+    String key_meta(Map meta = [:]) {
+        String jsonMeta = QuiltPackage.toJson(meta)
+        String meta_sane = jsonMeta.replace('\'', '_')
         return "--meta '$meta_sane'"
     }
 
@@ -237,7 +255,7 @@ class QuiltPackage {
         })
     }
     // https://docs.quiltdata.com/v/version-5.0.x/examples/gitlike#install-a-package
-    int push(String msg = 'update', String meta = '[]') {
+    int push(String msg = 'update', Map meta = [:]) {
         int exitCode = 0
         String args = [key_dir(), key_registry(), key_meta(meta), key_msg(msg)].join(' ')
         exitCode = call('push', packageName, args, key_workflow())
