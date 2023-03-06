@@ -5,7 +5,6 @@ nextflow.enable.dsl = 2
 
 params.src = 'quilt+s3://quilt-example#package=examples/hurdat'
 params.pub = '/var/tmp'
-params.out = 'output'
 
 packageFiles = Channel.fromPath(params.src)
 
@@ -16,12 +15,12 @@ process transfer {
     path x
 
     output:
-    path params.out + '/*'
+    path 'output/*'
 
     """
-    mkdir -p $params.out
-    cp -r $x $params.out
-    echo $params.out/$x
+    mkdir -p output
+    cp -r $x output
+    echo output/$x
     """
 }
 
