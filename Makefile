@@ -26,6 +26,7 @@ clean:
 	rm -rf */*/build
 	rm -f .nextflow.log*
 	rm -f .launch.classpath
+	rm -rf plugins/nf-quilt/bin
 
 compile:
 	./gradlew compileGroovy exportClasspath

@@ -38,9 +38,11 @@ or (in Tower) the "Advanced Options ->  Nextflow config file":
 
 ```groovy
 plugins {
-    id 'nf-quilt' # add only this line if you already have other plugins
+    id 'nf-quilt'
 }
 ```
+
+![Example Tower Configuration](./README-Tower.png)
 
 You can alternatively specify the plugin as part of the command-line, .e.g.:
 
