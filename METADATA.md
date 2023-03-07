@@ -1,4 +1,4 @@
-#### Quilt+ URIs for Metadata Workflows
+# Quilt+ URIs for Metadata Workflows
 
 Sometimes you may want to ensure the created package contains specific metadata.
 This is done using [Quilt workflows](https://docs.quiltdata.com/advanced/workflows).
