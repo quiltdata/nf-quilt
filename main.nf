@@ -6,7 +6,7 @@ nextflow.enable.dsl = 2
 params.input = 'quilt+s3://quilt-example#package=examples/hurdat'
 params.outdir = '/var/tmp'
 
-packageFiles = Channel.fromPath(params.src)
+packageFiles = Channel.fromPath(params.input)
 
 process transfer {
     publishDir params.outdir, mode: 'copy', overwrite: true
