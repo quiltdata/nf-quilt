@@ -51,8 +51,8 @@ class QuiltPackage {
     static String toJson(Map dict) {
         List<String> entries = dict.collect { key, value ->
             String prefix = JsonOutput.toJson(key)
-            String suffix = "Cannot generate JSON for: ${value}"
-            log.info("QuiltObserver.toJson: ${prefix} [${suffix.length()}]")
+            String suffix = "toJson.error: ${value}"
+            log.info("QuiltPackage.toJson: ${prefix} [${suffix.length()}]")
             try {
                 suffix = JsonOutput.toJson(value)
             }
@@ -170,8 +170,12 @@ class QuiltPackage {
     }
 
     String key_meta(Map srcMeta = [:]) {
+        log.debug("key_meta.parsed ${parsed}")
+        log.debug("key_meta.srcMeta $srcMeta")
+        log.debug("key_meta.parsed.getMetadata ${parsed.getMetadata()}")
         Map meta = srcMeta + parsed.getMetadata()
         String jsonMeta = QuiltPackage.toJson(meta)
+        log.debug("key_meta.jsonMeta $jsonMeta")
         String meta_sane = jsonMeta.replace('\'', '_')
         return "--meta '$meta_sane'"
     }

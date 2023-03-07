@@ -82,6 +82,23 @@ class QuiltObserver implements TraceObserver {
         }
         return null
     }
+
+    static QuiltPackage normalizePackage(QuiltPath path, Map params) {
+        log.debug("normalizePackage: $path $params")
+        String bkt = path.getBucket()
+        String pname = path.getPackageName()
+        params.each { key, value ->
+            String val = "$value"
+            log.debug("normalizePackage.each: $key, $val")
+            if (val.contains(bkt) && val.contains(pname)) {
+                QuiltPath npath = QuiltPathFactory.parse(val)
+                log.debug("normalizePackage.npath: $npath")
+                return npath.pkg()
+            }
+        }
+        return path.pkg()
+    }
+
     @Override
     void onFlowCreate(Session session) {
         log.debug("`onFlowCreate` $this")
@@ -97,7 +114,7 @@ class QuiltObserver implements TraceObserver {
         QuiltPath qPath = asQuiltPath(path)
 
         if (qPath) {
-            QuiltPackage pkg = qPath.pkg()
+            QuiltPackage pkg = normalizePackage(qPath, session.getParams())
             this.pkgs.add(pkg)
             log.debug("onFilePublish.QuiltPath[$qPath]: pkgs=${pkgs}")
         } else {
@@ -129,7 +146,7 @@ class QuiltObserver implements TraceObserver {
             """.stripIndent()
     }
 
-    void publish(QuiltPackage pkg) {
+    int publish(QuiltPackage pkg) {
         String msg = pkg
         Map meta = [pkg: msg]
         String text = 'Stub README'
@@ -146,6 +163,11 @@ class QuiltObserver implements TraceObserver {
         writeString("$meta", pkg, 'quilt_metadata.txt')
         def rc = pkg.push(msg, meta)
         log.info("$rc: pushed package[$pkg] $msg")
+        if (rc > 0) {
+            print("ERROR[package push failed]: $pkg")
+        }
+
+        return rc
     }
 
     Map getMetadata() {

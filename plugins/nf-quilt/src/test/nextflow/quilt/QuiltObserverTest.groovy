@@ -18,6 +18,7 @@ package nextflow.quilt.nio
 
 import nextflow.quilt.QuiltSpecification
 import nextflow.quilt.QuiltObserver
+import nextflow.quilt.jep.QuiltPackage
 
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -45,6 +46,24 @@ class QuiltObserverTest extends QuiltSpecification {
         expect:
         QuiltObserver.asQuiltPath(unpkg) == null
         QuiltObserver.asQuiltPath(pkg).toString() == 'quilt-example#package=examples%2fhurdat'
+    }
+
+    void 'replace path with original params if present'() {
+        given:
+        Map params = [outdir: fullURL]
+        String subURL = fullURL.replace('?key=val&key2=val2', '')
+        print("subURL $subURL")
+        QuiltPath path = QuiltPathFactory.parse(subURL)
+        String noURL = subURL.replace('bkt', 'bucket')
+        print("noURL $noURL")
+        QuiltPath no_path = QuiltPathFactory.parse(noURL)
+        QuiltPackage pkg = QuiltObserver.normalizePackage(path, params)
+        QuiltPackage no_pkg = QuiltObserver.normalizePackage(no_path, params)
+        expect:
+        pkg
+        !pkg.key_meta().contains('{}')
+        no_pkg
+        no_pkg.key_meta().contains('{}')
     }
 
 }

@@ -16,8 +16,6 @@ class QuiltParserTest extends QuiltSpecification {
     private static final String REL_URL = 'quilt+s3://bucket-name#package=quilt/test@abc1&path=sub%2F..%2Fpath'
     private static final String TEST_URL =
         'quilt+s3://quilt-ernest-staging#package=nf-quilt/sarek/pipeline_info/execution_trace_2022-10-13_01-01-31.txt'
-    private static final String FULL_URL =
-        'quilt+s3://bkt?key=val&key2=val2#package=pre/suf@ab&path=p/t&property=prop&workflow=wf&catalog=quiltdata.com'
 
     void 'should host Quilt URL scheme'() {
         expect:
@@ -101,7 +99,7 @@ class QuiltParserTest extends QuiltSpecification {
 
     void 'should extract other parameters from URI'() {
         when:
-        QuiltParser parser = QuiltParser.forUriString(FULL_URL)
+        QuiltParser parser = QuiltParser.forUriString(fullURL)
         Map<String,Object> meta = parser.getMetadata()
 
         then:

@@ -49,12 +49,17 @@ class QuiltSpecification extends Specification {
 
     @Shared String writeBucket
 
+    @Shared String fullURL
+
     void setupSpec() {
         // reset previous instances
         PluginExtensionProvider.reset()
         // this need to be set *before* the plugin manager class is created
         writeBucket =  System.getenv('WRITE_BUCKET')
         pluginsMode = System.getProperty('pf4j.mode')
+        fullURL = 'quilt+s3://bkt?key=val&key2=val2' +
+                  '#package=pre/suf@ab&path=p/t&property=prop&workflow=wf&catalog=quiltdata.com'
+
         System.setProperty('pf4j.mode', 'dev')
         // the plugin root should
         Path root = Path.of('.').toAbsolutePath().normalize()
