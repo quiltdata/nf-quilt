@@ -90,8 +90,13 @@ class QuiltParser {
         return params.join('&')
     }
 
-    QuiltParser(String bucket, String pkg, String path,
-                Map<String,Object> options = [:], Map<String,Object> metadata = [:]) {
+    QuiltParser(
+        String bucket,
+        String pkg,
+        String path,
+        Map<String,Object> options = [:],
+        Map<String,Object> metadata = [:]
+    ) {
         this.bucket = bucket
         this.paths = path ? path.split(SEP) : [] as String[]
         this.packageName = parsePkg(pkg)
