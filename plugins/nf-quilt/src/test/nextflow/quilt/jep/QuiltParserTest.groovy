@@ -114,4 +114,13 @@ class QuiltParserTest extends QuiltSpecification {
         meta['key2'] == 'val2'
     }
 
+    void 'should unparse other parameters back to URI'() {
+        when:
+        QuiltParser parser = QuiltParser.forUriString(fullURL)
+        String unparsed = parser.toUriString()
+
+        then:
+        unparsed.replace('%2f', '/') == fullURL
+    }
+
 }

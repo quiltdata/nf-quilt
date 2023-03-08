@@ -17,6 +17,7 @@ package nextflow.quilt.jep
 
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
+import java.nio.charset.StandardCharsets
 
 @Slf4j
 @CompileStatic
@@ -77,6 +78,16 @@ class QuiltParser {
         if (!query) { return [:] } // skip for urls without query params
         final queryParams = query.split('&')
         return queryParams.collectEntries { params -> params.split('=').collect { param -> URLDecoder.decode(param) } }
+    }
+
+    static String unparseQuery(Map<String,Object> query) {
+        if (!query) { return '' } // skip for urls without query params
+        String[] params = query.collect {  key, val ->
+            String k = URLEncoder.encode(key, StandardCharsets.UTF_8)
+            String v = URLEncoder.encode(val.toString(), StandardCharsets.UTF_8)
+            "${k}=${v}"
+        }
+        return params.join('&')
     }
 
     QuiltParser(String bucket, String pkg, String path,
@@ -223,6 +234,9 @@ class QuiltParser {
 
     String toPackageString() {
         String str = "${getBucket()}"
+        if (metadata) {
+            str += "?${unparseQuery(metadata)}"
+        }
         if (packageName) {
             String pkg = packageName
             if (hash) { pkg += "@$hash" }
@@ -237,6 +251,15 @@ class QuiltParser {
         if (!hasPath()) { return str }
         str += (packageName) ? '&' : '#'
         str += "path=${getPath().replace('/', '%2f')}"
+        if (propertyName) {
+            str += "&property=${propertyName}"
+        }
+        if (workflowName) {
+            str += "&workflow=${workflowName}"
+        }
+        if (catalogName) {
+            str += "&catalog=${catalogName}"
+        }
         return str
     }
 
