@@ -17,6 +17,7 @@ package nextflow.quilt.jep
 
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
+import java.nio.charset.StandardCharsets
 
 @Slf4j
 @CompileStatic
@@ -27,15 +28,29 @@ class QuiltParser {
     static final String PREFIX = SCHEME + '://'
     static final int MIN_SIZE = 2
 
-    static final String P_PKG = 'package'
+    static final String P_CAT = 'catalog'
+    static final String P_DEST = 'dest'
+    static final String P_DREG = 'dest-registry'
+    static final String P_DIR = 'dir'
+    static final String P_HASH = 'top-hash'
     static final String P_PATH = 'path'
+    static final String P_PKG = 'package'
+    static final String P_PROP = 'property'
+    static final String P_REG = 'registry'
+    static final String P_WORK = 'workflow'
+    static final String[] INSTALL_KEYS = [P_REG, P_DEST, P_DREG, P_HASH, P_PATH]
+    static final String[] PUSH_KEYS = [P_REG, P_DIR, P_WORK]
 
     private final String bucket
     private final String packageName
+    private final String propertyName
+    private final String workflowName
+    private final String catalogName
     private String[] paths
     private String hash
     private String tag
     private final Map<String,Object> options
+    private final Map<String,Object> metadata
 
     static QuiltParser forBarePath(String path) {
         return QuiltParser.forUriString(PREFIX + path)
@@ -53,9 +68,10 @@ class QuiltParser {
             throw new IllegalArgumentException(msg)
         }
         def options = parseQuery(uri.fragment)
+        def metadata = parseQuery(uri.query)
         String pkg = options.get(P_PKG)
         String path = options.get(P_PATH)
-        return new QuiltParser(uri.authority, pkg, path, options)
+        return new QuiltParser(uri.authority, pkg, path, options, metadata)
     }
 
     static Map<String,Object> parseQuery(String query) {
@@ -64,11 +80,31 @@ class QuiltParser {
         return queryParams.collectEntries { params -> params.split('=').collect { param -> URLDecoder.decode(param) } }
     }
 
-    QuiltParser(String bucket, String pkg, String path, Map<String,Object> options = [:]) {
+    static String unparseQuery(Map<String,Object> query) {
+        if (!query) { return '' } // skip for urls without query params
+        String[] params = query.collect {  key, val ->
+            String k = URLEncoder.encode(key, StandardCharsets.UTF_8)
+            String v = URLEncoder.encode(val.toString(), StandardCharsets.UTF_8)
+            "${k}=${v}"
+        }
+        return params.join('&')
+    }
+
+    QuiltParser(
+        String bucket,
+        String pkg,
+        String path,
+        Map<String,Object> options = [:],
+        Map<String,Object> metadata = [:]
+    ) {
         this.bucket = bucket
         this.paths = path ? path.split(SEP) : [] as String[]
         this.packageName = parsePkg(pkg)
+        this.propertyName = options.get(P_PROP)
+        this.workflowName = options.get(P_WORK)
+        this.catalogName = options.get(P_CAT)
         this.options = options
+        this.metadata = metadata
     }
 
     String parsePkg(String pkg) {
@@ -156,6 +192,18 @@ class QuiltParser {
         return packageName
     }
 
+    String getPropertyName() {
+        return propertyName
+    }
+
+    String getWorkflowName() {
+        return workflowName
+    }
+
+    String getCatalogName() {
+        return catalogName
+    }
+
     String getHash() {
         return hash
     }
@@ -166,6 +214,10 @@ class QuiltParser {
 
     String getPath() {
         return paths.join(SEP)
+    }
+
+    Map<String,Object> getMetadata() {
+        return metadata
     }
 
     String path(int beginIndex, int endIndex) {
@@ -187,6 +239,9 @@ class QuiltParser {
 
     String toPackageString() {
         String str = "${getBucket()}"
+        if (metadata) {
+            str += "?${unparseQuery(metadata)}"
+        }
         if (packageName) {
             String pkg = packageName
             if (hash) { pkg += "@$hash" }
@@ -201,6 +256,15 @@ class QuiltParser {
         if (!hasPath()) { return str }
         str += (packageName) ? '&' : '#'
         str += "path=${getPath().replace('/', '%2f')}"
+        if (propertyName) {
+            str += "&property=${propertyName}"
+        }
+        if (workflowName) {
+            str += "&workflow=${workflowName}"
+        }
+        if (catalogName) {
+            str += "&catalog=${catalogName}"
+        }
         return str
     }
 

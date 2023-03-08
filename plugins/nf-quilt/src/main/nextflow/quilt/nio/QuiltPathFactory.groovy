@@ -33,9 +33,9 @@ import nextflow.file.FileHelper
 @CompileStatic
 class QuiltPathFactory extends FileSystemPathFactory {
 
-    static QuiltPath parse(String path) {
+    static QuiltPath parse(String uriString) {
         QuiltPathFactory factory = new QuiltPathFactory()
-        return (QuiltPath) factory.parseUri(path)
+        return (QuiltPath) factory.parseUri(uriString)
     }
 
     @Override

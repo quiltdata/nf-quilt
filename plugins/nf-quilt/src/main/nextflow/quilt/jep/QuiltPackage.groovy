@@ -16,6 +16,7 @@
 // https://medium.com/geekculture/how-to-execute-python-modules-from-java-2384041a3d6d
 package nextflow.quilt.jep
 
+import groovy.json.JsonOutput
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import java.nio.file.Files
@@ -37,6 +38,7 @@ class QuiltPackage {
 
     private final String bucket
     private final String packageName
+    private final QuiltParser parsed
     private final String hash
     private final Path folder
     private boolean installed
@@ -44,6 +46,22 @@ class QuiltPackage {
     static String today() {
         LocalDate date = LocalDate.now()
         return date.toString()
+    }
+
+    static String toJson(Map dict) {
+        List<String> entries = dict.collect { key, value ->
+            String prefix = JsonOutput.toJson(key)
+            String suffix = "toJson.error: ${value}"
+            log.debug("QuiltPackage.toJson: ${prefix} [${suffix.length()}]")
+            try {
+                suffix = JsonOutput.toJson(value)
+            }
+            catch (Exception e) {
+                log.error(suffix, e)
+            }
+            return "${prefix}:${suffix}".toString()
+        }
+        return "{${entries.join(',')}}".toString()
     }
 
     static QuiltPackage forParsed(QuiltParser parsed) {
@@ -87,6 +105,7 @@ class QuiltPackage {
     }
 
     QuiltPackage(QuiltParser parsed) {
+        this.parsed = parsed
         this.installed = false
         this.bucket = parsed.getBucket()
         this.packageName = parsed.getPackageName()
@@ -150,21 +169,28 @@ class QuiltPackage {
         return (hash == 'latest' || hash == null || hash == 'null') ? '' : "--top-hash $hash"
     }
 
-    String key_meta(String meta='[]') {
-        String meta_sane = meta.replace('\'', '_')
+    String key_meta(Map srcMeta = [:]) {
+        log.debug("key_meta.parsed ${parsed}")
+        log.debug("key_meta.srcMeta $srcMeta")
+        log.debug("key_meta.parsed.getMetadata ${parsed.getMetadata()}")
+        Map meta = srcMeta + parsed.getMetadata()
+        String jsonMeta = QuiltPackage.toJson(meta)
+        log.debug("key_meta.jsonMeta $jsonMeta")
+        String meta_sane = jsonMeta.replace('\'', '_')
         return "--meta '$meta_sane'"
     }
 
-    String key_msg(prefix='') {
-        return "--message 'nf-quilt:${prefix}@${today()}'"
-    }
-
-    String key_path() {
-        return "--path=${packageDest()}"
+    String key_msg(String prefix='') {
+        String fix = prefix.replace('\'', '_')
+        return "--message 'nf-quilt:${today()}-${fix}'"
     }
 
     String key_registry() {
         return "--registry s3://${bucket}"
+    }
+
+    String key_workflow() {
+        return (parsed.workflowName) ? "--workflow ${parsed.workflowName}" : ''
     }
 
     boolean isInstalled() {
@@ -235,9 +261,10 @@ class QuiltPackage {
         })
     }
     // https://docs.quiltdata.com/v/version-5.0.x/examples/gitlike#install-a-package
-    int push(String msg = 'update', String meta = '[]') {
+    int push(String msg = 'update', Map meta = [:]) {
         int exitCode = 0
-        exitCode = call('push', packageName, key_dir(), key_registry(), key_meta(meta), key_msg(msg))
+        String args = [key_dir(), key_registry(), key_meta(meta), key_msg(msg)].join(' ')
+        exitCode = call('push', packageName, args, key_workflow())
         return exitCode
     }
 

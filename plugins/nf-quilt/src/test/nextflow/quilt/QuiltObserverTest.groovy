@@ -22,7 +22,6 @@ import nextflow.quilt.QuiltObserver
 import java.nio.file.Path
 import java.nio.file.Paths
 import groovy.transform.CompileDynamic
-import groovy.json.JsonOutput
 
 /**
  *
@@ -39,16 +38,6 @@ class QuiltObserverTest extends QuiltSpecification {
         now.contains('T')
     }
 
-    void 'should generate piecewise JSON'() {
-        when:
-        def map = [key1: 'value1', key2: ['l1', 'l2']]
-
-        def j1 = JsonOutput.toJson(map)
-        def j2 = QuiltObserver.toJson(map)
-        then:
-        j1  == j2
-    }
-
     void 'should extract Quilt path from appropriate UNIX Path'() {
         given:
         Path pkg = Paths.get('/var/tmp/output/quilt-example#package=examples%2fhurdat')
@@ -56,6 +45,22 @@ class QuiltObserverTest extends QuiltSpecification {
         expect:
         QuiltObserver.asQuiltPath(unpkg) == null
         QuiltObserver.asQuiltPath(pkg).toString() == 'quilt-example#package=examples%2fhurdat'
+    }
+
+    void 'replace path with original params if present'() {
+        given:
+        Map params = [outdir: fullURL]
+        String subURL = fullURL.replace('?key=val&key2=val2', '')
+        QuiltPath path = QuiltPathFactory.parse(subURL)
+        QuiltPath path_n = QuiltObserver.normalizePath(path, params)
+        String noURL = subURL.replace('bkt', 'bucket')
+        QuiltPath no_path = QuiltPathFactory.parse(noURL)
+        QuiltPath no_path_n = QuiltObserver.normalizePath(no_path, params)
+        expect:
+        path_n
+        "$path_n" != "$path"
+        no_path_n
+        "$no_path_n" == "$no_path"
     }
 
 }

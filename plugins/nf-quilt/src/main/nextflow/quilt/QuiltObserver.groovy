@@ -25,7 +25,6 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import java.time.LocalDateTime
 
-import groovy.json.JsonOutput
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import nextflow.Session
@@ -84,20 +83,18 @@ class QuiltObserver implements TraceObserver {
         return null
     }
 
-    static String toJson(Map dict) {
-        List<String> entries = dict.collect { key, value ->
-            String prefix = JsonOutput.toJson(key)
-            String suffix = "Cannot generate JSON for: ${value}"
-            log.info("QuiltObserver.toJson: ${prefix} [${suffix.length()}]")
-            try {
-                suffix = JsonOutput.toJson(value)
+    static QuiltPath normalizePath(QuiltPath path, Map params) {
+        String bkt = path.getBucket()
+        String pname = path.getPackageName()
+        QuiltPath result = path
+        params.each { key, value ->
+            String val = "$value"
+            if (val.contains(bkt) && val.contains(pname)) {
+                QuiltPath npath = QuiltPathFactory.parse(val)
+                result = npath
             }
-            catch (Exception e) {
-                log.error(suffix, e)
-            }
-            return "${prefix}:${suffix}".toString()
         }
-        return "{${entries.join(',')}}".toString()
+        return result
     }
 
     @Override
@@ -115,8 +112,8 @@ class QuiltObserver implements TraceObserver {
         QuiltPath qPath = asQuiltPath(path)
 
         if (qPath) {
-            QuiltPackage pkg = qPath.pkg()
-            this.pkgs.add(pkg)
+            QuiltPath npath = normalizePath(qPath, session.getParams())
+            this.pkgs.add(npath.pkg())
             log.debug("onFilePublish.QuiltPath[$qPath]: pkgs=${pkgs}")
         } else {
             log.warn("onFilePublish.QuiltPath missing: $path")
@@ -147,25 +144,28 @@ class QuiltObserver implements TraceObserver {
             """.stripIndent()
     }
 
-    void publish(QuiltPackage pkg) {
+    int publish(QuiltPackage pkg) {
         String msg = pkg
         Map meta = [pkg: msg]
         String text = 'Stub README'
-        String jsonMeta = JsonOutput.toJson(meta)
         try {
             meta = getMetadata()
             msg = "${meta['config']['runName']}: ${meta['cmd']}"
             text = readme(meta, msg)
             meta.remove('config')
-            jsonMeta = QuiltObserver.toJson(meta)
         }
         catch (Exception e) {
             log.error('publish: cannot generate metadata (QuiltObserver uninitialized?)', e)
         }
         writeString(text, pkg, 'README.md')
         writeString("$meta", pkg, 'quilt_metadata.txt')
-        def rc = pkg.push(msg, jsonMeta)
+        def rc = pkg.push(msg, meta)
         log.info("$rc: pushed package[$pkg] $msg")
+        if (rc > 0) {
+            print("ERROR[package push failed]: $pkg")
+        }
+
+        return rc
     }
 
     Map getMetadata() {
