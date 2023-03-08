@@ -25,10 +25,8 @@ check-env:
 clean:
 	./gradlew clean
 	rm -rf work null results
-	rm -rf */*/build
-	rm -f .nextflow.log*
-	rm -f .launch.classpath
-	rm -rf plugins/nf-quilt/bin
+	rm -rf */*/build plugins/nf-quilt/bin
+	rm -f .nextflow.log* .launch.classpath
 
 compile:
 	./gradlew compileGroovy exportClasspath
