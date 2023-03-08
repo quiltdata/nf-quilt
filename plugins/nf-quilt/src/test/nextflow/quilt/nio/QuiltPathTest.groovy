@@ -250,4 +250,13 @@ class QuiltPathTest extends QuiltSpecification {
         'bucket#package=so%2fme&path=foo' | 'bucket#package=so%2fme&path=foo%2fbar'    | 'bar'
     }
 
+    void 'should reconstruct full URLs'() {
+        given:
+        QuiltPath pkgPath = QuiltPathFactory.parse(PKG_URL)
+        QuiltPath fullPath = QuiltPathFactory.parse(fullURL)
+        expect:
+        !pkgPath.toUriString().contains('?')
+        fullPath.toUriString().contains('?')
+    }
+
 }

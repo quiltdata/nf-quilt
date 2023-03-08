@@ -83,20 +83,18 @@ class QuiltObserver implements TraceObserver {
         return null
     }
 
-    static QuiltPackage normalizePackage(QuiltPath path, Map params) {
-        log.debug("normalizePackage: $path $params")
+    static QuiltPath normalizePath(QuiltPath path, Map params) {
         String bkt = path.getBucket()
         String pname = path.getPackageName()
+        QuiltPath result = path
         params.each { key, value ->
             String val = "$value"
-            log.debug("normalizePackage.each: $key, $val")
             if (val.contains(bkt) && val.contains(pname)) {
                 QuiltPath npath = QuiltPathFactory.parse(val)
-                log.debug("normalizePackage.npath: $npath")
-                return npath.pkg()
+                result = npath
             }
         }
-        return path.pkg()
+        return result
     }
 
     @Override
@@ -114,8 +112,8 @@ class QuiltObserver implements TraceObserver {
         QuiltPath qPath = asQuiltPath(path)
 
         if (qPath) {
-            QuiltPackage pkg = normalizePackage(qPath, session.getParams())
-            this.pkgs.add(pkg)
+            QuiltPath npath = normalizePath(qPath, session.getParams())
+            this.pkgs.add(npath.pkg())
             log.debug("onFilePublish.QuiltPath[$qPath]: pkgs=${pkgs}")
         } else {
             log.warn("onFilePublish.QuiltPath missing: $path")

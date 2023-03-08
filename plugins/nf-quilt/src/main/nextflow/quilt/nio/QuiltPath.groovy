@@ -48,7 +48,7 @@ final class QuiltPath implements Path, Comparable {
         this.filesystem = filesystem
         this.parsed = parsed
         this.paths = parsed.getPaths()
-        log.debug("Creating QuiltPath: $paths")
+        log.debug("Creating QuiltPath: $parsed")
     }
 
     String getBucket() {
