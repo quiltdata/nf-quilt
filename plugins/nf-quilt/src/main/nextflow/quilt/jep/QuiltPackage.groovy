@@ -52,7 +52,7 @@ class QuiltPackage {
         List<String> entries = dict.collect { key, value ->
             String prefix = JsonOutput.toJson(key)
             String suffix = "toJson.error: ${value}"
-            log.info("QuiltPackage.toJson: ${prefix} [${suffix.length()}]")
+            log.debug("QuiltPackage.toJson: ${prefix} [${suffix.length()}]")
             try {
                 suffix = JsonOutput.toJson(value)
             }
@@ -180,8 +180,9 @@ class QuiltPackage {
         return "--meta '$meta_sane'"
     }
 
-    String key_msg(prefix='') {
-        return "--message 'nf-quilt:${prefix}@${today()}'"
+    String key_msg(String prefix='') {
+        String fix = prefix.replace('\'', '_')
+        return "--message 'nf-quilt:${today()}-${fix}'"
     }
 
     String key_registry() {
