@@ -43,7 +43,12 @@ class QuiltBenchling {
 
     RESTClient realClient() {
         String tenant = System.getenv('BENCHLING_TENANT')
-        String api_key = System.getenv('BENCHLING_TENANT')
+        String api_key = System.getenv('BENCHLING_API_KEY')
+        if (api_key == null || !tenant.startsWith('https://')) {
+            log.error("missing_envars.BENCHLING_TENANT[$tenant].BENCHLING_API_KEY[$api_key]")
+            return null
+        }
+
         RESTClient client = new RESTClient(tenant)
         client.headers['Authorization'] = "Basic ${api_key}"
         return client
