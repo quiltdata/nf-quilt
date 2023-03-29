@@ -1,54 +1,82 @@
+/* groovylint-disable UnusedMethodParameter */
 package com.benchling.api
 
-import static groovyx.net.http.HttpBuilder.configure
-import static java.net.URI.create
+import groovy.util.logging.Slf4j
+import groovy.transform.CompileStatic
+import groovyx.net.http.RESTClient
+import groovyx.net.http.HttpResponseDecorator
 
+@Slf4j
+@CompileStatic
 class ApiUtils {
 
-    void invokeApi(onSuccess, onFailure, basePath, versionPath, resourcePath, queryParams, headerParams, bodyParams, contentType, method, container, type)  {
-        def (url, uriPath) = buildUrlAndUriPath(basePath, versionPath, resourcePath)
-        println "url=$url uriPath=$uriPath"
-        def http = configure {
-            request.uri = url
-            request.uri.path = uriPath
-        }
-        .invokeMethod(String.valueOf(method).toLowerCase()) {
-            request.uri.query = queryParams
-            request.headers = headerParams
-            if (bodyParams != null) {
-                request.body = bodyParams
-            }
-            request.contentType = contentType
-
-            response.success { resp, json ->
-                if (type != null) {
-                    onSuccess(parse(json, container, type))
-                }
-            }
-            response.failure { resp ->
-                onFailure(resp.statusCode, resp.message)
-            }
+    RESTClient getClient(String basePath) {
+        String tenant = basePath || System.getenv('BENCHLING_TENANT')
+        String api_key = System.getenv('BENCHLING_API_KEY')
+        if (api_key == null || !tenant.startsWith('https://')) {
+            log.error("missing_envars.BENCHLING_TENANT[$tenant].BENCHLING_API_KEY[$api_key]")
+            return null
         }
 
+        RESTClient client = new RESTClient(tenant)
+        client.headers['Authorization'] = "Basic ${api_key}"
+        return client
     }
 
-    private static def buildUrlAndUriPath(basePath, versionPath, resourcePath) {
-        // HTTPBuilder expects to get as its constructor parameter an URL,
-        // without any other additions like path, therefore we need to cut the path
-        // from the basePath as it is represented by swagger APIs
-        // we use java.net.URI to manipulate the basePath
-        // then the uriPath will hold the rest of the path
-        URI baseUri =  create(basePath)
-        def pathOnly = baseUri.getPath()
-        [basePath-pathOnly, pathOnly+versionPath+resourcePath]
+    HttpResponseDecorator http_call(Map<String,?> args) {
+        RESTClient http = getClient((String) args.uri)
+        String method = String.valueOf(args.method).toLowerCase()
+        switch (method) {
+        case 'path':
+                return (HttpResponseDecorator) http.patch(args)
+        case 'post':
+                return (HttpResponseDecorator) http.post(args)
+        case 'put':
+                return (HttpResponseDecorator) http.put(args)
+        default:
+            return (HttpResponseDecorator) http.get(args)
+        }
     }
 
-    private def parse(object, container, clazz) {
-        if (container == "array") {
-            return object.collect {parse(it, "", clazz)}
-        }   else {
-            return clazz.newInstance(object)
+    /* groovylint-disable-next-line ParameterCount */
+    Object invokeApi(
+        Closure onSuccess,
+        Closure onFailure,
+        String basePath,
+        String versionPath,
+        String resourcePath,
+        Map queryParams,
+        Map headerParams,
+        Object bodyParams,
+        Object contentType,
+        String method,
+        String container,
+        Class type
+        )  {
+
+        println "url=$basePath uriPath=$resourcePath query=$queryParams"
+        HttpResponseDecorator resp = http_call(
+            method : method,
+            uri : basePath,
+            path : resourcePath,
+            body : bodyParams,
+            query : queryParams,
+            contentType : contentType,
+        )
+
+        if (resp.isSuccess() && type != null) {
+            String json = resp.getData()
+            onSuccess(parse(json, container, type))
+        } else {
+            onFailure(resp.getStatus(), resp.getStatusLine())
         }
+    }
+
+    private Object parse(object, container, Class clazz) {
+        if (container == 'array') {
+            return object.collect { dict -> parse(dict, '', clazz) }
+        }
+        return clazz.newInstance(object)
     }
 
 }

@@ -1,11 +1,12 @@
-package com.benchling.model;
+package com.benchling.model
 
 import groovy.transform.Canonical
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import groovy.transform.CompileStatic
 
+@CompileStatic
 @Canonical
 class EntryUpdate {
+
     /* IDs of users to set as the entry's authors. */
     String authorIds
     /* Schema fields to set on the entry */
@@ -16,4 +17,5 @@ class EntryUpdate {
     String name
     /* ID of the schema for the entry */
     String schemaId
+
 }

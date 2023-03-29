@@ -96,6 +96,7 @@ allprojects {
 
     dependencies {
         // see https://docs.gradle.org/4.1/userguide/dependency_management.html#sec:module_replacement
+        implementation 'io.github.http-builder-ng:http-builder-ng-core:1.0.4'
         implementation 'org.codehaus.groovy:groovy-all:3.0.16'
         implementation 'org.codehaus.groovy.modules.http-builder:http-builder:0.7.1'
         implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.14.2'
@@ -103,7 +104,6 @@ allprojects {
         modules {
             module('commons-logging:commons-logging') { replacedBy('org.slf4j:jcl-over-slf4j') }
         }
-
         // Documentation required libraries
         groovyDoc 'org.fusesource.jansi:jansi:2.4.0'
         groovyDoc 'org.codehaus.groovy:groovy-groovydoc:3.0.16'

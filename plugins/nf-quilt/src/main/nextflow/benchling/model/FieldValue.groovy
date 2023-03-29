@@ -1,9 +1,10 @@
-package com.benchling.model;
+package com.benchling.model
 
 import groovy.transform.Canonical
-import io.swagger.annotations.ApiModel;
-import java.math.BigDecimal;
+import groovy.transform.CompileStatic
 
+@CompileStatic
 @Canonical
 class FieldValue {
+
 }

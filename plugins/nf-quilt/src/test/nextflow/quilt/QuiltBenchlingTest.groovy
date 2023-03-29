@@ -42,6 +42,7 @@ class QuiltBenchlingTest extends QuiltSpecification {
         when:
         QuiltBenchling qb = new QuiltBenchling()
         then:
+        assert false
         assert qb.realClient()
     }
 
