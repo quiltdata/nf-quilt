@@ -1,5 +1,5 @@
 /* groovylint-disable UnusedMethodParameter */
-package com.benchling.api
+package benchling.api
 
 import groovy.util.logging.Slf4j
 import groovy.transform.CompileStatic

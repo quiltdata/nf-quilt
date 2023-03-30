@@ -1,9 +1,9 @@
 /* groovylint-disable LineLength */
-package com.benchling.api
+package benchling.api
 
-import com.benchling.model.Entry
-import com.benchling.model.EntryById
-import com.benchling.model.EntryUpdate
+import benchling.model.Entry
+import benchling.model.EntryById
+import benchling.model.EntryUpdate
 import groovy.transform.CompileStatic
 
 @CompileStatic

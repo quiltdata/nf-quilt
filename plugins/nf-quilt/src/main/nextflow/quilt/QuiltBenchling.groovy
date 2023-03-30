@@ -19,6 +19,7 @@ import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import groovyx.net.http.RESTClient
 import groovyx.net.http.HttpResponseDecorator
+// import benchling.model.Entry
 
 /**
  * Push Quilt package data to Benchling notebook

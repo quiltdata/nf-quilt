@@ -18,6 +18,7 @@ package nextflow.quilt.nio
 
 import nextflow.quilt.QuiltSpecification
 import nextflow.quilt.QuiltBenchling
+import benchling.api.EntriesApi
 
 import groovy.transform.CompileDynamic
 import spock.lang.IgnoreIf
@@ -29,20 +30,34 @@ import spock.lang.IgnoreIf
 @CompileDynamic
 class QuiltBenchlingTest extends QuiltSpecification {
 
-    @IgnoreIf({ env.BENCHLING_TENANT != null && env.BENCHLING_API_KEY != null })
-    void 'realClient() returns null if missing envars'() {
+    void 'can access Benchling EntriesApi'() {
+        when:
+        def api = new EntriesApi()
+        then:
+        assert api
+    }
+
+    @IgnoreIf({ env.BENCHLING_TENANT != null })
+    void 'realClient returns null if missing envars'() {
         when:
         QuiltBenchling qb = new QuiltBenchling()
         then:
         assert !qb.realClient()
     }
 
-    @IgnoreIf({ env.BENCHLING_TENANT == null || env.BENCHLING_API_KEY == null })
-    void 'realClient() returns RESTclient if valid envars'() {
+    @IgnoreIf({ env.BENCHLING_TENANT != null })
+    void 'realClient returns null if missing envars'() {
         when:
         QuiltBenchling qb = new QuiltBenchling()
         then:
-        assert false
+        assert !qb.realClient()
+    }
+
+    @IgnoreIf({ env.BENCHLING_TENANT == null })
+    void 'realClient returns RESTclient if valid envars'() {
+        when:
+        QuiltBenchling qb = new QuiltBenchling()
+        then:
         assert qb.realClient()
     }
 
