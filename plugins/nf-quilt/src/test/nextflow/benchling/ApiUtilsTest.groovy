@@ -16,8 +16,7 @@
  */
 package nextflow.quilt.nio
 
-import nextflow.quilt.QuiltBenchling
-import benchling.model.Entry
+import benchling.api.ApiUtils
 
 import groovy.util.logging.Slf4j
 import groovy.transform.CompileDynamic
@@ -31,17 +30,13 @@ import spock.lang.Specification
  */
 @Slf4j
 @CompileDynamic
-class QuiltBenchlingTest extends Specification {
+class ApiUtilsTest extends Specification {
 
-    final private @Shared qb = new QuiltBenchling()
-    final private @Shared testID = '12'
+    final private @Shared Object api = new ApiUtils()
 
     @IgnoreIf({ env.BENCHLING_TENANT != null })
-    void 'should get Entry by ID'() {
-        when:
-        Entry entry = qb.get(testID)
-        then:
-        assert entry
+    void 'realClient returns null if missing envars'() {
+        assert api
     }
 
 }

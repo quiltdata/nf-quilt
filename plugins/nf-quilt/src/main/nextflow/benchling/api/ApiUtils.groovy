@@ -1,6 +1,7 @@
 /* groovylint-disable UnusedMethodParameter */
 package benchling.api
 
+import groovy.json.JsonSlurper
 import groovy.util.logging.Slf4j
 import groovy.transform.CompileStatic
 import groovyx.net.http.RESTClient
@@ -64,8 +65,11 @@ class ApiUtils {
             contentType : contentType,
         )
 
+        log.debug("invokeApi.resp $resp")
         if (resp.isSuccess() && type != null) {
-            String json = resp.getData()
+            String json_string = resp.getData()
+            def jsonSlurper = new JsonSlurper()
+            def json = jsonSlurper.parseText(json_string)
             onSuccess(parse(json, container, type))
         } else {
             onFailure(resp.getStatus(), resp.getStatusLine())

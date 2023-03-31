@@ -17,9 +17,8 @@ package nextflow.quilt
 
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
-import groovyx.net.http.RESTClient
-import groovyx.net.http.HttpResponseDecorator
-// import benchling.model.Entry
+import benchling.model.Entry
+import benchling.api.EntriesApi
 
 /**
  * Push Quilt package data to Benchling notebook
@@ -30,35 +29,20 @@ import groovyx.net.http.HttpResponseDecorator
 @CompileStatic
 class QuiltBenchling {
 
-    private final static String MOCK_URI = 'https://mock-benchling.free.beeceptor.com'
-    private final RESTClient client
+    private final EntriesApi api
 
-    QuiltBenchling(boolean isMock=false) {
-        log.debug("Creating QuiltBenchling: $isMock")
-        client = isMock ? mockClient() : realClient()
+    QuiltBenchling() {
+        api = new EntriesApi()
+        log.debug("Creating QuiltBenchling: $api")
     }
 
-    RESTClient mockClient() {
-        return new RESTClient(QuiltBenchling.MOCK_URI)
-    }
-
-    RESTClient realClient() {
-        String tenant = System.getenv('BENCHLING_TENANT')
-        String api_key = System.getenv('BENCHLING_API_KEY')
-        if (api_key == null || !tenant.startsWith('https://')) {
-            log.error("missing_envars.BENCHLING_TENANT[$tenant].BENCHLING_API_KEY[$api_key]")
+    Entry get(String entryId) {
+        api.getEntry(entryId) { entry ->
+            return entry
+        } {
             return null
         }
-
-        RESTClient client = new RESTClient(tenant)
-        client.headers['Authorization'] = "Basic ${api_key}"
-        return client
-    }
-
-    HttpResponseDecorator get() {
-        def authenticationTokenRequestParams = ['key':'AAABBBCCC123', 'user':'myauthemail@bla.com']
-        Object resp = client.get(path : '/authenticate', query : authenticationTokenRequestParams)
-        return (HttpResponseDecorator) resp
+        return null
     }
 
 }
