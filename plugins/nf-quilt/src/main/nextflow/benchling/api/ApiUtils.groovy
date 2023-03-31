@@ -74,7 +74,7 @@ class ApiUtils {
         } else {
             onFailure(resp.getStatus(), resp.getStatusLine())
         }
-    }
+        }
 
     private Object parse(object, container, Class clazz) {
         if (container == 'array') {
