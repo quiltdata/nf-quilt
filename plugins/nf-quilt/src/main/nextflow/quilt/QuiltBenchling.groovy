@@ -40,10 +40,10 @@ class QuiltBenchling {
     Entry get(String entryId) {
         Entry result = null
         api.getEntry(entryId) { EntryById byid ->
-            println "Successfully retrieved byid: $byid"
+            log.debug "Successfully retrieved byid: $byid"
             result = byid.entry
         } { error ->
-            println "Failed to retrieve byid: $error"
+            log.debug "Failed to retrieve byid: $error"
         }
         return result
     }

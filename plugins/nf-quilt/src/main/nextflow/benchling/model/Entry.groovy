@@ -9,21 +9,21 @@ import groovy.transform.CompileStatic
 class Entry {
 
     /* The canonical url of the Entry in the API. */
-    URI apiURL
+    String apiURL
 
-    //EntryArchiveRecord archiveRecord
+    EntryArchiveRecord archiveRecord
     /* Array of users assigned to review the entry, if any.  */
-    //List<UserSummary> assignedReviewers = []
+    List<UserSummary> assignedReviewers = []
     /* Array of UserSummary Resources of the authors of the entry. This defaults to the creator but can be manually changed.  */
-    //List<UserSummary> authors = []
+    List<UserSummary> authors = []
     /* DateTime the entry was created at */
-    Date createdAt
+    String createdAt
 
-    //EntryCreator creator
+    EntryCreator creator
 
-    // Map<String, CustomField> customFields = [:]
+    Map<String, CustomField> customFields = [:]
     /* Array of day objects. Each day object has a date field (string) and notes field (array of notes, expand further for details on note types).  */
-    //List<EntryDay> days = []
+    List<EntryDay> days = []
     /* User-friendly ID of the entry */
     String displayId
     /* ID of the Entry Template this Entry was created from */
@@ -39,9 +39,9 @@ class Entry {
     /* Title of the entry */
     String name
 
-    //EntryReviewRecord reviewRecord
+    EntryReviewRecord reviewRecord
 
-    //SchemaProperty4 schema
+    SchemaProperty4 schema
     /* URL of the entry */
     String webURL
 
