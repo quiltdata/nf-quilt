@@ -130,7 +130,7 @@ NextFlow itself will take care of all the other dependencies.
 You can verify and compile NextFlow with:
 
 ```bash
-make nextflow-22-10
+make nextflow
 ```
 
 ### Testing Installation

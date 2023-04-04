@@ -32,16 +32,17 @@ compile:
 	./gradlew compileGroovy exportClasspath
 	@echo "DONE `date`"
 
-nextflow-22-10:
+nextflow:
 	if [ ! -d "$(NF_DIR)" ]; then git clone https://github.com/nextflow-io/nextflow.git  "$(NF_DIR)"; fi
-	pushd "$(NF_DIR)"; git checkout 4f776ef -b v22_10_6_$(PID) && make compile && git restore .; popd
+	pushd "$(NF_DIR)"; git checkout && make compile && git restore .; popd
+	# b 4f776ef -b v22_10_6_$(PID) 
 	# https://github.com/nextflow-io/nextflow/releases/tag/v22.10.6
 
 install-python:
 	if [ ! -x "$(QUILT3)" ]; then $(PIP) install quilt3 ; fi
 	which quilt3
 
-compile-all: install-python nextflow-22-10 compile
+compile-all: install-python nextflow compile
 
 check:
 	./gradlew check --warning-mode all
@@ -53,7 +54,7 @@ coverage: compile
 
 test: clean compile check #coverage
 
-test-nextflow: clean nextflow-22-10 compile check #coverage
+test-nextflow: clean nextflow compile check #coverage
 
 test-all: clean compile-all check #coverage
 
