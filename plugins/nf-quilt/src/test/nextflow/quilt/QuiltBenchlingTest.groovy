@@ -44,4 +44,12 @@ class QuiltBenchlingTest extends Specification {
         assert entry
     }
 
+    @IgnoreIf({ env.BENCHLING_TENANT == null })
+    void 'should update Entry by ID'() {
+        when:
+        Entry entry = qb.update(testID, 'field', 'test')
+        then:
+        assert entry
+    }
+
 }

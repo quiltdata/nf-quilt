@@ -18,6 +18,7 @@ package nextflow.quilt
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import benchling.model.Entry
+import benchling.model.EntryUpdate
 import benchling.model.EntryById
 import benchling.api.EntriesApi
 
@@ -41,6 +42,19 @@ class QuiltBenchling {
         Entry result = null
         api.getEntry(entryId) { EntryById byid ->
             log.debug "Successfully retrieved byid: $byid"
+            result = byid.entry
+        } { error ->
+            log.debug "Failed to retrieve byid: $error"
+        }
+        return result
+    }
+
+    Entry update(String entryId, String field, String value) {
+        EntryUpdate update = new EntryUpdate()
+        update.fields = [(field): value]
+        Entry result = null
+        api.updateEntry(entryId, update) { EntryById byid ->
+            log.debug "Successfully updated byid: $byid"
             result = byid.entry
         } { error ->
             log.debug "Failed to retrieve byid: $error"

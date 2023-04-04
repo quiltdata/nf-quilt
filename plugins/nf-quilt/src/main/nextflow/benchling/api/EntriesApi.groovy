@@ -1,7 +1,6 @@
 /* groovylint-disable LineLength */
 package benchling.api
 
-import benchling.model.Entry
 import benchling.model.EntryById
 import benchling.model.EntryUpdate
 import groovy.transform.CompileStatic
@@ -50,7 +49,7 @@ class EntriesApi {
 
         apiUtils.invokeApi(onSuccess, onFailure, null, null, resourcePath, queryParams, headerParams, bodyParams, contentType,
             'PATCH', '',
-            Entry
+            EntryById
         )
     }
 

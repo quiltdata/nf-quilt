@@ -43,7 +43,7 @@ class ApiUtils {
             //body: args.body,
         ]
         switch (method) {
-        case 'path':
+        case 'patch':
                 return http.patch(opts)
         case 'post':
                 return http.post(opts)
@@ -80,7 +80,7 @@ class ApiUtils {
             contentType : contentType,
         )
 
-        log.debug("invokeApi.resp $resp")
+        log.debug("invokeApi.resp[$method] $resp")
         String json_string = resp.getContentAsString()
         log.debug("invokeApi.json_string $json_string")
         if (resp.statusCode == 200 && type != null) {
