@@ -9,8 +9,6 @@ import groovy.transform.CompileStatic
 @CompileStatic
 class EntriesApi {
 
-    String basePath = 'https://benchling.com/api/v2'
-    String versionPath = ''
     ApiUtils apiUtils = new ApiUtils()
 
     void getEntry(String entryId, Closure onSuccess, Closure onFailure) {
@@ -27,7 +25,7 @@ class EntriesApi {
             throw new MissingPropertyException('missing required params entryId')
         }
 
-        apiUtils.invokeApi(onSuccess, onFailure, basePath, versionPath, resourcePath, queryParams, headerParams, bodyParams, contentType,
+        apiUtils.invokeApi(onSuccess, onFailure, null, null, resourcePath, queryParams, headerParams, bodyParams, contentType,
             'GET', '',
             EntryById
         )
@@ -50,7 +48,7 @@ class EntriesApi {
         contentType = 'application/json'
         bodyParams = entryUpdate
 
-        apiUtils.invokeApi(onSuccess, onFailure, basePath, versionPath, resourcePath, queryParams, headerParams, bodyParams, contentType,
+        apiUtils.invokeApi(onSuccess, onFailure, null, null, resourcePath, queryParams, headerParams, bodyParams, contentType,
             'PATCH', '',
             Entry
         )

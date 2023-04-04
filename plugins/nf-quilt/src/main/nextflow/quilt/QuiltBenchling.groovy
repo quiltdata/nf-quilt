@@ -18,6 +18,7 @@ package nextflow.quilt
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import benchling.model.Entry
+import benchling.model.EntryById
 import benchling.api.EntriesApi
 
 /**
@@ -37,12 +38,14 @@ class QuiltBenchling {
     }
 
     Entry get(String entryId) {
-        api.getEntry(entryId) { entry ->
-            return entry
-        } {
-            return null
+        Entry result = null
+        api.getEntry(entryId) { EntryById byid ->
+            println "Successfully retrieved byid: $byid"
+            result = byid.entry
+        } { error ->
+            println "Failed to retrieve byid: $error"
         }
-        return null
+        return result
     }
 
 }

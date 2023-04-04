@@ -34,9 +34,9 @@ import spock.lang.Specification
 class QuiltBenchlingTest extends Specification {
 
     final private @Shared qb = new QuiltBenchling()
-    final private @Shared testID = '12'
+    final private @Shared testID = '1'
 
-    @IgnoreIf({ env.BENCHLING_TENANT != null })
+    @IgnoreIf({ env.BENCHLING_TENANT == null })
     void 'should get Entry by ID'() {
         when:
         Entry entry = qb.get(testID)
