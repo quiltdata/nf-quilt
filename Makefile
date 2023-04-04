@@ -26,7 +26,7 @@ clean:
 	./gradlew clean
 	rm -rf work null results
 	rm -rf */*/build plugins/nf-quilt/bin
-	rm -f .nextflow.log* .launch.classpath
+	rm -f .nextflow.log* .launch*classpath
 
 compile:
 	./gradlew compileGroovy exportClasspath
@@ -97,8 +97,8 @@ refresh:
 #
 # Run all tests or selected ones
 #
-test:
-	./gradlew ${mm}test
+#test:
+#	./gradlew ${mm}test
 
 test-class:
 	./gradlew ${mm}test --tests ${class}

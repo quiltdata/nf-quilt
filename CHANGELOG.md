@@ -2,6 +2,10 @@
 
 ## UNRELEASED
 
+## [0.3.4] 2023-03-28
+
+- Call Benchling API
+
 ## [0.3.3] 2023-03-08
 
 - Fail gracefully on `quilt3` errors
