@@ -6,6 +6,7 @@
 
 - Call Benchling API
 - accept "?force=true&commit_message=text+string" in Quilt+ URI
+- Plugin-Requires: >=22.10.6
 
 ## [0.3.3] 2023-03-08
 
