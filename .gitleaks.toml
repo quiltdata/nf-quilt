@@ -1,0 +1,14 @@
+title = "gitleaks config"
+
+[extend]
+# useDefault will extend the base configuration with the default gitleaks config:
+# https://github.com/zricethezav/gitleaks/blob/master/config/gitleaks.toml
+useDefault = true
+
+[rules.allowlist]
+description = "ignore commit A"
+commits = ["d0bfdb9c5dd8f71a7c3bbf96012eca889455e426"]
+paths = [
+  '''README\.md'''
+]
+# not
