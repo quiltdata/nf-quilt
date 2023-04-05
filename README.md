@@ -229,7 +229,7 @@ The `readme` parameter is a Groovy GString template which expands the variables:
 
 ### C. Benchling Integration (Preview)
 
-Version 0.3.4 includes alpha support for a `benchling.experiment_id`
+Version 0.3.5 includes alpha support for a `benchling.experiment_id`
 metadata key in the query parameter:
 
 ```bash

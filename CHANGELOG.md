@@ -2,6 +2,10 @@
 
 ## UNRELEASED
 
+## [0.3.5] 2023-04-05
+
+- Runs on >=22.10.6
+
 ## [0.3.4] 2023-04-04
 
 - Alpha: Call Benchling API after publishing package
