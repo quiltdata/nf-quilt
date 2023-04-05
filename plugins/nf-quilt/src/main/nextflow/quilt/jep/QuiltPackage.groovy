@@ -43,6 +43,7 @@ class QuiltPackage {
     private final Path folder
     private final Map meta
     private boolean installed
+    private String cmd = 'N/A'
 
     static String today() {
         LocalDate date = LocalDate.now()
@@ -168,7 +169,8 @@ class QuiltPackage {
     }
 
     String key_force() {
-        return meta['force'] ? '--force true' : ''
+        log.debug("key_force.options[${parsed.options[QuiltParser.P_FORCE]}] ${parsed.options}")
+        return parsed.options[QuiltParser.P_FORCE] ? '--force' : ''
     }
 
     String key_hash() {
@@ -205,10 +207,14 @@ class QuiltPackage {
         return folder
     }
 
+    String lastCommand() {
+        return cmd
+    }
+
     int call(String... args) {
         def command = ['quilt3']
         command.addAll(args)
-        def cmd = command.join(' ')
+        cmd = command.join(' ')
         log.debug("call `${cmd}`")
 
         try {

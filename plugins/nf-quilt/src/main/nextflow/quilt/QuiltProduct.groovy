@@ -110,6 +110,7 @@ class QuiltProduct {
             msg = "${meta['config']['runName']}: ${meta['cmd']}"
             text = readme()
             meta.remove('config')
+            meta['quilt'] = [package_id: pkg.toString(), uri: path.toUriString()]
         }
         catch (Exception e) {
             log.error('publish: cannot generate metadata (QuiltObserver uninitialized?)', e)
@@ -167,7 +168,6 @@ class QuiltProduct {
             cmd: cmd,
             config: cf,
             params: params,
-            quilt:  cf.navigate('quilt') as Map,
             time_start: start,
             time_complete: complete,
             workflow: wf,
