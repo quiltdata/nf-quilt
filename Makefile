@@ -1,12 +1,13 @@
 sinclude .env # create from example.env
 PROJECT ?= nf-quilt
 WRITE_BUCKET ?= quilt-example
+FRAGMENT ?= &path=.
 NF_DIR ?= ../nextflow
 PID ?= $$$$
 PIP ?= python -m pip
 PIPELINE ?= sarek
 QUERY ?= ?Name=$(USER)&Owner=Kevin+Moore&Date=2023-03-07&Type=CRISPR&Notebook+URL=http%3A%2F%2Fexample.com
-TEST_URI ?= quilt+s3://$(WRITE_BUCKET)$(QUERY)\#package=test/hurdat
+TEST_URI ?= quilt+s3://$(WRITE_BUCKET)$(QUERY)\#package=test/hurdat$(FRAGMENT)
 QUILT_URI ?=  quilt+s3://$(WRITE_BUCKET)\#package=$(PROJECT)/$(PIPELINE)
 PIP ?= pip3
 QUILT3 ?= /usr/local/bin/quilt3
@@ -35,8 +36,6 @@ compile:
 nextflow:
 	if [ ! -d "$(NF_DIR)" ]; then git clone https://github.com/nextflow-io/nextflow.git  "$(NF_DIR)"; fi
 	pushd "$(NF_DIR)"; git checkout && make compile && git restore .; popd
-	# b 4f776ef -b v22_10_6_$(PID) 
-	# https://github.com/nextflow-io/nextflow/releases/tag/v22.10.6
 
 install-python:
 	if [ ! -x "$(QUILT3)" ]; then $(PIP) install quilt3 ; fi
@@ -62,7 +61,7 @@ test-all: clean compile-all check #coverage
 # Create packages
 #
 
-pkg-test: compile-all
+pkg-test: compile#-all
 	echo "$(TEST_URI)"
 	./launch.sh run ./main.nf -profile standard -plugins $(PROJECT) --outdir "$(TEST_URI)"
 
