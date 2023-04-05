@@ -126,7 +126,8 @@ class QuiltProduct {
         } else {
             print("SUCCESS: $pkg\n")
             String experimentId = pkg.meta_overrides(QuiltBenchling.EXPERIMENT_ID)
-            if (experimentId) {
+            if (experimentId && experimentId != '' && experimentId != 'null') {
+                log.info("QuiltPackage.publish_to_benchling: $experimentId")
                 publish_to_benchling(experimentId)
             }
         }
