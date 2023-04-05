@@ -16,7 +16,6 @@
 package nextflow.quilt
 
 import nextflow.quilt.jep.QuiltParser
-import nextflow.quilt.jep.QuiltPackage
 import nextflow.quilt.nio.QuiltPath
 import nextflow.quilt.nio.QuiltPathFactory
 
@@ -36,7 +35,7 @@ import nextflow.trace.TraceObserver
 @CompileStatic
 class QuiltObserver implements TraceObserver {
 
-    private final Set<QuiltPackage> pkgs = [] as Set
+    private final Set<QuiltPath> paths = [] as Set
     private Session session
 
     static QuiltPath asQuiltPath(Path path) {
@@ -69,7 +68,7 @@ class QuiltObserver implements TraceObserver {
     void onFlowCreate(Session session) {
         log.debug("`onFlowCreate` $this")
         this.session = session
-        this.pkgs
+        this.paths
     }
 
     @Override
@@ -79,8 +78,8 @@ class QuiltObserver implements TraceObserver {
 
         if (qPath) {
             QuiltPath npath = normalizePath(qPath, session.getParams())
-            this.pkgs.add(npath.pkg())
-            log.debug("onFilePublish.QuiltPath[$qPath]: pkgs=${pkgs}")
+            this.paths.add(npath)
+            log.debug("onFilePublish.QuiltPath[$qPath]: paths=${paths}")
         } else {
             log.warn("onFilePublish.QuiltPath missing: $path")
         }
@@ -88,9 +87,9 @@ class QuiltObserver implements TraceObserver {
 
     @Override
     void onFlowComplete() {
-        log.debug("`onFlowComplete` ${pkgs}")
+        log.debug("`onFlowComplete` ${paths}")
         // publish pkgs to repository
-        this.pkgs.each { pkg -> new QuiltProduct(pkg, session) }
+        this.paths.each { path -> new QuiltProduct(path, session) }
     }
 
 }

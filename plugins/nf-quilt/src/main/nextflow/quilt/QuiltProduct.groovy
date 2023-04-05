@@ -16,6 +16,7 @@
 package nextflow.quilt
 
 import nextflow.quilt.jep.QuiltPackage
+import nextflow.quilt.nio.QuiltPath
 import nextflow.Session
 
 import java.nio.file.Files
@@ -80,13 +81,15 @@ class QuiltProduct {
         return time.toString()
     }
 
+    private final QuiltPath path
     private final QuiltPackage pkg
     private final Session session
     private String msg
     private Map meta
 
-    QuiltProduct(QuiltPackage pkg, Session session) {
-        this.pkg = pkg
+    QuiltProduct(QuiltPath path, Session session) {
+        this.path = path
+        this.pkg = path.pkg()
         this.msg =  pkg.toString()
         this.meta = [pkg: msg, time_start: now()]
         this.session = session
@@ -130,9 +133,9 @@ class QuiltProduct {
         return rc
     }
 
-    void publish_to_benchling(experimentId) {
+    void publish_to_benchling(String experimentId) {
         '''call QuiltBenchling update with package URI'''
-        String uri = pkg.toUriString()
+        String uri = path.toUriString()
         String fieldName = "output.$pkg"
         QuiltBenchling qb = new QuiltBenchling()
         qb.update(experimentId, fieldName, uri)
