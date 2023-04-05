@@ -5,8 +5,8 @@
 ## [0.3.4] 2023-04-04
 
 - Call Benchling API
-- accept "?force=true&commit_message=text+string" in Quilt+ URI
-- Plugin-Requires: >=22.10.6
+- accept "?force=true&commit_message=text+string&readme=GString" in Quilt+ URI
+- Support NextFlow 23+
 
 ## [0.3.3] 2023-03-08
 

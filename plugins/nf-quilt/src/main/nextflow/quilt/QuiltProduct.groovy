@@ -95,7 +95,7 @@ class QuiltProduct {
 
     String readme() {
         GStringTemplateEngine engine = new GStringTemplateEngine()
-        String raw_readme = README_TEMPLATE
+        String raw_readme = pkg.meta_overrides('readme', README_TEMPLATE)
         Writable template = engine.createTemplate(raw_readme).make([meta: meta, msg: msg, now: now()])
         return template.toString()
     }
@@ -113,6 +113,8 @@ class QuiltProduct {
         }
         writeString(text, pkg, 'README.md')
         writeString("$meta", pkg, 'quilt_metadata.txt')
+        writeString(QuiltPackage.toJson(meta), pkg, 'quilt_metadata.json')
+
         def rc = pkg.push(msg, meta)
         log.info("$rc: pushed package[$pkg] $msg")
         if (rc > 0) {
