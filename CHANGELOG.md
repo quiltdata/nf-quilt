@@ -2,9 +2,11 @@
 
 ## UNRELEASED
 
-## [0.3.4] 2023-03-28
+## [0.3.4] 2023-04-04
 
-- Call Benchling API
+- Alpha: Call Benchling API after publishing package
+- accept "?commit_message=text+string&readme=GString" in Quilt+ URI
+- Support NextFlow 23+
 
 ## [0.3.3] 2023-03-08
 

@@ -35,6 +35,7 @@ class QuiltBenchlingTest extends Specification {
 
     final private @Shared qb = new QuiltBenchling()
     final private @Shared testID = '1'
+    final private @Shared uri = "quilt+s3://bkt?${QuiltBenchling.EXPERIMENT_ID}=1#package=pre/suf"
 
     @IgnoreIf({ env.BENCHLING_TENANT == null })
     void 'should get Entry by ID'() {
@@ -42,6 +43,7 @@ class QuiltBenchlingTest extends Specification {
         Entry entry = qb.get(testID)
         then:
         assert entry
+        uri
     }
 
     @IgnoreIf({ env.BENCHLING_TENANT == null })

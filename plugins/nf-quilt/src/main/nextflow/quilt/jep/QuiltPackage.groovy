@@ -41,11 +41,17 @@ class QuiltPackage {
     private final QuiltParser parsed
     private final String hash
     private final Path folder
+    private final Map meta
     private boolean installed
+    private String cmd = 'N/A'
 
     static String today() {
         LocalDate date = LocalDate.now()
         return date.toString()
+    }
+
+    static String sanitize(String str) {
+        return str.replace('\'', '_')
     }
 
     static String toJson(Map dict) {
@@ -61,7 +67,7 @@ class QuiltPackage {
             }
             return "${prefix}:${suffix}".toString()
         }
-        return "{${entries.join(',')}}".toString()
+        return sanitize("{${entries.join(',')}}".toString())
     }
 
     static QuiltPackage forParsed(QuiltParser parsed) {
@@ -71,6 +77,11 @@ class QuiltPackage {
 
         pkg = new QuiltPackage(parsed)
         PKGS[pkgKey] = pkg
+        if (pkg.is_force()) {
+            log.debug("Do not install `${pkg}` if force-overwriting output")
+            return pkg
+        }
+
         try {
             log.debug("Installing `${pkg}` for.pkgKey $pkgKey")
             pkg.install()
@@ -110,6 +121,7 @@ class QuiltPackage {
         this.bucket = parsed.getBucket()
         this.packageName = parsed.getPackageName()
         this.hash = parsed.getHash()
+        this.meta = parsed.getMetadata()
         this.folder = Paths.get(INSTALL_ROOT.toString(), this.toString())
         log.debug("QuiltParser.folder[${this.folder}]")
         this.setup()
@@ -161,8 +173,13 @@ class QuiltPackage {
         return "--dir ${packageDest()}"
     }
 
+    boolean is_force() {
+        return parsed.options[QuiltParser.P_FORCE]
+    }
+
     String key_force() {
-        return '--force true'
+        log.debug("key_force.options[${parsed.options[QuiltParser.P_FORCE]}] ${parsed.options}")
+        return is_force() ? '--force' : ''
     }
 
     String key_hash() {
@@ -170,19 +187,17 @@ class QuiltPackage {
     }
 
     String key_meta(Map srcMeta = [:]) {
-        log.debug("key_meta.parsed ${parsed}")
         log.debug("key_meta.srcMeta $srcMeta")
-        log.debug("key_meta.parsed.getMetadata ${parsed.getMetadata()}")
-        Map meta = srcMeta + parsed.getMetadata()
-        String jsonMeta = QuiltPackage.toJson(meta)
+        log.debug("key_meta.uriMeta ${meta}")
+        Map metas = srcMeta + meta
+        String jsonMeta = toJson(metas)
         log.debug("key_meta.jsonMeta $jsonMeta")
-        String meta_sane = jsonMeta.replace('\'', '_')
-        return "--meta '$meta_sane'"
+        return "--meta '$jsonMeta'"
     }
 
-    String key_msg(String prefix='') {
-        String fix = prefix.replace('\'', '_')
-        return "--message 'nf-quilt:${today()}-${fix}'"
+    String key_msg(String message='') {
+        String msg = meta_overrides('commit_message', "nf-quilt:${today()}-${message}")
+        return "--message '${sanitize(msg)}'"
     }
 
     String key_registry() {
@@ -201,10 +216,14 @@ class QuiltPackage {
         return folder
     }
 
+    String lastCommand() {
+        return cmd
+    }
+
     int call(String... args) {
         def command = ['quilt3']
         command.addAll(args)
-        def cmd = command.join(' ')
+        cmd = command.join(' ')
         log.debug("call `${cmd}`")
 
         try {
@@ -263,7 +282,7 @@ class QuiltPackage {
     // https://docs.quiltdata.com/v/version-5.0.x/examples/gitlike#install-a-package
     int push(String msg = 'update', Map meta = [:]) {
         int exitCode = 0
-        String args = [key_dir(), key_registry(), key_meta(meta), key_msg(msg)].join(' ')
+        String args = [key_dir(), key_registry(), key_meta(meta), key_msg(msg), key_force()].join(' ')
         exitCode = call('push', packageName, args, key_workflow())
         return exitCode
     }
@@ -271,6 +290,11 @@ class QuiltPackage {
     @Override
     String toString() {
         return "QuiltPackage.${bucket}_${packageName}".replaceAll(/[-\/]/, '_')
+    }
+
+    String meta_overrides(String key, Serializable baseline = null) {
+        Object temp = meta[key] ? meta[key] : baseline
+        return temp.toString()
     }
 
 }

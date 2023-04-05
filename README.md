@@ -31,7 +31,7 @@ The above instructions use the 'yum' package manager, which NextFlow Tower uses 
 If you are running from the command-line, you may need to use your own package manager
 (or just skip those lines if you already have Python and Git).
 
-1. Enable the `nf-quilt` plugin
+. Enable the `nf-quilt` plugin
 
 The usual way to enable a plugin is to add the following to your `nextflow.config` file,
 or (in Tower) the "Advanced Options ->  Nextflow config file":
@@ -130,7 +130,7 @@ NextFlow itself will take care of all the other dependencies.
 You can verify and compile NextFlow with:
 
 ```bash
-make nextflow-22-10
+make nextflow
 ```
 
 ### Testing Installation
@@ -186,3 +186,65 @@ Follow these steps to package, upload and publish the plugin:
    ```
 
 5. Create a pull request to push your changes back to [nextflow-io/plugins](https://github.com/nextflow-io/plugins/blob/main/plugins.json)
+
+## IV. Advanced Options
+
+You can use the Makefile to test the following options,
+as long as you set a WRITE_BUCKET:
+
+```bash
+export WRITE_BUCKET=bucket-with-write-access
+make pkg-test  # create "test/hurdat" package on s3://$WRITE_BUCKET
+```
+
+### A. Quilt+ URIs for Metadata Workflows
+
+Sometimes you may want to ensure the created package contains specific metadata.
+This is done using [Quilt workflows](https://docs.quiltdata.com/advanced/workflows).
+Specify the workflow name as an additional `workflow=` fragment parameter,
+and any metadata properties as part of the query string.
+
+```bash
+make pkg-test QUERY='?mkey1=val1&mkey2=val2' FRAGMENT='&workflow=my_workflow'
+```
+
+Note that specifying a workflow means that package creation will fail (and nothing will be saved)
+if the query string does not contain all the required metadata,
+so you should carefully test it before running long jobs.
+
+### B. Quilt+ URIs for Custom Data Products
+
+Version 0.3.4 and later allow you to customize both the `commit_message`
+and `readme` via metadata query keys:
+
+```bash
+make pkg-test QUERY='?commit_message=text+str&readme=GStr+%24msg+%24now+%24%7Bmeta[%22quilt%22]%7D'
+```
+
+The `readme` parameter is a Groovy GString template which expands the variables:
+
+* `msg`: the current commit_message
+* `now`: the ISO 8601 date and time
+* `meta`: the complete metadata (very large! use only  subsets)
+
+### C. Benchling Integration (Preview)
+
+Version 0.3.4 includes alpha support for a `benchling.experiment_id`
+metadata key in the query parameter:
+
+```bash
+make pkg-test QUERY='?benchling.experiment_id=123'
+```
+
+After package push, this will add the URI of the output quilt package to a
+metadata field in the Benchling notebook.
+
+In order to use this, you must also export two environment variables:
+
+```string
+# The URL of your custom Benchling domain (only for paid plans)
+export BENCHLING_TENANT=https://mock-benchling.proxy.beeceptor.com/
+
+# The base64 API Key from your Benchling Developer settings
+export BENCHLING_API_KEY=R4nd0mB4se64N0mb3r
+```

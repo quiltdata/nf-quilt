@@ -31,6 +31,8 @@ import benchling.api.EntriesApi
 @CompileStatic
 class QuiltBenchling {
 
+    public static final String EXPERIMENT_ID = 'benchling.experiment_id'
+
     private final EntriesApi api
 
     QuiltBenchling() {
