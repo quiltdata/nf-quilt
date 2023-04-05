@@ -77,6 +77,11 @@ class QuiltPackage {
 
         pkg = new QuiltPackage(parsed)
         PKGS[pkgKey] = pkg
+        if (pkg.is_force()) {
+            log.debug("Do not install `${pkg}` if force-overwriting output")
+            return pkg
+        }
+
         try {
             log.debug("Installing `${pkg}` for.pkgKey $pkgKey")
             pkg.install()
@@ -168,9 +173,13 @@ class QuiltPackage {
         return "--dir ${packageDest()}"
     }
 
+    boolean is_force() {
+        return parsed.options[QuiltParser.P_FORCE]
+    }
+
     String key_force() {
         log.debug("key_force.options[${parsed.options[QuiltParser.P_FORCE]}] ${parsed.options}")
-        return parsed.options[QuiltParser.P_FORCE] ? '--force' : ''
+        return is_force() ? '--force' : ''
     }
 
     String key_hash() {

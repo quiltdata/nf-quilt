@@ -197,22 +197,7 @@ export WRITE_BUCKET=bucket-with-write-access
 make pkg-test  # create "test/hurdat" package on s3://$WRITE_BUCKET
 ```
 
-### A. "Replace" (PUT) vs "Update" (PATCH) Semantics
-
-By default, Quilt+ URIs express "update" semantics.
-If the package already exists,
-the plugin will create a new version that adds and updates files
-(but always includes files from previous versions).
-
-If you want to create a brand-new revision that only contains
-the exact files from _this_ specific pipeline run, add a 'force'
-parameter to the URI fragment:
-
-```bash
-make pkg-test FRAGMENT='&force=true'
-```
-
-### B. Quilt+ URIs for Metadata Workflows
+### A. Quilt+ URIs for Metadata Workflows
 
 Sometimes you may want to ensure the created package contains specific metadata.
 This is done using [Quilt workflows](https://docs.quiltdata.com/advanced/workflows).
@@ -227,30 +212,28 @@ Note that specifying a workflow means that package creation will fail (and nothi
 if the query string does not contain all the required metadata,
 so you should carefully test it before running long jobs.
 
-### C. Quilt+ URIs for Custom Data Products
+### B. Quilt+ URIs for Custom Data Products
 
 Version 0.3.4 and later allow you to customize both the `commit_message`
 and `readme` via metadata query keys:
 
 ```bash
-export QUERY='?commit_message=text+str&readme=GStr+%24msg+%24now+%24%7Bmeta%5B%22params%22%5D%7D'
-make pkg-test
+make pkg-test QUERY='?commit_message=text+str&readme=GStr+%24msg+%24now+%24%7Bmeta[%22quilt%22]%7D'
 ```
 
 The `readme` parameter is a Groovy GString template which expands the variables:
 
 * `msg`: the current commit_message
 * `now`: the ISO 8601 date and time
-* `meta`: the complete metadata (very large! only use subsets)
+* `meta`: the complete metadata (very large! use only  subsets)
 
-### D. Benchling Integration (Preview)
+### C. Benchling Integration (Preview)
 
 Version 0.3.4 includes alpha support for a `benchling.experiment_id`
 metadata key in the query parameter:
 
 ```bash
-export QUERY='?benchling.experiment_id=123'
-make pkg-test
+make pkg-test QUERY='?benchling.experiment_id=123'
 ```
 
 After package push, this will add the URI of the output quilt package to a

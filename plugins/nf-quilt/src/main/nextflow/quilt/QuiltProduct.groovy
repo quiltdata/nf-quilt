@@ -107,10 +107,10 @@ class QuiltProduct {
         String text = 'Stub README'
         try {
             meta = getMetadata(session.config)
+            meta['quilt'] = [package_id: pkg.toString(), uri: path.toUriString()]
             msg = "${meta['config']['runName']}: ${meta['cmd']}"
             text = readme()
             meta.remove('config')
-            meta['quilt'] = [package_id: pkg.toString(), uri: path.toUriString()]
         }
         catch (Exception e) {
             log.error('publish: cannot generate metadata (QuiltObserver uninitialized?)', e)
