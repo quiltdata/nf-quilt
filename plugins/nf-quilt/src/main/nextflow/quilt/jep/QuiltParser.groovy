@@ -82,10 +82,10 @@ class QuiltParser {
 
     static String unparseQuery(Map<String,Object> query) {
         if (!query) { return '' } // skip for urls without query params
-        String[] params = query.collect {  key, val ->
+        List<String> params = query.collect {  key, val ->
             String k = URLEncoder.encode(key, StandardCharsets.UTF_8)
             String v = URLEncoder.encode(val.toString(), StandardCharsets.UTF_8)
-            "${k}=${v}"
+            "${k}=${v}".toString()
         }
         return params.join('&')
     }
@@ -126,8 +126,8 @@ class QuiltParser {
         String new_pkg = pkg
         String[] split = pkg.split(SEP)
         if (split.size() > MIN_SIZE) {
-            String[] head = split[0..1]
-            String[] tail = split[2..-1]
+            List<String> head = split[0..1]
+            List<String> tail = split[2..-1]
             new_pkg = head.join(SEP)
             paths += tail
         }
@@ -160,7 +160,7 @@ class QuiltParser {
 
     QuiltParser normalized() {
         boolean skip = false
-        String[] rnorms = paths.reverse().findAll { String x ->
+        Collection<String> rpaths = paths.reverse().findAll { String x ->
             if (x == '..') {
                 skip = true
                 false
@@ -172,6 +172,7 @@ class QuiltParser {
             }
         }
 
+        List<String> rnorms = new ArrayList(rpaths)
         String path2 = rnorms.reverse().join(SEP)
         return new QuiltParser(getBucket(), getPackageName(), path2, options)
     }
@@ -221,7 +222,7 @@ class QuiltParser {
     }
 
     String path(int beginIndex, int endIndex) {
-        String[] sub = paths[beginIndex..<endIndex]
+        List<String> sub = paths[beginIndex..<endIndex]
         return sub.join(SEP)
     }
 

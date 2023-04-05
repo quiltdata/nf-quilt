@@ -2,9 +2,10 @@
 
 ## UNRELEASED
 
-## [0.3.4] 2023-03-28
+## [0.3.4] 2023-04-04
 
 - Call Benchling API
+- accept "?force=true&commit_message=text+string" in Quilt+ URI
 
 ## [0.3.3] 2023-03-08
 

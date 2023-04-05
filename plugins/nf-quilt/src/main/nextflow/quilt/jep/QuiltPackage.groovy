@@ -41,11 +41,16 @@ class QuiltPackage {
     private final QuiltParser parsed
     private final String hash
     private final Path folder
+    private final Map meta
     private boolean installed
 
     static String today() {
         LocalDate date = LocalDate.now()
         return date.toString()
+    }
+
+    static String sanitize(String str) {
+        return str.replace('\'', '_')
     }
 
     static String toJson(Map dict) {
@@ -61,7 +66,7 @@ class QuiltPackage {
             }
             return "${prefix}:${suffix}".toString()
         }
-        return "{${entries.join(',')}}".toString()
+        return sanitize("{${entries.join(',')}}".toString())
     }
 
     static QuiltPackage forParsed(QuiltParser parsed) {
@@ -110,6 +115,7 @@ class QuiltPackage {
         this.bucket = parsed.getBucket()
         this.packageName = parsed.getPackageName()
         this.hash = parsed.getHash()
+        this.meta = parsed.getMetadata()
         this.folder = Paths.get(INSTALL_ROOT.toString(), this.toString())
         log.debug("QuiltParser.folder[${this.folder}]")
         this.setup()
@@ -162,7 +168,7 @@ class QuiltPackage {
     }
 
     String key_force() {
-        return '--force true'
+        return meta['force'] ? '--force true' : ''
     }
 
     String key_hash() {
@@ -170,19 +176,17 @@ class QuiltPackage {
     }
 
     String key_meta(Map srcMeta = [:]) {
-        log.debug("key_meta.parsed ${parsed}")
         log.debug("key_meta.srcMeta $srcMeta")
-        log.debug("key_meta.parsed.getMetadata ${parsed.getMetadata()}")
-        Map meta = srcMeta + parsed.getMetadata()
-        String jsonMeta = QuiltPackage.toJson(meta)
+        log.debug("key_meta.uriMeta ${meta}")
+        Map metas = srcMeta + meta
+        String jsonMeta = toJson(metas)
         log.debug("key_meta.jsonMeta $jsonMeta")
-        String meta_sane = jsonMeta.replace('\'', '_')
-        return "--meta '$meta_sane'"
+        return "--meta '$jsonMeta'"
     }
 
-    String key_msg(String prefix='') {
-        String fix = prefix.replace('\'', '_')
-        return "--message 'nf-quilt:${today()}-${fix}'"
+    String key_msg(String message='') {
+        String msg = meta['commit_message'] ?: "nf-quilt:${today()}-${message}"
+        return "--message '${sanitize(msg)}'"
     }
 
     String key_registry() {
@@ -263,7 +267,7 @@ class QuiltPackage {
     // https://docs.quiltdata.com/v/version-5.0.x/examples/gitlike#install-a-package
     int push(String msg = 'update', Map meta = [:]) {
         int exitCode = 0
-        String args = [key_dir(), key_registry(), key_meta(meta), key_msg(msg)].join(' ')
+        String args = [key_dir(), key_registry(), key_meta(meta), key_msg(msg), key_force()].join(' ')
         exitCode = call('push', packageName, args, key_workflow())
         return exitCode
     }
@@ -271,6 +275,11 @@ class QuiltPackage {
     @Override
     String toString() {
         return "QuiltPackage.${bucket}_${packageName}".replaceAll(/[-\/]/, '_')
+    }
+
+    String override_if_present(String key, Serializable baseline) {
+        Object temp = meta[key] ? meta[key] : baseline
+        return temp.toString()
     }
 
 }

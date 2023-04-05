@@ -33,7 +33,7 @@ class QuiltPathIterator implements Iterator<Path> {
 
     private final Iterator<String> itr
     private final DirectoryStream.Filter<? super Path> filter
-    private final String[] children
+    private final List<String> children
     private final QuiltPath dir
     private QuiltPath nextPath
 

@@ -25,6 +25,7 @@ import java.time.LocalDateTime
 
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
+import groovy.text.GStringTemplateEngine
 
 /**
  * Plugin observer of workflow events
@@ -34,6 +35,22 @@ import groovy.util.logging.Slf4j
 @Slf4j
 @CompileStatic
 class QuiltProduct {
+
+    /* groovylint-disable-next-line GStringExpressionWithinString */
+    private final static String README_TEMPLATE = '''
+            # $now
+            ## $msg
+
+            ## workflow
+            ### scriptFile: ${meta['workflow']['scriptFile']}
+            ### sessionId: ${meta['workflow']['sessionId']}
+            - start: ${meta['time_start']}
+            - complete: ${meta['time_complete']}
+
+            ## processes
+            ${meta['workflow']['stats']['processes']}
+
+            '''.stripIndent()
 
     private final static String[] BIG_KEYS = [
         'nextflow', 'commandLine', 'scriptFile', 'projectDir',
@@ -77,20 +94,10 @@ class QuiltProduct {
     }
 
     String readme() {
-        return """
-            # ${now()}
-            ## $msg
-
-            ## workflow
-            ### scriptFile: ${meta['workflow']['scriptFile']}
-            ### sessionId: ${meta['workflow']['sessionId']}
-            - start: ${meta['time_start']}
-            - complete: ${meta['time_complete']}
-
-            ## processes
-            ${meta['workflow']['stats']['processes']}
-
-            """.stripIndent()
+        GStringTemplateEngine engine = new GStringTemplateEngine()
+        String raw_readme = README_TEMPLATE
+        Writable template = engine.createTemplate(raw_readme).make([meta: meta, msg: msg, now: now()])
+        return template.toString()
     }
 
     int publish() {
