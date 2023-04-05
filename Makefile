@@ -61,7 +61,7 @@ test-all: clean compile-all check #coverage
 # Create packages
 #
 
-pkg-test: compile#-all
+pkg-test: compile-all
 	echo "$(TEST_URI)"
 	./launch.sh run ./main.nf -profile standard -plugins $(PROJECT) --outdir "$(TEST_URI)"
 
