@@ -4,7 +4,7 @@
 
 ## [0.3.4] 2023-04-04
 
-- Call Benchling API
+- Call Benchling API after publishing package
 - accept "?force=true&commit_message=text+string&readme=GString" in Quilt+ URI
 - Support NextFlow 23+
 
