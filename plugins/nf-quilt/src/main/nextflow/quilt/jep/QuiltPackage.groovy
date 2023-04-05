@@ -277,7 +277,7 @@ class QuiltPackage {
         return "QuiltPackage.${bucket}_${packageName}".replaceAll(/[-\/]/, '_')
     }
 
-    String meta_overrides(String key, Serializable baseline) {
+    String meta_overrides(String key, Serializable baseline = null) {
         Object temp = meta[key] ? meta[key] : baseline
         return temp.toString()
     }
