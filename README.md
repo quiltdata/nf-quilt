@@ -27,11 +27,14 @@ pip3 install quilt3
 which quilt3
 ```
 
-The above instructions use the 'yum' package manager, which NextFlow Tower uses in the "Pre-run script" when you edit the Pipeline settings from the Launchpad.
+The above instructions use the 'yum' package manager,
+which NextFlow Tower uses in the "Pre-run script"
+when you edit the Pipeline settings from the Launchpad.
+
 If you are running from the command-line, you may need to use your own package manager
 (or just skip those lines if you already have Python and Git).
 
-. Enable the `nf-quilt` plugin
+1. Enable the `nf-quilt` plugin
 
 The usual way to enable a plugin is to add the following to your `nextflow.config` file,
 or (in Tower) the "Advanced Options ->  Nextflow config file":
@@ -82,6 +85,19 @@ outdir: "quilt+s3://seqera-quilt#package=test/hurdat"
 ```
 
 Note that `--key` on the command-line corresponds to `params.key` in your script.
+
+1. Optional: use a pre-release plugin
+
+If a plugin is not yet available in the NextFlow plugin registry, you can use a pre-release version.
+From the command-line, do, e.g.:
+
+```bash
+export NXF_VER=23.04.0
+export NXF_PLUGINS_TEST_REPOSITORY=https://github.com/quiltdata/nf-quilt/releases/download/0.3.5/nf-quilt-0.3.5-meta.json
+nextflow run main.nf -plugins nf-quilt@0.3.5
+```
+
+For Tower, you can use the "Pre-run script" to set the environment variables.
 
 ## II. Advanced URI Options
 
