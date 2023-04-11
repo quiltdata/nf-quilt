@@ -105,16 +105,16 @@ There are a number of additional paramters you can add to Quilt+ URIs,
 in order to customize the behavior of the plugin:
 
 * Fragment Parameters:
-  * catalog: specify the DNS hostname of the Quilt catalog to use (default: `open.quiltdata.com`)
-  * package: specify the name of the package to read or write (default: `.`)
-  * path: specify a path within the package to read or write (default: `.`) [not fully supported yet]
-  * workflow: specify the name of a workflow to use for metadata validation (default: none)
+  * **catalog**: specify the DNS hostname of the Quilt catalog to use (default: `open.quiltdata.com`)
+  * **package**: specify the name of the package to read or write (default: `.`)
+  * **path**: specify a path within the package to read or write (default: `.`) [not fully supported yet]
+  * **workflow**: specify the name of a workflow to use for metadata validation (default: none)
 
 * Query Parameters: also stored as package-level metadata
-  * benchling.experiment_id: specify a Benchling notebook to push this Quilt+ URI to, as a metadata Field [preview]
-  * commit_message: specify the commit message to use when saving the package
-  * readme: specify a Groovy GString template for the package README
-  * _any other key_: specify any other metadata key to store in the package
+  * **benchling.experiment_id**: specify a Benchling notebook to push this Quilt+ URI to, as a metadata Field [preview]
+  * **commit_message**: specify the commit message to use when saving the package
+  * **readme**: specify a Groovy GString template for the package README
+  * **_any other key_**: specify any other metadata key to store in the package
 
 See below for more details.  
 When running from the git repository,
