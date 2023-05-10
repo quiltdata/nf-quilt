@@ -39,6 +39,10 @@ class QuiltObserver implements TraceObserver {
     private Session session
 
     static QuiltPath asQuiltPath(Path path) {
+        if (path == null) {
+            return null
+        }
+
         if (path in QuiltPath) {
             return (QuiltPath) path
         }
@@ -72,9 +76,9 @@ class QuiltObserver implements TraceObserver {
     }
 
     @Override
-    void onFilePublish(Path path) { //, Path source
-        log.debug("onFilePublish.Path[$path]") //.Source[$source]
-        QuiltPath qPath = asQuiltPath(path)
+    void onFilePublish(Path path, Path source) {
+        log.debug("onFilePublish.Path[$path].Source[$source]")
+        QuiltPath qPath = asQuiltPath(path) ?: asQuiltPath(source)
 
         if (qPath) {
             QuiltPath npath = normalizePath(qPath, session.getParams())
