@@ -2,6 +2,10 @@
 
 ## UNRELEASED
 
+## [0.3.6-debug] 2023-05-10
+
+- Debugging release for Interline
+
 ## [0.3.5] 2023-04-05
 
 - Runs on >=22.10.6
@@ -23,3 +27,7 @@
 
 - First official release on [nextflow-io/plugins](https://github.com/nextflow-io/plugins/commits/main/plugins.json)
 - Read and write from Quilt+ URIs
+
+## [0.3.0] 2022-09-14
+
+- Replaced with nf-quilt3 filesystem

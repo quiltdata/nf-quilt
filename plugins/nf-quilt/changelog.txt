@@ -1,8 +1,23 @@
 nf-quilt changelog
 ===================
-0.1.0 - 30 Sep 2022
-- Cloned from nf-google
+0.3.6-debug - 10 May 2023
+- Debug build for Interline
+
+0.3.5 - 05 Apr 2023
+- Improved READMEs / Plug-in Versions
+
+0.3.4 - 04 Apr 2023
+- Benchling alpha support
+
+0.3.3 - 08 Mar 2023
+- Workflow Support
+
+0.3.2 - 24 Feb 2023
+- Fix Package Creation bug
 
 0.3.0 - 14 Sep 2022
 - Replaced with nf-quilt3 filesystem
+
+0.1.0 - 30 Sep 2022
+- Cloned from nf-google
 
