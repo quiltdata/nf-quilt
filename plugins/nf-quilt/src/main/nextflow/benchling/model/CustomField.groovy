@@ -8,5 +8,5 @@ import groovy.transform.CompileStatic
 class CustomField {
 
     String value
-    
+
 }

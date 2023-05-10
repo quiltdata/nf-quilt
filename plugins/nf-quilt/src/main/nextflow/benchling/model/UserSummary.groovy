@@ -12,4 +12,5 @@ class UserSummary {
     String id
 
     String name
+
 }
