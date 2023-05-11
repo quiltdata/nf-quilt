@@ -5,6 +5,7 @@
 ## [0.3.6-debug] 2023-05-10
 
 - Debugging release for Interline
+- Only works with 23.1.0-cycle07_4487eca
 
 ## [0.3.5] 2023-04-05
 
