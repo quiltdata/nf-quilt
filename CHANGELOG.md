@@ -1,6 +1,10 @@
 # Changelog
 
-## UNRELEASED
+## [0.4.0] UNRELEASED
+
+- Correctly Support Benchling
+- Shorter metadata names
+- Cleanup documentation
 
 ## [0.3.5] 2023-04-05
 
