@@ -31,7 +31,11 @@ import benchling.api.EntriesApi
 @CompileStatic
 class QuiltBenchling {
 
-    public static final String EXPERIMENT_ID = 'benchling.experiment_id'
+    public static final String ENTRY_ID = 'benchling.entry'
+    public static final String AUTHOR_ID = 'benchling.author'
+
+    public static final String K_URI = 'Quilt+ URI'
+    public static final String K_URL = 'Quilt Catalog URI'
 
     private final EntriesApi api
 
@@ -51,11 +55,11 @@ class QuiltBenchling {
         return result
     }
 
-    Entry update(String entryId, String field, String value) {
+    Entry updateURIs(String entryId, String authorID, String uri, String url) {
         EntryUpdate update = new EntryUpdate()
-        update.fields = [(field): value]
+        update.fields = [(K_URI): uri, (K_URL): url]
         Entry result = null
-        api.updateEntry(entryId, update) { EntryById byid ->
+        api.updateEntry(entryId, authorID, update) { EntryById byid ->
             log.debug "Successfully updated byid: $byid"
             result = byid.entry
         } { error ->

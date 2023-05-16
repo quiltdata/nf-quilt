@@ -35,7 +35,6 @@ when you edit the Pipeline settings from the Launchpad.
 
 ![Pipeline Settings](doc/README-Tower.png)
 
-
 If you are running from the command-line, you may need to use your own package manager
 (or just skip those lines if you already have Python and Git).
 
@@ -116,8 +115,9 @@ in order to customize the behavior of the plugin:
   * **workflow**: specify the name of a workflow to use for metadata validation (default: none)
 
 * Query Parameters: also stored as package-level metadata
-  * **benchling.experiment_id**: specify a Benchling notebook to push this Quilt+ URI to, as a metadata Field [preview]
-  * **commit_message**: specify the commit message to use when saving the package
+  * **benchling.entry**: specify a Benchling notebook to push this Quilt+ URI to, as a metadata Field
+  * **benchling.author**: specify the author to use with Benchling notebook update
+  * **msg**: specify the commit message to use when saving the package
   * **readme**: specify a Groovy GString template for the package README
   * **_any other key_**: specify any other metadata key to store in the package
 
@@ -157,13 +157,13 @@ make pkg-test QUERY='?msg=text+str&readme=GStr+%24msg+%24now+%24%7Bmeta[%22quilt
 
 The `readme` parameter is a Groovy GString template which expands the variables:
 
-* `msg`: the current commit_message
+* `msg`: the current commit message
 * `now`: the ISO 8601 date and time
 * `meta`: the complete metadata (very large! use only  subsets)
 
-### C. Benchling Integration (Preview)
+### C. Benchling Integration
 
-Version 0.4.0 includes beta support for updating Benchling notebooks using the
+Version 0.4.0 includes support for updating Benchling notebooks using the
 `benchling.entry` and `benchling.author` metadata keys in the query parameter:
 
 ```bash

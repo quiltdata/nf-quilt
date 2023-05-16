@@ -35,7 +35,7 @@ class QuiltBenchlingTest extends Specification {
 
     final private @Shared qb = new QuiltBenchling()
     final private @Shared testID = '1'
-    final private @Shared uri = "quilt+s3://bkt?${QuiltBenchling.EXPERIMENT_ID}=1#package=pre/suf"
+    final private @Shared uri = "quilt+s3://bkt?${QuiltBenchling.ENTRY_ID}=1#package=pre/suf"
 
     @IgnoreIf({ env.BENCHLING_TENANT == null })
     void 'should get Entry by ID'() {

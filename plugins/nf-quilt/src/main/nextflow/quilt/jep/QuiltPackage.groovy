@@ -196,7 +196,7 @@ class QuiltPackage {
     }
 
     String key_msg(String message='') {
-        String msg = meta_overrides('commit_message', "nf-quilt:${today()}-${message}")
+        String msg = meta_get('msg', "nf-quilt:${today()}-${message}")
         return "--message '${sanitize(msg)}'"
     }
 
@@ -292,7 +292,7 @@ class QuiltPackage {
         return "QuiltPackage.${bucket}_${packageName}".replaceAll(/[-\/]/, '_')
     }
 
-    String meta_overrides(String key, Serializable baseline = null) {
+    String meta_get(String key, Serializable baseline = null) {
         Object temp = meta[key] ? meta[key] : baseline
         return temp.toString()
     }

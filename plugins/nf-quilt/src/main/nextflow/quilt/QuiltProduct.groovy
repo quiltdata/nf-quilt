@@ -98,7 +98,7 @@ class QuiltProduct {
 
     String readme() {
         GStringTemplateEngine engine = new GStringTemplateEngine()
-        String raw_readme = pkg.meta_overrides('readme', README_TEMPLATE)
+        String raw_readme = pkg.meta_get('readme', README_TEMPLATE)
         Writable template = engine.createTemplate(raw_readme).make([meta: meta, msg: msg, now: now()])
         return template.toString()
     }
@@ -125,22 +125,26 @@ class QuiltProduct {
             print("ERROR[package push failed]: $pkg\n")
         } else {
             print("SUCCESS: $pkg\n")
-            String experimentId = pkg.meta_overrides(QuiltBenchling.EXPERIMENT_ID)
-            if (experimentId && experimentId != '' && experimentId != 'null') {
-                log.info("QuiltPackage.publish_to_benchling: $experimentId")
-                publish_to_benchling(experimentId)
+            String entryID = pkg.meta_get(QuiltBenchling.ENTRY_ID)
+            String authorID = pkg.meta_get(QuiltBenchling.AUTHOR_ID)
+            if (entryID && entryID != '' && entryID != 'null') {
+                log.info("QuiltPackage.publish_to_benchling: $entryID")
+                if (!authorID || authorID == '' || authorID == 'null') {
+                    log.error('ERROR.QuiltPackage.publish_to_benchling: no authorID')
+                }
+                publish_to_benchling(entryID, authorID)
             }
         }
 
         return rc
     }
 
-    void publish_to_benchling(String experimentId) {
+    void publish_to_benchling(String entryID, String authorID) {
         '''call QuiltBenchling update with package URI'''
         String uri = path.toUriString()
-        String fieldName = "output.$pkg"
+        String url = path.toPackageString() // FIXME: should be toCatalogString
         QuiltBenchling qb = new QuiltBenchling()
-        qb.update(experimentId, fieldName, uri)
+        qb.update(entryID, authorID, uri, url)
     }
 
     Map getMetadata(Map cf) {
