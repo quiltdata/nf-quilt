@@ -1,6 +1,6 @@
 # nf-quilt
 
-NextFlow plugin for reading and writing Quilt packages as a FileSystem
+## NextFlow plugin for reading and writing Quilt packages
 
 [`nf-quilt`](https://github.com/quiltdata/nf-quilt) (v0.3.2 or later) is a NextFlow [plugin](https://www.nextflow.io/docs/latest/plugins.html)
 developed by [Quilt Data](https://quiltdata.com/) that enables you read and write directly
@@ -32,6 +32,9 @@ which quilt3
 The above instructions use the 'yum' package manager,
 which NextFlow Tower uses in the "Pre-run script"
 when you edit the Pipeline settings from the Launchpad.
+
+![Pipeline Settings](doc/README-Tower.png)
+
 
 If you are running from the command-line, you may need to use your own package manager
 (or just skip those lines if you already have Python and Git).
@@ -95,8 +98,8 @@ From the command-line, do, e.g.:
 
 ```bash
 export NXF_VER=23.04.0
-export NXF_PLUGINS_TEST_REPOSITORY=https://github.com/quiltdata/nf-quilt/releases/download/0.3.5/nf-quilt-0.3.5-meta.json
-nextflow run main.nf -plugins nf-quilt@0.3.5
+export NXF_PLUGINS_TEST_REPOSITORY=https://github.com/quiltdata/nf-quilt/releases/download/0.4.0/nf-quilt-0.4.0-meta.json
+nextflow run main.nf -plugins nf-quilt@0.4.0
 ```
 
 For Tower, you can use the "Pre-run script" to set the environment variables.
@@ -145,11 +148,11 @@ so you should carefully test it before running long jobs.
 
 ### B. Quilt+ URIs for Custom Data Products
 
-Version 0.3.4 and later allow you to customize both the `commit_message`
+Version 0.3.4 and later allow you to customize both the commit message `msg`
 and `readme` via metadata query keys:
 
 ```bash
-make pkg-test QUERY='?commit_message=text+str&readme=GStr+%24msg+%24now+%24%7Bmeta[%22quilt%22]%7D'
+make pkg-test QUERY='?msg=text+str&readme=GStr+%24msg+%24now+%24%7Bmeta[%22quilt%22]%7D'
 ```
 
 The `readme` parameter is a Groovy GString template which expands the variables:
@@ -160,17 +163,22 @@ The `readme` parameter is a Groovy GString template which expands the variables:
 
 ### C. Benchling Integration (Preview)
 
-Version 0.3.5 includes alpha support for a `benchling.experiment_id`
-metadata key in the query parameter:
+Version 0.4.0 includes beta support for updating Benchling notebooks using the
+`benchling.entry` and `benchling.author` metadata keys in the query parameter:
 
 ```bash
-make pkg-test QUERY='?benchling.experiment_id=123'
+make pkg-test QUERY='?benchling.entry=etr_0quipFLA&benchling.author=ent_a0SApq3z'
 ```
 
 After package push, this will add the URI of the output quilt package to a
 metadata field in the Benchling notebook.
 
-In order to use this, you must also export two environment variables:
+In order to use this, the notebook must have a schema defining these exact fields:
+
+* "Quilt+ URI"
+* "Quilt Catalog URI"
+
+and export two environment variables:
 
 ```string
 # The URL of your custom Benchling domain (only for paid plans)
@@ -180,3 +188,4 @@ export BENCHLING_TENANT=https://mock-benchling.proxy.beeceptor.com/
 export BENCHLING_API_KEY=R4nd0mB4se64N0mb3r
 ```
 
+See [BENCHLING.md](doc/BENCHLING.md) for more details.
