@@ -142,9 +142,9 @@ class QuiltProduct {
     void publish_to_benchling(String entryID, String authorID) {
         '''call QuiltBenchling update with package URI'''
         String uri = path.toUriString()
-        String url = path.toPackageString() // FIXME: should be toCatalogString
+        String url = path.toCatalogURL()
         QuiltBenchling qb = new QuiltBenchling()
-        qb.update(entryID, authorID, uri, url)
+        qb.updateURIs(entryID, authorID, uri, url)
     }
 
     Map getMetadata(Map cf) {

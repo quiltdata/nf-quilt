@@ -34,13 +34,15 @@ import spock.lang.Specification
 class QuiltBenchlingTest extends Specification {
 
     final private @Shared qb = new QuiltBenchling()
-    final private @Shared testID = '1'
-    final private @Shared uri = "quilt+s3://bkt?${QuiltBenchling.ENTRY_ID}=1#package=pre/suf"
+    final private @Shared entryID = 'etr_YF5KqGtT'
+    final private @Shared authorID = 'ent_9CIv9U8P'
+    final private @Shared bench = "${QuiltBenchling.ENTRY_ID}=${entryID}&${QuiltBenchling.AUTHOR_ID}=${authorID}"
+    final private @Shared uri = "quilt+s3://bkt?${bench}#package=pre/suf"
 
     @IgnoreIf({ env.BENCHLING_TENANT == null })
     void 'should get Entry by ID'() {
         when:
-        Entry entry = qb.get(testID)
+        Entry entry = qb.get(entryID)
         then:
         assert entry
         uri
@@ -49,7 +51,7 @@ class QuiltBenchlingTest extends Specification {
     @IgnoreIf({ env.BENCHLING_TENANT == null })
     void 'should update Entry by ID'() {
         when:
-        Entry entry = qb.update(testID, 'field', 'test')
+        Entry entry = qb.updateURIs(entryID, authorID, 'quilt+s3://test-uri', 'https://test-url')
         then:
         assert entry
     }

@@ -57,9 +57,10 @@ class QuiltBenchling {
 
     Entry updateURIs(String entryId, String authorID, String uri, String url) {
         EntryUpdate update = new EntryUpdate()
+        update.authorIds = [authorID]
         update.fields = [(K_URI): uri, (K_URL): url]
         Entry result = null
-        api.updateEntry(entryId, authorID, update) { EntryById byid ->
+        api.updateEntry(entryId, update) { EntryById byid ->
             log.debug "Successfully updated byid: $byid"
             result = byid.entry
         } { error ->

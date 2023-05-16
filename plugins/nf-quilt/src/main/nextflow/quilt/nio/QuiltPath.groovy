@@ -223,6 +223,10 @@ final class QuiltPath implements Path, Comparable {
         return parsed.toUriString()
     }
 
+    String toCatalogURL() {
+        return parsed.toCatalogURL()
+    }
+
     @Override
     URI toUri() {
         return new URI(toUriString())

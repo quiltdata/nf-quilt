@@ -274,4 +274,12 @@ class QuiltParser {
         return PREFIX + toString()
     }
 
+    String toCatalogURL() {
+        String url = "https://${getCatalogName()}/b/${getBucket()}/packages/${getPackageName()}"
+        if (hasPath()) {
+            url += "/tree/latest/${getPath()}"
+        }
+        return url
+    }
+
 }
