@@ -1,6 +1,7 @@
 /* groovylint-disable UnusedMethodParameter */
 package benchling.api
 
+import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
 import groovy.util.logging.Slf4j
 import groovy.transform.CompileStatic
@@ -34,23 +35,25 @@ class ApiUtils {
         return client
     }
 
-    Response http_call(Map<String, Object> args, String method = 'get') {
-        RESTClient http = getClient((String) args.uri)
+    Response http_call(Map<String, Object> args, String method) {
+        log.debug "http_call[$method]\n$args"
+        RESTClient client = getClient((String) args.uri)
         Map<String, Object> opts = [
             headers: getHeaders((String) args.contentType),
             query: args.query,
             path: args.path,
-            //body: args.body,
+            body: args.body,
         ]
         switch (method) {
         case 'patch':
-                return http.patch(opts)
+                return client.patch(opts)
         case 'post':
-                return http.post(opts)
+                return client.post(opts)
         case 'put':
-                return http.put(opts)
+                return client.put(opts)
         default:
-            return http.get(opts)
+                opts.remove('body')
+                return client.get(opts)
         }
     }
 
@@ -70,12 +73,13 @@ class ApiUtils {
         Class type
         )  {
 
-        //println "url=$basePath uriPath=$resourcePath query=$queryParams"
+        log.debug "invokeApi[$method]$basePath uriPath=$resourcePath query=$queryParams"
+        log.debug "invokeApi.contentType=$contentType bodyParams=$bodyParams"
         Response resp = http_call(
             method,
             uri : basePath,
             path : resourcePath,
-            body : bodyParams,
+            body : JsonOutput.toJson(bodyParams),
             query : queryParams,
             contentType : contentType,
         )

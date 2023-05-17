@@ -15,6 +15,6 @@ class Field {
 
     FieldType type
 
-    FieldValue value
+    String value
 
 }

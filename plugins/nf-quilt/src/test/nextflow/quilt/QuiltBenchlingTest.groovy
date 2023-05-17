@@ -33,6 +33,8 @@ import spock.lang.Specification
 @CompileDynamic
 class QuiltBenchlingTest extends Specification {
 
+    // TODO: Get values from environment = System.getenv('BENCHLING_API_KEY')
+
     final private @Shared qb = new QuiltBenchling()
     final private @Shared entryID = 'etr_YF5KqGtT'
     final private @Shared authorID = 'ent_9CIv9U8P'
@@ -51,9 +53,15 @@ class QuiltBenchlingTest extends Specification {
     @IgnoreIf({ env.BENCHLING_TENANT == null })
     void 'should update Entry by ID'() {
         when:
-        Entry entry = qb.updateURIs(entryID, authorID, 'quilt+s3://test-uri', 'https://test-url')
+        String test_uri = 'quilt+s3://test-uri'
+        String test_url = 'https://test-url'
+        Entry entry = qb.updateURIs(entryID, authorID, test_uri, test_url)
         then:
         assert entry
+        assert entry.id == entryID
+        def fields = entry.fields
+        assert fields[QuiltBenchling.K_URI].value == test_uri
+        assert fields[QuiltBenchling.K_URL].value == test_url
     }
 
 }

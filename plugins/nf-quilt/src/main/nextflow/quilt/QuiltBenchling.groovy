@@ -18,7 +18,6 @@ package nextflow.quilt
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import benchling.model.Entry
-import benchling.model.EntryUpdate
 import benchling.model.EntryById
 import benchling.api.EntriesApi
 
@@ -35,7 +34,7 @@ class QuiltBenchling {
     public static final String AUTHOR_ID = 'benchling.author'
 
     public static final String K_URI = 'Quilt+ URI'
-    public static final String K_URL = 'Quilt Catalog URI'
+    public static final String K_URL = 'Quilt Catalog URL'
 
     private final EntriesApi api
 
@@ -56,9 +55,11 @@ class QuiltBenchling {
     }
 
     Entry updateURIs(String entryId, String authorID, String uri, String url) {
-        EntryUpdate update = new EntryUpdate()
-        update.authorIds = [authorID]
-        update.fields = [(K_URI): uri, (K_URL): url]
+        log.debug "updateURIs: $entryId $authorID $uri $url"
+        Map f_uri = [value: uri]
+        Map f_url = [value: url]
+        Map update = [authorIds: [authorID], fields: [(K_URI): f_uri, (K_URL): f_url]]
+        log.debug "updateURIs.update:\n  $update"
         Entry result = null
         api.updateEntry(entryId, update) { EntryById byid ->
             log.debug "Successfully updated byid: $byid"
