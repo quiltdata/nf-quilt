@@ -125,22 +125,9 @@ class QuiltProduct {
             print("ERROR[package push failed]: $pkg\n")
         } else {
             print("SUCCESS: $pkg\n")
-            String experimentId = pkg.meta_overrides(QuiltBenchling.EXPERIMENT_ID)
-            if (experimentId && experimentId != '' && experimentId != 'null') {
-                log.info("QuiltPackage.publish_to_benchling: $experimentId")
-                publish_to_benchling(experimentId)
-            }
         }
 
         return rc
-    }
-
-    void publish_to_benchling(String experimentId) {
-        '''call QuiltBenchling update with package URI'''
-        String uri = path.toUriString()
-        String fieldName = "output.$pkg"
-        QuiltBenchling qb = new QuiltBenchling()
-        qb.update(experimentId, fieldName, uri)
     }
 
     Map getMetadata(Map cf) {

@@ -55,9 +55,12 @@ class QuiltObserver implements TraceObserver {
         String pname = path.getPackageName()
         QuiltPath result = path
         params.each { key, value ->
-            String val = "$value"
-            if (val.contains(bkt) && val.contains(pname)) {
-                QuiltPath npath = QuiltPathFactory.parse(val)
+            String uri = "$value"
+            if (uri.contains(bkt) && uri.contains(pname)) {
+                String pathless = uri.replaceFirst(/&path=[^&]+/, '')
+                log.debug("`normalizePath` $uri\n -> $pathless")
+
+                QuiltPath npath = QuiltPathFactory.parse(pathless)
                 result = npath
             }
         }
