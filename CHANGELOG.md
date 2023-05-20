@@ -4,9 +4,9 @@
 
 ## [0.4.0] 2023-05-19
 
-- Removed Benchling support (will add back in a future release)
-- Added support for writing Quilt+ URIs with `#path=` fragments (by ignoring them)
 - Use `msg` fragment parameter as commit message when writing packages
+- Removed Benchling support (will add back in a future release)
+- Don't crash when writing to Quilt+ URIs with `&path=` fragments (by ignoring that part)
 
 ## [0.3.5] 2023-04-05
 

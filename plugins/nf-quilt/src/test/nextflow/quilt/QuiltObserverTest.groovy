@@ -48,20 +48,21 @@ class QuiltObserverTest extends QuiltSpecification {
         QuiltObserver.asQuiltPath(pkg).toString() == 'quilt-example#package=examples%2fhurdat'
     }
 
-    void 'replace path with original params if present'() {
+    void 'normalize path to original params if present'() {
         given:
         Map params = [outdir: fullURL]
         String subURL = fullURL.replace('?key=val&key2=val2', '')
         QuiltPath path = QuiltPathFactory.parse(subURL)
-        QuiltPath path_n = QuiltObserver.normalizePath(path, params)
+        QuiltPath path_norm = QuiltObserver.normalizePath(path, params)
         String noURL = subURL.replace('bkt', 'bucket')
         QuiltPath no_path = QuiltPathFactory.parse(noURL)
-        QuiltPath no_path_n = QuiltObserver.normalizePath(no_path, params)
+        QuiltPath no_path_norm = QuiltObserver.normalizePath(no_path, params)
         expect:
-        path_n
-        "$path_n" != "$path"
-        no_path_n
-        "$no_path_n" == "$no_path"
+        path_norm
+        "$path_norm" != "$path"
+        path_norm.file_key() == ''
+        no_path_norm
+        "$no_path_norm" == "$no_path"
     }
 
 }
