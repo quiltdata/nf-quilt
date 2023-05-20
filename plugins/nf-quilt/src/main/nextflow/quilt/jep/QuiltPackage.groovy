@@ -196,7 +196,7 @@ class QuiltPackage {
     }
 
     String key_msg(String message='') {
-        String msg = meta_overrides('commit_message', "nf-quilt:${today()}-${message}")
+        String msg = meta_overrides('msg', "nf-quilt:${today()}-${message}")
         return "--message '${sanitize(msg)}'"
     }
 
