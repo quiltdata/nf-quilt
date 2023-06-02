@@ -2,6 +2,13 @@
 
 ## UNRELEASED
 
+## [0.4.1] 2023-06-02
+
+Beta release (not yet on nextflow-io/plugins)
+
+- Only match unpinned packages for normalizePath
+- Append to README.md if it exists
+
 ## [0.4.0] 2023-05-19
 
 - Use `msg` fragment parameter as commit message when writing packages

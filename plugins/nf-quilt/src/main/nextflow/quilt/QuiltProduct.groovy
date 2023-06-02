@@ -69,7 +69,11 @@ class QuiltProduct {
         String dir = pkg.packageDest()
         Path path  = Paths.get(dir, filename)
         try {
-            Files.write(path, text.bytes)
+            if (Files.exists(path)) {
+                path << text.bytes
+            } else {
+                Files.write(path, text.bytes)
+            }
         }
         catch (Exception e) {
             log.error("writeString: cannot write `$text` to `$path` for `${pkg}`")
