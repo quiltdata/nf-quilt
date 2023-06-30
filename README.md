@@ -112,7 +112,8 @@ in order to customize the behavior of the plugin:
 
 * Query Parameters: also stored as package-level metadata
   * **msg**: specify the commit message to use when saving the package
-  * **readme**: specify a Groovy GString template for the package README
+  * **readme**: specify a string for the package README 
+    (will substitute "${variables}")
   * **_any other key_**: specify any other metadata key to store in the package
 
 See below for more details.  
