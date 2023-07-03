@@ -119,7 +119,9 @@ class QuiltProduct {
         catch (Exception e) {
             log.error('publish: cannot generate metadata (QuiltObserver uninitialized?)', e)
         }
-        writeString(text, pkg, 'README.md')
+        if (text != null && text.length() > 0) {
+            writeString(text, pkg, 'README.md')
+        }
         writeString("$meta", pkg, 'quilt_metadata.txt')
         writeString(QuiltPackage.toJson(meta), pkg, 'quilt_metadata.json')
 
