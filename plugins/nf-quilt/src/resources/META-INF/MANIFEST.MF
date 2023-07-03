@@ -1,7 +1,7 @@
 Manifest-Version: 1.0
 Plugin-Class: nextflow.quilt.QuiltPlugin
 Plugin-Id: nf-quilt
-Plugin-Version: 0.4.1
+Plugin-Version: 0.4.2
 Plugin-Provider: Quilt Data
 Plugin-Requires: >=22.10.6
 

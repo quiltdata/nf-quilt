@@ -2,6 +2,11 @@
 
 ## UNRELEASED
 
+## [0.4.2] 2023-07-02
+
+- Fix normalizePath test (return exact match, else last de-pathed match)
+- Skip creating README.md if zero-length string
+
 ## [0.4.1] 2023-06-02
 
 Beta release (not yet on nextflow-io/plugins)
