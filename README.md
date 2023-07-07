@@ -22,7 +22,8 @@ and must be available in the PATH used by `nextflow`.
 
 ```bash
 yum install python3-pip -y
-yum install git -y        
+yum install git -y
+pip3 install "urllib3<2"   
 pip3 install quilt3
 which quilt3
 ```
@@ -112,7 +113,7 @@ in order to customize the behavior of the plugin:
 
 * Query Parameters: also stored as package-level metadata
   * **msg**: specify the commit message to use when saving the package
-  * **readme**: specify a string for the package README 
+  * **readme**: specify a string for the package README
     (will substitute "${variables}")
   * **_any other key_**: specify any other metadata key to store in the package
 
