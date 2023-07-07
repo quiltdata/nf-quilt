@@ -100,14 +100,13 @@ refresh:
 #test:
 #	./gradlew ${mm}test
 
-test-class:
-	./gradlew ${mm}test --tests ${class}
-
-fast:
-	./gradlew ${mm}test --fail-fast || open ./plugins/nf-quilt/build/reports/tests/test/index.html
+test-s3:
+	./gradlew test --tests nextflow.quilt.quiltcore.S3Test --fail-fast ||\
+	open ./plugins/nf-quilt/build/reports/tests/test/index.html
 
 #
 # Upload JAR artifacts to Maven Central
+#
 
 publish:
 	echo "Ensure you have set 'github_organization=<owner>' in gradle.properties"
