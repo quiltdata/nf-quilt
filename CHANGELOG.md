@@ -1,19 +1,19 @@
 # Changelog
 
-## UNRELEASED
+## [0.5.0] UNRELEASED
 
-## [0.4.3] 2023-07-07
+- Adopt Native QuiltCore
+
+## [0.4.3] 2023-07-07 NON-PUBLISHED
 
 - Clean up README.md
 
-## [0.4.2] 2023-07-02
+## [0.4.2] 2023-07-02 NON-PUBLISHED
 
 - Fix normalizePath test (return exact match, else last de-pathed match)
 - Skip creating README.md if zero-length string
 
-## [0.4.1] 2023-06-02
-
-Beta release (not yet on nextflow-io/plugins)
+## [0.4.1] 2023-06-02 NON-PUBLISHED
 
 - Only match unpinned packages for normalizePath
 - Append to README.md if it exists
