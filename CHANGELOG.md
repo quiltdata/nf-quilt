@@ -2,6 +2,10 @@
 
 ## UNRELEASED
 
+## [0.4.3] 2023-07-07
+
+- Clean up README.md
+
 ## [0.4.2] 2023-07-02
 
 - Fix normalizePath test (return exact match, else last de-pathed match)
