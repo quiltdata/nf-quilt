@@ -69,7 +69,7 @@ class QuiltSpecification extends Specification {
             protected PluginDescriptorFinder createPluginDescriptorFinder() {
                 return new TestPluginDescriptorFinder(){
 
-                    @Override
+                    //@Override
                     protected Path getManifestPath(Path pluginPath) {
                         return pluginPath.resolve('src/resources/META-INF/MANIFEST.MF')
                     }
@@ -78,8 +78,11 @@ class QuiltSpecification extends Specification {
             }
 
         }
+        println "Plugin root: ${root} manager: ${manager}"
+        //Path plugins = root.resolve('plugins')
         Plugins.init(root, 'dev', manager)
         Plugins.startIfMissing('nf-quilt')
+        //Plugins.startIfMissing('nf-amazon')
     }
 
     void cleanupSpec() {

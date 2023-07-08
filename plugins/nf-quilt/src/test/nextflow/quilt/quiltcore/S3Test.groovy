@@ -17,11 +17,13 @@
 package nextflow.quilt.quiltcore
 
 import nextflow.quilt.QuiltSpecification
-import nextflow.quilt.QuiltObserver
-import nextflow.quilt.QuiltProduct
+import nextflow.file.FileHelper
+import nextflow.plugin.PluginsFacade
 
+import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
+
 import groovy.transform.CompileDynamic
 
 /**
@@ -31,12 +33,24 @@ import groovy.transform.CompileDynamic
 @CompileDynamic
 class S3Test extends QuiltSpecification {
 
-    void 'should generate solid string for timestamp'() {
+    void 'should create paths for s3'() {
         when:
-        def now = QuiltProduct.now()
+        String folder = '../nextflow/plugins'
+        Path root = Paths.get(folder).toAbsolutePath().normalize()
+        println "TestRoot: ${root}"
+        PluginsFacade plugins = new PluginsFacade(root, 'dev')
+        plugins.setup(plugins: [ 'nf-amazon@1.16.2' ])
+        Path path = FileHelper.asPath(uriString)
+
         then:
-        now
-        now.contains('T')
+        plugins
+        path
+        Files.exists(path) == exists
+
+        where:
+        uriString | exists
+        //'s3://bkt/key' | false
+        's3://quilt-example/.quilt' | true
     }
 
 }
