@@ -10,7 +10,6 @@ QUERY ?= ?Name=$(USER)&Owner=Kevin+Moore&Date=2023-03-07&Type=CRISPR&Notebook+UR
 TEST_URI ?= quilt+s3://$(WRITE_BUCKET)$(QUERY)\#package=test/hurdat$(FRAGMENT)
 QUILT_URI ?=  quilt+s3://$(WRITE_BUCKET)\#package=$(PROJECT)/$(PIPELINE)
 PIP ?= pip3
-QUILT3 ?= /usr/local/bin/quilt3
 REPORT ?= ./plugins/$(PROJECT)/build/reports/tests/test/index.html
 
 verify: #compile
@@ -38,7 +37,7 @@ nextflow:
 	pushd "$(NF_DIR)"; git checkout && make compile && git restore .; popd
 
 install-python:
-	if [ ! -x "$(QUILT3)" ]; then $(PIP) install quilt3 ; fi
+	if ! which quilt3; then $(PIP) install quilt3 ; fi
 	which quilt3
 
 compile-all: install-python nextflow compile
