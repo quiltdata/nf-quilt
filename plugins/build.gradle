@@ -108,6 +108,7 @@ subprojects {
     task copyPluginLibs(type: Sync) {
         from configurations.runtimeClasspath
         into 'build/target/libs'
+        duplicatesStrategy 'exclude'
     }
 
     /*

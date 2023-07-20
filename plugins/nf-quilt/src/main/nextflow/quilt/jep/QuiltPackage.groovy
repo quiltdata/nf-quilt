@@ -28,6 +28,11 @@ import java.nio.file.attribute.BasicFileAttributes
 import java.util.stream.Collectors
 import java.time.LocalDate
 
+import com.quiltdata.quiltcore.Registry
+import com.quiltdata.quiltcore.Namespace
+import com.quiltdata.quiltcore.Manifest
+import com.quiltdata.quiltcore.key.S3PhysicalKey
+
 @Slf4j
 @CompileStatic
 class QuiltPackage {
@@ -86,7 +91,7 @@ class QuiltPackage {
             log.debug("${pkg}: attempting install for.pkgKey $pkgKey (okay if fails)")
             pkg.install()
         }
-        catch (Exception e) {
+        catch (IOException e) {
             log.warn("Package `${parsed.toUriString()}` does not yet exist")
         }
         return pkg
@@ -250,17 +255,30 @@ class QuiltPackage {
         }
     }
 
-    // usage: quilt3 install [-h] [--registry REGISTRY] [--top-hash TOP_HASH]
-    // [--dest DEST] [--dest-registry DEST_REGISTRY] [--path PATH] name
     Path install() {
-        int exitCode = call('install', packageName, key_registry(), key_hash(), key_dest())
-        if (exitCode != 0) {
-            log.warn("${exitCode}: ${packageName} failed to install (may not exist)")
+        Path dest = packageDest()
+
+        try {
+            log.info("installing $packageName from $bucket...")
+            S3PhysicalKey registryPath = new S3PhysicalKey(bucket, '', null)
+            log.info("registryPath: $registryPath")
+            Registry registry = new Registry(registryPath)
+            Namespace namespace = registry.getNamespace(packageName)
+            String resolvedHash = (hash == 'latest' || hash == null || hash == 'null') ? namespace.getHash('latest') : hash
+            log.info("hash: $hash -> $resolvedHash")
+            Manifest manifest = namespace.getManifest(resolvedHash)
+
+            manifest.install(dest)
+            log.info("done")
+        } catch (IOException e) {
+            log.error("failed to install $packageName")
             return null
         }
+
         installed = true
         recursiveDeleteOnExit()
-        return packageDest()
+
+        return dest
     }
 
     // https://stackoverflow.com/questions/15022219
