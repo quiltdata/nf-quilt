@@ -59,6 +59,9 @@ ext{
 }
 
 dependencies {
+    // quiltcore
+    implementation zipTree('../../../quiltcore-java/lib/build/distributions/quiltcore.zip')
+
     // This dependency is exported to consumers, that is to say found on their compile classpath.
     compileOnly "io.nextflow:nextflow:$nextflowVersion"
     compileOnly 'org.slf4j:slf4j-api:2.0.7'
