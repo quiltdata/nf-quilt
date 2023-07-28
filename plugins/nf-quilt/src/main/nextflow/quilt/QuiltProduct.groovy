@@ -97,7 +97,11 @@ class QuiltProduct {
         this.msg =  pkg.toString()
         this.meta = [pkg: msg, time_start: now()]
         this.session = session
-        publish()
+        if (session.isSuccess() || pkg.is_force()) {
+            publish()
+        } else {
+            log.info("not publishing: ${pkg} [unsuccessful session]")
+        }
     }
 
     String readme() {
