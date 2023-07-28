@@ -93,8 +93,8 @@ From the command-line, do, e.g.:
 
 ```bash
 # export NXF_VER=23.04.0
-export NXF_PLUGINS_TEST_REPOSITORY=https://github.com/quiltdata/nf-quilt/releases/download/0.4.2/nf-quilt-0.4.2-meta.json
-nextflow run main.nf -plugins nf-quilt@0.4.2
+export NXF_PLUGINS_TEST_REPOSITORY=https://github.com/quiltdata/nf-quilt/releases/download/0.4.3/nf-quilt-0.4.3-meta.json
+nextflow run main.nf -plugins nf-quilt@0.4.3
 ```
 
 For Tower, you can use the "Pre-run script" to set the environment variables.
@@ -112,7 +112,7 @@ in order to customize the behavior of the plugin:
 
 * Query Parameters: also stored as package-level metadata
   * **msg**: specify the commit message to use when saving the package
-  * **readme**: specify a string for the package README 
+  * **readme**: specify a string for the package README
     (will substitute "${variables}")
   * **_any other key_**: specify any other metadata key to store in the package
 
