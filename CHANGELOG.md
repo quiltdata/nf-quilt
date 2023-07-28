@@ -1,6 +1,9 @@
 # Changelog
 
-## UNRELEASED
+## [0.4.3] UNRELEASED
+
+- Do not publish Quilt package unless workflow succeeds
+- [or the metadata specifies &force=true]
 
 ## [0.4.2] 2023-07-02
 
