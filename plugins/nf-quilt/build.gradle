@@ -67,6 +67,7 @@ dependencies {
     compileOnly 'org.slf4j:slf4j-simple:2.0.7'
     compileOnly 'black.ninia:jep:4.1.1'
     runtime 'black.ninia:jep:4.1.1'
+    runtimeOnly 'org.junit.platform:junit-platform-launcher:1.9.3'
     implementation 'black.ninia:jep:4.1.1'
     testImplementation 'black.ninia:jep:4.1.1'
     //testImplementation(testFixtures('black.ninia:jep:4.0.3'))
