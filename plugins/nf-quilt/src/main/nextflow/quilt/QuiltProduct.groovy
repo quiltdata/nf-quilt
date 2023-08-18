@@ -39,7 +39,7 @@ class QuiltProduct {
 
     private final static String KEY_README = 'readme'
     private final static String KEY_META = 'metadata'
-    private final static String KEY_SKIP = SKIP
+    private final static String KEY_SKIP = 'SKIP'
 
     /* groovylint-disable-next-line GStringExpressionWithinString */
     private final static String README_TEMPLATE = '''
