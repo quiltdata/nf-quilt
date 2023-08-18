@@ -113,7 +113,8 @@ in order to customize the behavior of the plugin:
 * Query Parameters: also stored as package-level metadata
   * **msg**: specify the commit message to use when saving the package
   * **readme**: specify a string for the package README
-    (will substitute "${variables}")
+    (will substitute "${variables}"), or SKIP to not create a README
+  * **metadata**: specify SKIP to not push any new metadata (implicit or explicit)
   * **_any other key_**: specify any other metadata key to store in the package
 
 See below for more details.  

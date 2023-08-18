@@ -37,6 +37,10 @@ import groovy.text.GStringTemplateEngine
 @CompileStatic
 class QuiltProduct {
 
+    private final static String KEY_README = 'readme'
+    private final static String KEY_META = 'metadata'
+    private final static String KEY_SKIP = SKIP
+
     /* groovylint-disable-next-line GStringExpressionWithinString */
     private final static String README_TEMPLATE = '''
             # $now
@@ -69,7 +73,7 @@ class QuiltProduct {
         String dir = pkg.packageDest()
         Path path  = Paths.get(dir, filename)
         try {
-                Files.write(path, text.bytes)
+            Files.write(path, text.bytes)
         }
         catch (Exception e) {
             log.error("writeString: cannot write `$text` to `$path` for `${pkg}`")
@@ -100,9 +104,17 @@ class QuiltProduct {
         }
     }
 
+    boolean shouldSkip(key) {
+        return meta.containsKey(key) && meta[key] == KEY_SKIP
+    }
+
     String readme() {
+        if (shouldSkip(KEY_README)) {
+            log.info("readme=SKIP for ${pkg}")
+            return null
+        }
         GStringTemplateEngine engine = new GStringTemplateEngine()
-        String raw_readme = pkg.meta_overrides('readme', README_TEMPLATE)
+        String raw_readme = pkg.meta_overrides(KEY_README, README_TEMPLATE)
         Writable template = engine.createTemplate(raw_readme).make([meta: meta, msg: msg, now: now()])
         return template.toString()
     }
@@ -119,13 +131,17 @@ class QuiltProduct {
         catch (Exception e) {
             log.error('publish: cannot generate metadata (QuiltObserver uninitialized?)', e)
         }
+        if (shouldSkip(KEY_META)) {
+            meta = [:]
+        } else {
+            writeString("$meta", pkg, 'quilt_metadata.txt')
+            writeString(QuiltPackage.toJson(meta), pkg, 'quilt_metadata.json')
+        }
+
         if (text != null && text.length() > 0) {
             writeString(text, pkg, 'README.md')
         }
-        writeString("$meta", pkg, 'quilt_metadata.txt')
-        writeString(QuiltPackage.toJson(meta), pkg, 'quilt_metadata.json')
-
-        def rc = pkg.push(msg, meta)
+        int rc = pkg.push(msg, meta)
         log.info("$rc: pushed package[$pkg] $msg")
         if (rc > 0) {
             print("ERROR[package push failed]: $pkg\n")
