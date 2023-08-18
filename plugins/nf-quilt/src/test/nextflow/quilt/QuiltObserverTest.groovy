@@ -18,7 +18,6 @@ package nextflow.quilt.nio
 
 import nextflow.quilt.QuiltSpecification
 import nextflow.quilt.QuiltObserver
-import nextflow.quilt.QuiltProduct
 
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -30,14 +29,6 @@ import groovy.transform.CompileDynamic
  */
 @CompileDynamic
 class QuiltObserverTest extends QuiltSpecification {
-
-    void 'should generate solid string for timestamp'() {
-        when:
-        def now = QuiltProduct.now()
-        then:
-        now
-        now.contains('T')
-    }
 
     void 'should extract Quilt path from appropriate UNIX Path'() {
         given:
