@@ -1,6 +1,11 @@
 # Changelog
 
-## [0.4.3] UNRELEASED
+## [0.4.4] 2023-08-18 UNRELEASED
+
+- Add parameter to skip README and metadata (default is to include both)
+- verify package merges in any existing metadata before push
+
+## [0.4.3] 2023-08-04
 
 - Do not publish Quilt package unless workflow succeeds
 - [or the metadata specifies &force=true]
