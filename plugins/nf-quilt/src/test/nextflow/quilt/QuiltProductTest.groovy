@@ -37,26 +37,32 @@ class QuiltProductTest extends QuiltSpecification {
         now.contains('T')
     }
 
-    void 'should create QuiltProduct from session'() {
+    void 'should create from session'() {
         given:
         Session session = Mock(Session)
         QuiltPath path = QuiltPathFactory.parse(fullURL)
-
         QuiltProduct product = new QuiltProduct(path, session)
         expect:
         product
+        !product.shouldSkip('key')
+        !product.shouldSkip('missing_key')
+        !product.shouldSkip(QuiltProduct.KEY_SKIP)
+        !product.shouldSkip(QuiltProduct.KEY_README)
+        !product.shouldSkip(QuiltProduct.KEY_META)
     }
-
+    
     void 'shouldSkip is true if key=SKIP'() {
         given:
         Session session = Mock(Session)
-        QuiltPath path = QuiltPathFactory.parse(fullURL)
-        QuiltProduct product = new QuiltProduct(path, session)
         String subURL = fullURL.replace(
             '?key=val&key2=val2', '?readme=SKIP&metadata=SKIP'
         )
+        QuiltPath path = QuiltPathFactory.parse(subURL)
+        QuiltProduct product = new QuiltProduct(path, session)
         expect:
-        product
+        !product.shouldSkip(QuiltProduct.KEY_SKIP)
+        product.shouldSkip(QuiltProduct.KEY_README)
+        product.shouldSkip(QuiltProduct.KEY_META)
     }
 
 }

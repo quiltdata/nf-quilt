@@ -105,7 +105,8 @@ class QuiltProduct {
     }
 
     boolean shouldSkip(key) {
-        return meta.containsKey(key) && meta[key] == KEY_SKIP
+        print("shouldSkip:${key} ${pkg.meta.containsKey(key)} in ${pkg.meta}\n")
+        return pkg.meta.containsKey(key) && pkg.meta[key] == KEY_SKIP
     }
 
     String readme() {
