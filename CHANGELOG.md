@@ -3,7 +3,8 @@
 ## [0.4.4] 2023-08-18 UNRELEASED
 
 - Add parameter to skip README and metadata (default is to include both)
-- verify package merges in any existing metadata before push
+- Verify package merges in any existing metadata before push
+- Do NOT append to README.md; overwrite (or just skip)
 
 ## [0.4.3] 2023-08-04
 
