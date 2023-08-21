@@ -29,19 +29,25 @@ import groovy.transform.CompileDynamic
 @CompileDynamic
 class QuiltProductTest extends QuiltSpecification {
 
+    QuiltProduct makeProduct(String query=null) {
+        String subURL = query ? fullURL.replace('?key=val&key2=val2', query) : fullURL
+        Session session = Mock(Session)
+        QuiltPath path = QuiltPathFactory.parse(subURL)
+        return new QuiltProduct(path, session)
+    }
+
     void 'now should generate solid string for timestamp'() {
         when:
         def now = QuiltProduct.now()
         then:
         now
         now.contains('T')
+        !now.contains(' ')
     }
 
     void 'should create from session'() {
         given:
-        Session session = Mock(Session)
-        QuiltPath path = QuiltPathFactory.parse(fullURL)
-        QuiltProduct product = new QuiltProduct(path, session)
+        QuiltProduct product = makeProduct()
         expect:
         product
         !product.shouldSkip('key')
@@ -50,18 +56,31 @@ class QuiltProductTest extends QuiltSpecification {
         !product.shouldSkip(QuiltProduct.KEY_README)
         !product.shouldSkip(QuiltProduct.KEY_META)
     }
-    
+
     void 'shouldSkip is true if key=SKIP'() {
         given:
-        Session session = Mock(Session)
-        String subURL = fullURL.replace(
-            '?key=val&key2=val2', '?readme=SKIP&metadata=SKIP'
-        )
-        QuiltPath path = QuiltPathFactory.parse(subURL)
-        QuiltProduct product = new QuiltProduct(path, session)
+        QuiltProduct product = makeProduct('?readme=SKIP&metadata=SKIP')
         expect:
         !product.shouldSkip(QuiltProduct.KEY_SKIP)
         product.shouldSkip(QuiltProduct.KEY_README)
+        product.shouldSkip(QuiltProduct.KEY_META)
+    }
+
+    void 'preserves (absence of) README if readme=SKIP'() {
+        given:
+        QuiltProduct product = makeProduct('?readme=SKIP')
+        expect:
+        !product.shouldSkip(QuiltProduct.KEY_SKIP)
+        product.shouldSkip(QuiltProduct.KEY_README)
+        !product.shouldSkip(QuiltProduct.KEY_META)
+    }
+
+    void 'pushes previous metadata if metadata=SKIP'() {
+        given:
+        QuiltProduct product = makeProduct('?metadata=SKIP')
+        expect:
+        !product.shouldSkip(QuiltProduct.KEY_SKIP)
+        !product.shouldSkip(QuiltProduct.KEY_README)
         product.shouldSkip(QuiltProduct.KEY_META)
     }
 
