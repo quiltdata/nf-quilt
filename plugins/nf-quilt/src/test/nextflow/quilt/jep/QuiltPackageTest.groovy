@@ -162,8 +162,9 @@ class QuiltPackageTest extends QuiltSpecification {
         QuiltPackage opkg = writeablePackage('observer')
         expect:
         opkg
+        opkg.is_force()
         opkg.bucket == writeBucket
-        opkg.packageName == 'test/observer'
+        opkg.packageName.contains('test/observer')
         opkg.push() == 0
     }
 

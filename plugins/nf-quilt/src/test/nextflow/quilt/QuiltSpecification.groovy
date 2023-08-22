@@ -88,7 +88,7 @@ class QuiltSpecification extends Specification {
     }
 
     String writeableURL(String suffix) {
-        return "quilt+s3://${writeBucket}#package=test/${suffix}"
+        return "quilt+s3://${writeBucket}#package=test/${suffix}&force=true"
     }
 
     QuiltPackage writeablePackage(String suffix) {
