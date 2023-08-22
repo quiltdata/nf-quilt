@@ -43,8 +43,8 @@ class QuiltProduct {
 
     /* groovylint-disable-next-line GStringExpressionWithinString */
     private final static String README_TEMPLATE = '''
-            # $now
-            ## $msg
+            # ${now}
+            ## ${msg}
 
             ## workflow
             ### scriptFile: ${meta['workflow']['scriptFile']}
@@ -104,9 +104,38 @@ class QuiltProduct {
         }
     }
 
+    int publish() {
+        setupReadme()
+        Map meta = setupMeta()
+        int rc = pkg.push(msg, meta)
+        log.info("$rc: pushed package[$pkg] $msg")
+        if (rc > 0) {
+            print("ERROR[package push failed]: $pkg\n")
+        } else {
+            print("SUCCESS: $pkg\n")
+        }
+
+        return rc
+    }
+
     boolean shouldSkip(key) {
-        print("shouldSkip:${key} ${pkg.meta.containsKey(key)} in ${pkg.meta}\n")
+        print("shouldSkip:${key} hasKey:${pkg.meta.containsKey(key)} in ${pkg.meta}\n")
         return pkg.meta.containsKey(key) && pkg.meta[key] == KEY_SKIP
+    }
+
+    String setupReadme() {
+        String text = 'Stub README'
+        try {
+            text = readme()
+        }
+        catch (Exception e) {
+            log.error('setupReadme: failed (invalid template?)', e)
+        }
+        if (text != null && text.length() > 0) {
+            log.debug("setupReadme: ${text.length()} bytes")
+            writeString(text, pkg, 'README.md')
+        }
+        return text
     }
 
     String readme() {
@@ -120,37 +149,19 @@ class QuiltProduct {
         return template.toString()
     }
 
-    int publish() {
-        String text = 'Stub README'
+    Map setupMeta() {
         try {
             meta = getMetadata(session.config)
             meta['quilt'] = [package_id: pkg.toString(), uri: path.toUriString()]
             msg = "${meta['config']['runName']}: ${meta['cmd']}"
-            text = readme()
             meta.remove('config')
         }
         catch (Exception e) {
-            log.error('publish: cannot generate metadata (QuiltObserver uninitialized?)', e)
+            log.error('setupMeta: failed (QuiltObserver uninitialized?)', e)
         }
-        if (shouldSkip(KEY_META)) {
-            meta = [:]
-        } else {
-            writeString("$meta", pkg, 'quilt_metadata.txt')
-            writeString(QuiltPackage.toJson(meta), pkg, 'quilt_metadata.json')
-        }
-
-        if (text != null && text.length() > 0) {
-            writeString(text, pkg, 'README.md')
-        }
-        int rc = pkg.push(msg, meta)
-        log.info("$rc: pushed package[$pkg] $msg")
-        if (rc > 0) {
-            print("ERROR[package push failed]: $pkg\n")
-        } else {
-            print("SUCCESS: $pkg\n")
-        }
-
-        return rc
+        writeString("$meta", pkg, 'quilt_metadata.txt')
+        writeString(QuiltPackage.toJson(meta), pkg, 'quilt_metadata.json')
+        return shouldSkip(KEY_META) ? [:] : meta
     }
 
     Map getMetadata(Map cf) {

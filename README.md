@@ -151,7 +151,7 @@ and `readme` via metadata query keys:
 make pkg-test QUERY='?msg=text+str&readme=GStr+%24msg+%24now+%24%7Bmeta[%22quilt%22]%7D'
 ```
 
-The `readme` parameter is a Groovy GString template which expands the variables:
+The `readme` parameter is a Groovy GString template which expands the `${variables}`:
 
 * `msg`: the current commit message
 * `now`: the ISO 8601 date and time

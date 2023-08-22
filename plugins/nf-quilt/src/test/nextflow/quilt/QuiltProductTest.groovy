@@ -64,15 +64,31 @@ class QuiltProductTest extends QuiltSpecification {
         !product.shouldSkip(QuiltProduct.KEY_SKIP)
         product.shouldSkip(QuiltProduct.KEY_README)
         product.shouldSkip(QuiltProduct.KEY_META)
+
+        !makeProduct('?readme=now').shouldSkip()
     }
 
-    void 'preserves (absence of) README if readme=SKIP'() {
+    void 'does not create README if readme=SKIP'() {
         given:
-        QuiltProduct product = makeProduct('?readme=SKIP')
+        QuiltProduct skipREADME = makeProduct('?readme=SKIP')
+        String text = skipREADME.setupReadme()
+        def files = skipREADME.pkg.folder.list().sort()
         expect:
-        !product.shouldSkip(QuiltProduct.KEY_SKIP)
-        product.shouldSkip(QuiltProduct.KEY_README)
-        !product.shouldSkip(QuiltProduct.KEY_META)
+        skipREADME.shouldSkip(QuiltProduct.KEY_README)
+        !text
+        files.size() == 0
+    }
+
+    void 'always creates README if readme!=SKIP'() {
+        given:
+        String readme_text = 'hasREADME'
+        QuiltProduct hasREADME = makeProduct("?readme=${readme_text}")
+        String text = hasREADME.setupReadme()
+        def files = hasREADME.pkg.folder.list().sort()
+        expect:
+        text == readme_text
+        !hasREADME.shouldSkip(QuiltProduct.KEY_README)
+        files.size() == 1
     }
 
     void 'pushes previous metadata if metadata=SKIP'() {
