@@ -106,7 +106,7 @@ in order to customize the behavior of the plugin:
 
 * Fragment Parameters:
   * **catalog**: specify the DNS hostname of the Quilt catalog to use (default: `open.quiltdata.com`)
-  * **force**: force package update (even if already exists or is out-of-date)
+  * **force**: force package update (even if already exists or local copy out-of-date)
   * **package**: specify the name of the package to read or write (default: `.`)
   * **path**: specify a path within the package to read or write (default: `.`) [not fully supported yet]
   * **workflow**: specify the name of a workflow to use for metadata validation (default: none)

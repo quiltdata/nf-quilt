@@ -91,9 +91,16 @@ class QuiltSpecification extends Specification {
         return "quilt+s3://${writeBucket}#package=test/${suffix}&force=true"
     }
 
-    QuiltPackage writeablePackage(String suffix) {
-        String url = writeableURL(suffix)
+    QuiltPackage writeablePackage(String suffix, String workflow=null, Map<String,Object> meta=[:]) {
         QuiltPathFactory factory = new QuiltPathFactory()
+        String url = writeableURL(suffix)
+        if (workflow) {
+            url += "&workflow=${workflow}"
+        }
+        if (meta) {
+            String query = QuiltParser.unparseQuery(meta)
+            url.replace('#', "?${query}#")
+        }
         return factory.parse(url).pkg()
     }
 

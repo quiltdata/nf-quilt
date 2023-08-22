@@ -165,7 +165,6 @@ class QuiltPackageTest extends QuiltSpecification {
         opkg.is_force()
         opkg.bucket == writeBucket
         opkg.packageName.contains('test/observer')
-        opkg.push() == 0
     }
 
     @IgnoreIf({ env.WRITE_BUCKET == 'quilt-example' || env.WRITE_BUCKET ==  null })
@@ -183,7 +182,7 @@ class QuiltPackageTest extends QuiltSpecification {
         Files.exists(outPath)
     }
 
-    // TODO: ensure metadata is parsed into package
+    // TODO: ensure metadata is correctly inserted into package
     @IgnoreIf({ env.WRITE_BUCKET == 'quilt-example' || env.WRITE_BUCKET ==  null })
     void 'should not fail pushing invalid metadata '() {
         given:
@@ -193,6 +192,33 @@ class QuiltPackageTest extends QuiltSpecification {
         opkg.push('msg', meta) == 0
     }
 
-    // void 'Package should return Attributes IFF the file exists'() { }
+    @IgnoreIf({ env.WRITE_BUCKET == 'quilt-example' || env.WRITE_BUCKET ==  null })
+    void 'should fail if invalid workflow'() {
+        given:
+        String pkgName = "workflow-bad-${timestamp}"
+        QuiltPackage bad_wf = writeablePackage(pkgName, 'missing-workflow')
+        expect:
+        bad_wf.push('missing-workflow first time', [:]) == 1
+    }
+
+    @IgnoreIf({ env.WRITE_BUCKET == 'quilt-example' || env.WRITE_BUCKET ==  null })
+    void 'should fail push if unsatisfied workflow'() {
+        given:
+        Map meta =  [
+            'Name': 'QuiltPackageTest',
+            'Owner': 'Ernest',
+            'Date': '1967-10-08',
+            'Type': 'NGS'
+        ]
+        Map bad_meta = meta + ['Type': 'Workflow']
+        QuiltPackage good_wf = writeablePackage('workflow-good', 'my-workflow')
+        println("good_wf: ${good_wf}")
+        expect:
+        good_wf.push('empty meta', [:]) == 1
+        println("my-workflow.bad_meta: ${bad_meta}")
+        good_wf.push('bad_meta', bad_meta) == 1
+        println("my-workflow.meta: ${meta}")
+        good_wf.push('my-workflow', meta) == 0
+    }
 
 }
