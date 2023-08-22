@@ -99,8 +99,8 @@ class QuiltProductTest extends QuiltSpecification {
         given:
         QuiltProduct product = makeProduct('?metadata=SKIP')
         expect:
-        true
-        //product.pkg.push() == 0
+        product
+    //product.pkg.push() == 0
     }
 
 }
