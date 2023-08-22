@@ -43,19 +43,18 @@ class QuiltProduct {
 
     /* groovylint-disable-next-line GStringExpressionWithinString */
     private final static String README_TEMPLATE = '''
-            # ${now}
-            ## ${msg}
+# ${now}
+## ${msg}
 
-            ## workflow
-            ### scriptFile: ${meta['workflow']['scriptFile']}
-            ### sessionId: ${meta['workflow']['sessionId']}
-            - start: ${meta['time_start']}
-            - complete: ${meta['time_complete']}
+## workflow
+### scriptFile: ${meta['workflow']['scriptFile']}
+### sessionId: ${meta['workflow']['sessionId']}
+- start: ${meta['time_start']}
+- complete: ${meta['time_complete']}
 
-            ## processes
-            ${meta['workflow']['stats']['processes']}
-
-            '''.stripIndent()
+## processes
+${meta['workflow']['stats']['processes']}
+'''
 
     private final static String[] BIG_KEYS = [
         'nextflow', 'commandLine', 'scriptFile', 'projectDir',

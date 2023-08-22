@@ -90,14 +90,14 @@ subprojects {
             final zip = new File("$buildDir/libs/${project.name}-${project.version}.zip")
             final json = new File("$buildDir/libs/${project.name}-${project.version}-meta.json")
             json.text = """\
-              {
-                "version": "${project.version}",
-                "date": "${timestamp}",
-                "url": "https://github.com/${github_organization}/${project.name}/releases/download/${project.version}/${project.name}-${project.version}.zip",
-                "requires": "${metaFromManifest('Plugin-Requires',file('src/resources/META-INF/MANIFEST.MF'))}",
-                "sha512sum": "${computeSha512(zip)}"
-              }
-            """.stripIndent()
+{
+"version": "${project.version}",
+"date": "${timestamp}",
+"url": "https://github.com/${github_organization}/${project.name}/releases/download/${project.version}/${project.name}-${project.version}.zip",
+"requires": "${metaFromManifest('Plugin-Requires',file('src/resources/META-INF/MANIFEST.MF'))}",
+"sha512sum": "${computeSha512(zip)}"
+}
+"""
         }
         outputs.file("$buildDir/libs/${project.name}-${project.version}.zip")
     }
