@@ -178,7 +178,7 @@ ${meta['workflow']['stats']['processes']}
         if (params != null) {
             params.remove('genomes')
             params.remove('test_data')
-            printMap(params, 'params')
+            //printMap(params, 'params')
         }
         Map wf = session.getWorkflowMetadata().toMap()
         String start = wf['start']
@@ -191,7 +191,7 @@ ${meta['workflow']['stats']['processes']}
             wf.remove('complete')
             wf.remove('workflowStats')
             wf.remove('commandLine')
-            printMap(wf, 'workflow')
+            //printMap(wf, 'workflow')
             log.info("\npublishing: ${wf['runName']}")
         }
         return [
