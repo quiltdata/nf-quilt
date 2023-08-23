@@ -83,7 +83,7 @@ class QuiltPackage {
         }
 
         try {
-            //log.debug("Installing `${pkg}` for.pkgKey $pkgKey")
+            log.debug("${pkg}: attempting install for.pkgKey $pkgKey (okay if fails)")
             pkg.install()
         }
         catch (Exception e) {
@@ -110,7 +110,7 @@ class QuiltPackage {
             }
         }
         catch (java.nio.file.NoSuchFileException e) {
-            //log.debug 'deleteDirectory: ignore non-existent files'
+            log.debug 'deleteDirectory: ignore non-existent files'
         }
         return true
     }
@@ -226,7 +226,7 @@ class QuiltPackage {
         def command = ['quilt3']
         command.addAll(args)
         cmd = command.join(' ')
-        //log.debug("call `${cmd}`")
+        log.debug("QuiltPackage.call `${cmd}`")
 
         try {
             ProcessBuilder pb = new ProcessBuilder('bash', '-c', cmd)
@@ -239,12 +239,12 @@ class QuiltPackage {
             int exitCode = p.waitFor()
             //log.debug("call.exitCode ${exitCode}")
             if (exitCode != 0) {
-                //log.debug("`call.fail` rc=${exitCode}[${cmd}]: ${result}\n")
+                log.debug("`call.fail` rc=${exitCode}[${cmd}]: ${result}\n")
             }
             return exitCode
         }
         catch (Exception e) {
-            log.error("Failed `${cmd}` ${this}", e)
+            log.warning("${e.getMessage()}: `${cmd}` ${this}")
             return -1
         }
     }
@@ -254,7 +254,7 @@ class QuiltPackage {
     Path install() {
         int exitCode = call('install', packageName, key_registry(), key_hash(), key_dest())
         if (exitCode != 0) {
-            log.error("`install.fail.exitCode` ${exitCode}: ${packageName}")
+            log.warning("${exitCode}: ${packageName} failed to install (may not exist)")
             return null
         }
         installed = true

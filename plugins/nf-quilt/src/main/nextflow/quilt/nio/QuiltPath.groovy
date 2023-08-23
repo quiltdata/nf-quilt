@@ -90,7 +90,6 @@ final class QuiltPath implements Path, Comparable {
 
     @Override
     boolean isAbsolute() {
-        //log.debug("isAbsolute[${getPackageName()}]")
         return filesystem && getPackageName()
     }
 
