@@ -130,7 +130,7 @@ ${meta['workflow']['stats']['processes']}
             text = readme()
         }
         catch (Exception e) {
-            log.error("setupReadme: failed (invalid template?)\n${pkg.meta}", e)
+            log.error("setupReadme failed: ${e.getMessage()}", pkg.meta)
         }
         if (text != null && text.length() > 0) {
             log.debug("setupReadme: ${text.length()} bytes")
@@ -159,7 +159,7 @@ ${meta['workflow']['stats']['processes']}
             meta.remove('config')
         }
         catch (Exception e) {
-            log.error('setupMeta: failed (QuiltObserver uninitialized?)', e)
+            log.error("setupMeta failed: ${e.getMessage()}", pkg.meta)
         }
         writeString("$meta", pkg, 'quilt_metadata.txt')
         writeString(QuiltPackage.toJson(meta), pkg, 'quilt_metadata.json')
