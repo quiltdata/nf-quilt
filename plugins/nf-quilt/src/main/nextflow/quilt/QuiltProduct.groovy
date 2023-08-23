@@ -106,8 +106,8 @@ ${meta['workflow']['stats']['processes']}
     }
 
     int publish() {
+        meta = setupMeta()
         setupReadme()
-        Map meta = setupMeta()
         int rc = pkg.push(msg, meta)
         log.info("$rc: pushed package[$pkg] $msg")
         if (rc > 0) {
@@ -120,8 +120,69 @@ ${meta['workflow']['stats']['processes']}
     }
 
     boolean shouldSkip(key) {
-        print("shouldSkip:${key} hasKey:${pkg.meta.containsKey(key)} in ${pkg.meta}\n")
         return pkg.meta.containsKey(key) && pkg.meta[key] == KEY_SKIP
+    }
+
+    Map setupMeta() {
+        try {
+            meta = getMetadata(session.config)
+            meta['quilt'] = [package_id: pkg.toString(), uri: path.toUriString()]
+            msg = "${meta['config']['runName']}: ${meta['cmd']}"
+            meta.remove('config')
+        }
+        catch (Exception e) {
+            log.error("setupMeta failed: ${e.getMessage()}", pkg.meta)
+        }
+        writeString("$meta", pkg, 'quilt_metadata.txt')
+        writeString(QuiltPackage.toJson(meta), pkg, 'quilt_metadata.json')
+        return shouldSkip(KEY_META) ? [:] : meta
+    }
+
+    String writeNextflowMedata(Map map, String suffix) {
+        String filename = "nextflow_${suffix}.json"
+        writeString(QuiltPackage.toJson(map), pkg, filename)
+        return filename
+    }
+
+    Map getMetadata(Map cf) {
+        if (cf != null) {
+            writeNextflowMedata(cf, 'config')
+            cf.remove('executor')
+            cf.remove('params')
+            cf.remove('process')
+            cf.remove('session')
+            printMap(cf, 'config')
+        }
+        Map params = session.getParams()
+        if (params != null) {
+            writeNextflowMedata(params, 'params')
+            params.remove('genomes')
+            params.remove('test_data')
+            //printMap(params, 'params')
+        }
+        Map wf = session.getWorkflowMetadata().toMap()
+        String start = wf['start']
+        String complete = wf['complete']
+        String cmd = wf['commandLine']
+        if (wf != null) {
+            writeNextflowMedata(wf, 'workflow')
+            BIG_KEYS.each { k -> wf[k] = "${wf[k]}" }
+            wf.remove('container')
+            wf.remove('start')
+            wf.remove('complete')
+            wf.remove('workflowStats')
+            wf.remove('commandLine')
+            //printMap(wf, 'workflow')
+            log.info("\npublishing: ${wf['runName']}")
+        }
+        return [
+            cmd: cmd,
+            config: cf,
+            params: params,
+            time_start: start,
+            time_complete: complete,
+            workflow: wf,
+        ]
     }
 
     String setupReadme() {
@@ -149,59 +210,6 @@ ${meta['workflow']['stats']['processes']}
         //log.debug("readme: ${raw_readme}")
         Writable template = engine.createTemplate(raw_readme).make([meta: meta, msg: msg, now: now()])
         return template.toString()
-    }
-
-    Map setupMeta() {
-        try {
-            meta = getMetadata(session.config)
-            meta['quilt'] = [package_id: pkg.toString(), uri: path.toUriString()]
-            msg = "${meta['config']['runName']}: ${meta['cmd']}"
-            meta.remove('config')
-        }
-        catch (Exception e) {
-            log.error("setupMeta failed: ${e.getMessage()}", pkg.meta)
-        }
-        writeString("$meta", pkg, 'quilt_metadata.txt')
-        writeString(QuiltPackage.toJson(meta), pkg, 'quilt_metadata.json')
-        return shouldSkip(KEY_META) ? [:] : meta
-    }
-
-    Map getMetadata(Map cf) {
-        // TODO: Write out config files
-        if (cf != null) {
-            cf.remove('params')
-            cf.remove('session')
-            cf.remove('executor')
-            printMap(cf, 'config')
-        }
-        Map params = session.getParams()
-        if (params != null) {
-            params.remove('genomes')
-            params.remove('test_data')
-            //printMap(params, 'params')
-        }
-        Map wf = session.getWorkflowMetadata().toMap()
-        String start = wf['start']
-        String complete = wf['complete']
-        String cmd = wf['commandLine']
-        if (wf != null) {
-            BIG_KEYS.each { k -> wf[k] = "${wf[k]}" }
-            wf.remove('container')
-            wf.remove('start')
-            wf.remove('complete')
-            wf.remove('workflowStats')
-            wf.remove('commandLine')
-            //printMap(wf, 'workflow')
-            log.info("\npublishing: ${wf['runName']}")
-        }
-        return [
-            cmd: cmd,
-            config: cf,
-            params: params,
-            time_start: start,
-            time_complete: complete,
-            workflow: wf,
-        ]
     }
 
 }
