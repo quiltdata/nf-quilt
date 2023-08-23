@@ -266,7 +266,7 @@ class QuiltFileSystemProvider extends FileSystemProvider {
         Files.createDirectories(parent)
         try {
             if (modeWrite) {
-                //log.debug("\tWriting to: $installedPath")
+                log.debug("\tWriting to: $installedPath")
                 //options = [WRITE,CREATE] as Set<OpenOption>
                 attributesCache = [:] // reset cache
                 notifyFilePublish(qPath)

@@ -193,7 +193,7 @@ class QuiltPackage {
         if (metas.isEmpty()) { return '' }
 
         String jsonMeta = toJson(metas)
-        //log.debug("key_meta.jsonMeta $jsonMeta")
+        log.debug("key_meta.jsonMeta $jsonMeta")
         return "--meta '$jsonMeta'"
     }
 
@@ -244,7 +244,7 @@ class QuiltPackage {
             return exitCode
         }
         catch (Exception e) {
-            log.warning("${e.getMessage()}: `${cmd}` ${this}")
+            log.warn("${e.getMessage()}: `${cmd}` ${this}")
             return -1
         }
     }
@@ -254,7 +254,7 @@ class QuiltPackage {
     Path install() {
         int exitCode = call('install', packageName, key_registry(), key_hash(), key_dest())
         if (exitCode != 0) {
-            log.warning("${exitCode}: ${packageName} failed to install (may not exist)")
+            log.warn("${exitCode}: ${packageName} failed to install (may not exist)")
             return null
         }
         installed = true
