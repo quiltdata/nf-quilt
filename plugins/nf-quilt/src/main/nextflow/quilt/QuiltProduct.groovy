@@ -37,12 +37,13 @@ import groovy.text.GStringTemplateEngine
 @CompileStatic
 class QuiltProduct {
 
-    private final static String KEY_README = 'readme'
     private final static String KEY_META = 'metadata'
+    private final static String KEY_README = 'readme'
     private final static String KEY_SKIP = 'SKIP'
+    private final static String KEY_SUMMARIZE = 'summarize'
 
     /* groovylint-disable-next-line GStringExpressionWithinString */
-    private final static String README_TEMPLATE = '''
+    private final static String DEFAULT_README = '''
 # ${now}
 ## ${msg}
 
@@ -55,6 +56,7 @@ class QuiltProduct {
 ## processes
 ${meta['workflow']['stats']['processes']}
 '''
+    private final static String DEFAULT_SUMMARIZE = '*.md,*.html'
 
     private final static String[] BIG_KEYS = [
         'nextflow', 'commandLine', 'scriptFile', 'projectDir',
@@ -207,10 +209,58 @@ ${meta['workflow']['stats']['processes']}
             return null
         }
         GStringTemplateEngine engine = new GStringTemplateEngine()
-        String raw_readme = pkg.meta_overrides(KEY_README, README_TEMPLATE)
+        String raw_readme = pkg.meta_overrides(KEY_README, DEFAULT_README)
         //log.debug("readme: ${raw_readme}")
         Writable template = engine.createTemplate(raw_readme).make([meta: meta, msg: msg, now: now()])
         return template.toString()
+    }
+
+    List<Path> match(String glob) throws IOException {
+        String dir = pkg.packageDest()
+        Path folder = Paths.get(dir)
+        FileSystem fs = folder.getFileSystem()
+        PathMatcher pathMatcher = fs.getPathMatcher(glob)
+        List<Path> matches = []
+
+        Files.walkFileTree(folder, new SimpleFileVisitor<Path>() {
+
+            @Override
+            FileVisitResult visitFile(Path path,
+                    BasicFileAttributes attrs) throws IOException {
+                if (pathMatcher.matches(path)) {
+                    matches.add(path)
+                }
+                return FileVisitResult.CONTINUE
+            }
+
+            @Override
+            FileVisitResult visitFileFailed(Path file, IOException exc)
+                    throws IOException {
+                return FileVisitResult.CONTINUE
+            }
+
+        })
+        return matches
+    }
+
+    String setupSummarize() {
+        if (shouldSkip(KEY_SUMMARIZE)) {
+            log.info("summarize=SKIP for ${pkg}")
+            return null
+        }
+        String summarize = pkg.meta_overrides(KEY_SUMMARIZE, DEFAULT_SUMMARIZE)
+        List<String> wildcards = summarize.split(',')
+        Map quilt_summarize = [:]
+        wildcards.each { wildcard ->
+            List<Path> paths = match(wildcard)
+            log.info("summarize: ${paths.size()} files\n\t${paths}")
+            paths.each { path ->
+                String filename = path.getFileName()
+                quilt_summarize[filename] = path.toUri().toString()
+            }
+        }
+
+        return QuiltPackage.toJson(quilt_summarize)
     }
 
 }
