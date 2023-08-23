@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.4.5] 2023-08-23
+
+- reduce logging (especially stack traces and filesystem calls)
+- convert non-fatal errors to warnings
+
 ## [0.4.4] 2023-08-22
 
 - JDK 11 compatibility (i.e., remove stripIndent)

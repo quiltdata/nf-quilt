@@ -93,8 +93,8 @@ From the command-line, do, e.g.:
 
 ```bash
 # export NXF_VER=23.04.3
-export NXF_PLUGINS_TEST_REPOSITORY=https://github.com/quiltdata/nf-quilt/releases/download/0.4.4/nf-quilt-0.4.4-meta.json
-nextflow run main.nf -plugins nf-quilt@0.4.4
+export NXF_PLUGINS_TEST_REPOSITORY=https://github.com/quiltdata/nf-quilt/releases/download/0.4.5/nf-quilt-0.4.5-meta.json
+nextflow run main.nf -plugins nf-quilt@0.4.5
 ```
 
 For Tower, you can use the "Pre-run script" to set the environment variables.
