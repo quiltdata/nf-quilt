@@ -113,11 +113,18 @@ class QuiltProductTest extends QuiltSpecification {
             'Date': '1967-10-08',
             'Type': 'NGS'
         ]
-        QuiltProduct p0_empty = makeWriteProduct()
-        QuiltProduct p1_meta = makeWriteProduct(meta)
+        Map bad_meta = meta + ['Type': 'Workflow']
+        Map skip_meta = ['metadata': 'SKIP']
+
         expect:
-        p0_empty.pubStatus == 1
-        p1_meta.pubStatus == 0
+        makeWriteProduct().pubStatus == 1 // no metadata
+        makeWriteProduct(meta).pubStatus == 0 // valid metadata
+        makeWriteProduct().pubStatus == 1 // invalid default metadata
+        makeWriteProduct(bad_meta).pubStatus == 1 // invalid explicit metadata
+        makeWriteProduct(skip_meta).pubStatus == 1 // no default metadata
+        // NOTE: push does NOT update local registry
+        makeWriteProduct().pkg.install() // try to merge existing metadata
+        makeWriteProduct(skip_meta).pubStatus == 1 // still fails on implicit metadata
     }
 
 }
