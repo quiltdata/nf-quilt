@@ -58,7 +58,7 @@ class QuiltPackage {
         List<String> entries = dict.collect { key, value ->
             String prefix = JsonOutput.toJson(key)
             String suffix = "toJson.error: ${value}"
-            log.debug("QuiltPackage.toJson: ${prefix} [${suffix.length()}]")
+            //log.debug("QuiltPackage.toJson: ${prefix} [${suffix.length()}]")
             try {
                 suffix = JsonOutput.toJson(value)
             }
@@ -78,12 +78,12 @@ class QuiltPackage {
         pkg = new QuiltPackage(parsed)
         PKGS[pkgKey] = pkg
         if (pkg.is_force()) {
-            log.debug("Do not install `${pkg}` if force-overwriting output")
+            //log.debug("Do not install `${pkg}` if force-overwriting output")
             return pkg
         }
 
         try {
-            log.debug("Installing `${pkg}` for.pkgKey $pkgKey")
+            //log.debug("Installing `${pkg}` for.pkgKey $pkgKey")
             pkg.install()
         }
         catch (Exception e) {
@@ -110,7 +110,7 @@ class QuiltPackage {
             }
         }
         catch (java.nio.file.NoSuchFileException e) {
-            log.debug 'deleteDirectory: ignore non-existent files'
+            //log.debug 'deleteDirectory: ignore non-existent files'
         }
         return true
     }
@@ -123,7 +123,7 @@ class QuiltPackage {
         this.hash = parsed.getHash()
         this.meta = parsed.getMetadata()
         this.folder = Paths.get(INSTALL_ROOT.toString(), this.toString())
-        log.debug("QuiltParser.folder[${this.folder}]")
+        //log.debug("QuiltParser.folder[${this.folder}]")
         this.setup()
     }
 
@@ -148,7 +148,7 @@ class QuiltPackage {
         String base = subfolder.toString() + '/'
         List<String> result = []
         final String[] children = subfolder.list().sort()
-        log.debug("relativeChildren[${base}] $children")
+        //log.debug("relativeChildren[${base}] $children")
         for (String pathString : children) {
             def relative = pathString.replace(base, '')
             result.add(relative)
@@ -178,7 +178,7 @@ class QuiltPackage {
     }
 
     String key_force() {
-        log.debug("key_force.options[${parsed.options[QuiltParser.P_FORCE]}] ${parsed.options}")
+        //log.debug("key_force.options[${parsed.options[QuiltParser.P_FORCE]}] ${parsed.options}")
         return is_force() ? '--force' : ''
     }
 
@@ -187,13 +187,13 @@ class QuiltPackage {
     }
 
     String key_meta(Map srcMeta = [:]) {
-        log.debug("key_meta.srcMeta $srcMeta")
-        log.debug("key_meta.uriMeta ${meta}")
+        //log.debug("key_meta.srcMeta $srcMeta")
+        //log.debug("key_meta.uriMeta ${meta}")
         Map metas = srcMeta + meta
         if (metas.isEmpty()) { return '' }
 
         String jsonMeta = toJson(metas)
-        log.debug("key_meta.jsonMeta $jsonMeta")
+        //log.debug("key_meta.jsonMeta $jsonMeta")
         return "--meta '$jsonMeta'"
     }
 
@@ -226,20 +226,20 @@ class QuiltPackage {
         def command = ['quilt3']
         command.addAll(args)
         cmd = command.join(' ')
-        log.debug("call `${cmd}`")
+        //log.debug("call `${cmd}`")
 
         try {
             ProcessBuilder pb = new ProcessBuilder('bash', '-c', cmd)
             pb.redirectErrorStream(true)
 
             Process p = pb.start()
-            log.debug("call.start ${p}")
+            //log.debug("call.start ${p}")
             String result = new String(p.getInputStream().readAllBytes())
-            log.debug("call.result ${result}")
+            //log.debug("call.result ${result}")
             int exitCode = p.waitFor()
-            log.debug("call.exitCode ${exitCode}")
+            //log.debug("call.exitCode ${exitCode}")
             if (exitCode != 0) {
-                log.debug("`call.fail` rc=${exitCode}[${cmd}]: ${result}\n")
+                //log.debug("`call.fail` rc=${exitCode}[${cmd}]: ${result}\n")
             }
             return exitCode
         }

@@ -71,7 +71,7 @@ class QuiltObserver implements TraceObserver {
 
     @Override
     void onFlowCreate(Session session) {
-        log.debug("`onFlowCreate` $this")
+        //log.debug("`onFlowCreate` $this")
         this.session = session
         this.paths
     }
@@ -84,7 +84,7 @@ class QuiltObserver implements TraceObserver {
         if (qPath) {
             QuiltPath npath = normalizePath(qPath, session.getParams())
             this.paths.add(npath)
-            log.debug("onFilePublish.QuiltPath[$qPath]: paths=${paths}")
+            //log.debug("onFilePublish.QuiltPath[$qPath]: paths=${paths}")
         } else {
             log.warn("onFilePublish.QuiltPath missing: $path")
         }

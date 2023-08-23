@@ -133,7 +133,7 @@ ${meta['workflow']['stats']['processes']}
             log.error("setupReadme failed: ${e.getMessage()}", pkg.meta)
         }
         if (text != null && text.length() > 0) {
-            log.debug("setupReadme: ${text.length()} bytes")
+            //log.debug("setupReadme: ${text.length()} bytes")
             writeString(text, pkg, 'README.md')
         }
         return text
@@ -146,7 +146,7 @@ ${meta['workflow']['stats']['processes']}
         }
         GStringTemplateEngine engine = new GStringTemplateEngine()
         String raw_readme = pkg.meta_overrides(KEY_README, README_TEMPLATE)
-        log.debug("readme: ${raw_readme}")
+        //log.debug("readme: ${raw_readme}")
         Writable template = engine.createTemplate(raw_readme).make([meta: meta, msg: msg, now: now()])
         return template.toString()
     }
