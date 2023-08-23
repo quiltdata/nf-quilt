@@ -140,17 +140,18 @@ ${meta['workflow']['stats']['processes']}
 
     String writeNextflowMedata(Map map, String suffix) {
         String filename = "nextflow_${suffix}.json"
+        log.info("writeNextflowMedata[$suffix]: ${filename}")
         writeString(QuiltPackage.toJson(map), pkg, filename)
         return filename
     }
 
     Map getMetadata(Map cf) {
         if (cf != null) {
+            cf.remove('params')
+            cf.remove('session')
             writeNextflowMedata(cf, 'config')
             cf.remove('executor')
-            cf.remove('params')
             cf.remove('process')
-            cf.remove('session')
             printMap(cf, 'config')
         }
         Map params = session.getParams()
@@ -165,8 +166,8 @@ ${meta['workflow']['stats']['processes']}
         String complete = wf['complete']
         String cmd = wf['commandLine']
         if (wf != null) {
-            writeNextflowMedata(wf, 'workflow')
             BIG_KEYS.each { k -> wf[k] = "${wf[k]}" }
+            writeNextflowMedata(wf, 'workflow')
             wf.remove('container')
             wf.remove('start')
             wf.remove('complete')
