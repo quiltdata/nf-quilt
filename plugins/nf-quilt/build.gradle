@@ -38,6 +38,7 @@ repositories {
     maven { url = 'https://jitpack.io' }
     maven { url = 'https://s3-eu-west-1.amazonaws.com/maven.seqera.io/releases' }
     maven { url = 'https://s3-eu-west-1.amazonaws.com/maven.seqera.io/snapshots' }
+    maven { url = 'https://quilt-dima.s3.amazonaws.com/maven/releases' }
 }
 
 configurations {
@@ -60,7 +61,7 @@ ext{
 
 dependencies {
     // quiltcore
-    implementation zipTree('../../../quiltcore-java/lib/build/distributions/quiltcore.zip')
+    implementation 'com.quiltdata.quiltcore:quiltcore:0.0.1'
 
     // This dependency is exported to consumers, that is to say found on their compile classpath.
     compileOnly "io.nextflow:nextflow:$nextflowVersion"
