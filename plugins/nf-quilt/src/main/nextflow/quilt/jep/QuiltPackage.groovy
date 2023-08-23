@@ -28,10 +28,15 @@ import java.nio.file.attribute.BasicFileAttributes
 import java.util.stream.Collectors
 import java.time.LocalDate
 
+import com.quiltdata.quiltcore.Entry
 import com.quiltdata.quiltcore.Registry
 import com.quiltdata.quiltcore.Namespace
 import com.quiltdata.quiltcore.Manifest
+import com.quiltdata.quiltcore.key.LocalPhysicalKey
 import com.quiltdata.quiltcore.key.S3PhysicalKey
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 @Slf4j
 @CompileStatic
@@ -48,7 +53,6 @@ class QuiltPackage {
     private final Path folder
     private final Map meta
     private boolean installed
-    private String cmd = 'N/A'
 
     static String today() {
         LocalDate date = LocalDate.now()
@@ -171,49 +175,8 @@ class QuiltPackage {
         this.installed = false
     }
 
-    String key_dest() {
-        return "--dest ${packageDest()}"
-    }
-
-    String key_dir() {
-        return "--dir ${packageDest()}"
-    }
-
     boolean is_force() {
         return parsed.options[QuiltParser.P_FORCE]
-    }
-
-    String key_force() {
-        //log.debug("key_force.options[${parsed.options[QuiltParser.P_FORCE]}] ${parsed.options}")
-        return is_force() ? '--force' : ''
-    }
-
-    String key_hash() {
-        return (hash == 'latest' || hash == null || hash == 'null') ? '' : "--top-hash $hash"
-    }
-
-    String key_meta(Map srcMeta = [:]) {
-        //log.debug("key_meta.srcMeta $srcMeta")
-        //log.debug("key_meta.uriMeta ${meta}")
-        Map metas = srcMeta + meta
-        if (metas.isEmpty()) { return '' }
-
-        String jsonMeta = toJson(metas)
-        log.debug("key_meta.jsonMeta $jsonMeta")
-        return "--meta '$jsonMeta'"
-    }
-
-    String key_msg(String message='') {
-        String msg = meta_overrides('msg', "nf-quilt:${today()}-${message}")
-        return "--message '${sanitize(msg)}'"
-    }
-
-    String key_registry() {
-        return "--registry s3://${bucket}"
-    }
-
-    String key_workflow() {
-        return (parsed.workflowName) ? "--workflow ${parsed.workflowName}" : ''
     }
 
     boolean isInstalled() {
@@ -224,44 +187,12 @@ class QuiltPackage {
         return folder
     }
 
-    String lastCommand() {
-        return cmd
-    }
-
-    int call(String... args) {
-        def command = ['quilt3']
-        command.addAll(args)
-        cmd = command.join(' ')
-        log.debug("QuiltPackage.call `${cmd}`")
-
-        try {
-            ProcessBuilder pb = new ProcessBuilder('bash', '-c', cmd)
-            pb.redirectErrorStream(true)
-
-            Process p = pb.start()
-            //log.debug("call.start ${p}")
-            String result = new String(p.getInputStream().readAllBytes())
-            //log.debug("call.result ${result}")
-            int exitCode = p.waitFor()
-            //log.debug("call.exitCode ${exitCode}")
-            if (exitCode != 0) {
-                log.debug("`call.fail` rc=${exitCode}[${cmd}]: ${result}\n")
-            }
-            return exitCode
-        }
-        catch (Exception e) {
-            log.warn("${e.getMessage()}: `${cmd}` ${this}")
-            return -1
-        }
-    }
-
     Path install() {
         Path dest = packageDest()
 
         try {
             log.info("installing $packageName from $bucket...")
             S3PhysicalKey registryPath = new S3PhysicalKey(bucket, '', null)
-            log.info("registryPath: $registryPath")
             Registry registry = new Registry(registryPath)
             Namespace namespace = registry.getNamespace(packageName)
             String resolvedHash = (hash == 'latest' || hash == null || hash == 'null') ? namespace.getHash('latest') : hash
@@ -302,10 +233,35 @@ class QuiltPackage {
     }
     // https://docs.quiltdata.com/v/version-5.0.x/examples/gitlike#install-a-package
     int push(String msg = 'update', Map meta = [:]) {
-        int exitCode = 0
-        String args = [key_dir(), key_registry(), key_meta(meta), key_msg(msg), key_force()].join(' ')
-        exitCode = call('push', packageName, args, key_workflow())
-        return exitCode
+        S3PhysicalKey registryPath = new S3PhysicalKey(bucket, '', null)
+        Registry registry = new Registry(registryPath)
+        Namespace namespace = registry.getNamespace(packageName)
+
+        Manifest.Builder builder = Manifest.builder()
+
+        Files.walk(packageDest()).filter(f -> Files.isRegularFile(f)).forEach(f -> {
+            System.out.println(f)
+            String logicalKey = packageDest().relativize(f)
+            LocalPhysicalKey physicalKey = new LocalPhysicalKey(f)
+            long size = Files.size(f)
+            builder.addEntry(logicalKey, new Entry(physicalKey, size, null, null))
+        });
+
+        Map<String, Object> fullMeta = [
+            "version": Manifest.VERSION,
+            "user_meta": meta + this.meta,
+        ]
+        ObjectMapper mapper = new ObjectMapper()
+        builder.setMetadata((ObjectNode)mapper.valueToTree(fullMeta))
+
+        Manifest m = builder.build()
+
+        try {
+            m.push(namespace, "nf-quilt:${today()}-${msg}")
+        } catch (IOException e) {
+            return 1
+        }
+        return 0
     }
 
     @Override
