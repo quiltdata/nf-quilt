@@ -40,8 +40,6 @@ class QuiltPackageTest extends QuiltSpecification {
 
     private final static String PACKAGE_URL = 'quilt+s3://quilt-example#package=examples%2fsmart-report@d68a7e9'
     private final static String TEST_URL = PACKAGE_URL + '&path=README.md'
-    private final static Integer MSEC =  System.currentTimeMillis()
-    private final String outURL = "quilt+s3://${writeBucket}#package=test/observer${MSEC}"
 
     private QuiltPathFactory factory
     private QuiltPath qpath
@@ -152,19 +150,29 @@ class QuiltPackageTest extends QuiltSpecification {
         def qout = factory.parseUri(TEST_URL)
         def opkg = qout.pkg()
         def outPath = Paths.get(opkg.packageDest().toString(), 'README.md')
-        Files.writeString(outPath, "Time: ${MSEC}")
+        Files.writeString(outPath, "Time: ${timestamp}")
         expect:
         Files.exists(outPath)
         opkg.push() != 0
     }
 
     @IgnoreIf({ env.WRITE_BUCKET == 'quilt-example' || env.WRITE_BUCKET ==  null })
+    void 'should get writeable package '() {
+        given:
+        QuiltPackage opkg = writeablePackage('observer')
+        expect:
+        opkg
+        opkg.is_force()
+        opkg.bucket == writeBucket
+        opkg.packageName.contains('test/observer')
+    }
+
+    @IgnoreIf({ env.WRITE_BUCKET == 'quilt-example' || env.WRITE_BUCKET ==  null })
     void 'should succeed pushing new files to writeable bucket '() {
         given:
-        def qout = factory.parseUri(outURL)
-        def opkg = qout.pkg()
+        QuiltPackage opkg = writeablePackage('observer')
         def outPath = Paths.get(opkg.packageDest().toString(), 'README.md')
-        Files.writeString(outPath, "Time: ${MSEC}")
+        Files.writeString(outPath, "Time: ${timestamp}")
         expect:
         Files.exists(outPath)
         opkg.push() == 0
@@ -174,17 +182,40 @@ class QuiltPackageTest extends QuiltSpecification {
         Files.exists(outPath)
     }
 
-    // TODO: ensure metadata is parsed into package
+    // TODO: ensure metadata is correctly inserted into package
     @IgnoreIf({ env.WRITE_BUCKET == 'quilt-example' || env.WRITE_BUCKET ==  null })
     void 'should not fail pushing invalid metadata '() {
         given:
-        def qout = factory.parseUri(outURL)
-        def opkg = qout.pkg()
+        QuiltPackage opkg = writeablePackage('observer')
         Map meta =  ['key': "val=\'(key)\'"]
         expect:
         opkg.push('msg', meta) == 0
     }
 
-    // void 'Package should return Attributes IFF the file exists'() { }
+    @IgnoreIf({ env.WRITE_BUCKET == 'quilt-example' || env.WRITE_BUCKET ==  null })
+    void 'should fail if invalid workflow'() {
+        given:
+        String pkgName = "workflow-bad-${timestamp}"
+        QuiltPackage bad_wf = writeablePackage(pkgName, 'missing-workflow')
+        expect:
+        bad_wf.push('missing-workflow first time', [:]) == 1
+    }
+
+    @IgnoreIf({ env.WRITE_BUCKET == 'quilt-example' || env.WRITE_BUCKET ==  null })
+    void 'should fail push if unsatisfied workflow'() {
+        given:
+        Map meta =  [
+            'Name': 'QuiltPackageTest',
+            'Owner': 'Ernest',
+            'Date': '1967-10-08',
+            'Type': 'NGS'
+        ]
+        Map bad_meta = meta + ['Type': 'Workflow']
+        QuiltPackage good_wf = writeablePackage('workflow-good', 'my-workflow')
+        expect:
+        good_wf.push('empty meta', [:]) == 1
+        good_wf.push('bad_meta', bad_meta) == 1
+        good_wf.push('my-workflow', meta) == 0
+    }
 
 }

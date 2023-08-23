@@ -1,6 +1,13 @@
 # Changelog
 
-## [0.4.3] UNRELEASED
+## [0.4.4] 2023-08-18 UNRELEASED
+
+- Add parameter to skip README and metadata (default is to include both)
+- Verify package merges in any existing metadata before push
+- Do NOT append to README.md; overwrite (or just skip)
+- JDK 11 compatibility (e.g., remove stripIndent)
+
+## [0.4.3] 2023-08-04
 
 - Do not publish Quilt package unless workflow succeeds
 - [or the metadata specifies &force=true]

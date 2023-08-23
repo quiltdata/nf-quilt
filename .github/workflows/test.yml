@@ -11,11 +11,17 @@ permissions: read-all
 jobs:
   build:
     name: Test
+    permissions:
+      # contents: read
+      # id-token: write
+      issues: write
+      pull-requests: write
 
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
+        java_version: [11, 17, 19]
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -23,7 +29,7 @@ jobs:
     - name: Checkout Code
       uses: actions/checkout@v3
       with:
-        token: ${{ secrets.PAT || secrets.GITHUB_TOKEN }}
+        token: ${{ secrets.GITHUB_TOKEN }}
         fetch-depth: 0
 
     - name: Install Quilt3
@@ -33,11 +39,13 @@ jobs:
     - run: python -m pip install quilt3
     - run: which quilt3
 
-    - name: Setup Java
+    - name: Setup Java ${{matrix.java_version}}
       uses: actions/setup-java@v3
       with:
-        distribution: temurin
-        java-version: 17
+        java-version: ${{matrix.java_version}}
+        distribution: 'temurin'
+        architecture: x64
+        cache: gradle
        
     - name: Setup Gradle
       uses: gradle/gradle-build-action@v2

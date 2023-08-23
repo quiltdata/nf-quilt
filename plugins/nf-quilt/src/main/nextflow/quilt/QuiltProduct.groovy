@@ -37,21 +37,24 @@ import groovy.text.GStringTemplateEngine
 @CompileStatic
 class QuiltProduct {
 
+    private final static String KEY_README = 'readme'
+    private final static String KEY_META = 'metadata'
+    private final static String KEY_SKIP = 'SKIP'
+
     /* groovylint-disable-next-line GStringExpressionWithinString */
     private final static String README_TEMPLATE = '''
-            # $now
-            ## $msg
+# ${now}
+## ${msg}
 
-            ## workflow
-            ### scriptFile: ${meta['workflow']['scriptFile']}
-            ### sessionId: ${meta['workflow']['sessionId']}
-            - start: ${meta['time_start']}
-            - complete: ${meta['time_complete']}
+## workflow
+### scriptFile: ${meta['workflow']['scriptFile']}
+### sessionId: ${meta['workflow']['sessionId']}
+- start: ${meta['time_start']}
+- complete: ${meta['time_complete']}
 
-            ## processes
-            ${meta['workflow']['stats']['processes']}
-
-            '''.stripIndent()
+## processes
+${meta['workflow']['stats']['processes']}
+'''
 
     private final static String[] BIG_KEYS = [
         'nextflow', 'commandLine', 'scriptFile', 'projectDir',
@@ -69,11 +72,7 @@ class QuiltProduct {
         String dir = pkg.packageDest()
         Path path  = Paths.get(dir, filename)
         try {
-            if (Files.exists(path)) {
-                path << text.bytes
-            } else {
-                Files.write(path, text.bytes)
-            }
+            Files.write(path, text.bytes)
         }
         catch (Exception e) {
             log.error("writeString: cannot write `$text` to `$path` for `${pkg}`")
@@ -90,6 +89,7 @@ class QuiltProduct {
     private final Session session
     private String msg
     private Map meta
+    final Integer pubStatus
 
     QuiltProduct(QuiltPath path, Session session) {
         this.path = path
@@ -97,39 +97,18 @@ class QuiltProduct {
         this.msg =  pkg.toString()
         this.meta = [pkg: msg, time_start: now()]
         this.session = session
+        this.pubStatus = -1
         if (session.isSuccess() || pkg.is_force()) {
-            publish()
+            this.pubStatus = publish()
         } else {
             log.info("not publishing: ${pkg} [unsuccessful session]")
         }
     }
 
-    String readme() {
-        GStringTemplateEngine engine = new GStringTemplateEngine()
-        String raw_readme = pkg.meta_overrides('readme', README_TEMPLATE)
-        Writable template = engine.createTemplate(raw_readme).make([meta: meta, msg: msg, now: now()])
-        return template.toString()
-    }
-
     int publish() {
-        String text = 'Stub README'
-        try {
-            meta = getMetadata(session.config)
-            meta['quilt'] = [package_id: pkg.toString(), uri: path.toUriString()]
-            msg = "${meta['config']['runName']}: ${meta['cmd']}"
-            text = readme()
-            meta.remove('config')
-        }
-        catch (Exception e) {
-            log.error('publish: cannot generate metadata (QuiltObserver uninitialized?)', e)
-        }
-        if (text != null && text.length() > 0) {
-            writeString(text, pkg, 'README.md')
-        }
-        writeString("$meta", pkg, 'quilt_metadata.txt')
-        writeString(QuiltPackage.toJson(meta), pkg, 'quilt_metadata.json')
-
-        def rc = pkg.push(msg, meta)
+        setupReadme()
+        Map meta = setupMeta()
+        int rc = pkg.push(msg, meta)
         log.info("$rc: pushed package[$pkg] $msg")
         if (rc > 0) {
             print("ERROR[package push failed]: $pkg\n")
@@ -140,28 +119,81 @@ class QuiltProduct {
         return rc
     }
 
+    boolean shouldSkip(key) {
+        print("shouldSkip:${key} hasKey:${pkg.meta.containsKey(key)} in ${pkg.meta}\n")
+        return pkg.meta.containsKey(key) && pkg.meta[key] == KEY_SKIP
+    }
+
+    String setupReadme() {
+        String text = 'Stub README'
+        try {
+            text = readme()
+        }
+        catch (Exception e) {
+            log.error("setupReadme failed: ${e.getMessage()}", pkg.meta)
+        }
+        if (text != null && text.length() > 0) {
+            log.debug("setupReadme: ${text.length()} bytes")
+            writeString(text, pkg, 'README.md')
+        }
+        return text
+    }
+
+    String readme() {
+        if (shouldSkip(KEY_README)) {
+            log.info("readme=SKIP for ${pkg}")
+            return null
+        }
+        GStringTemplateEngine engine = new GStringTemplateEngine()
+        String raw_readme = pkg.meta_overrides(KEY_README, README_TEMPLATE)
+        log.debug("readme: ${raw_readme}")
+        Writable template = engine.createTemplate(raw_readme).make([meta: meta, msg: msg, now: now()])
+        return template.toString()
+    }
+
+    Map setupMeta() {
+        try {
+            meta = getMetadata(session.config)
+            meta['quilt'] = [package_id: pkg.toString(), uri: path.toUriString()]
+            msg = "${meta['config']['runName']}: ${meta['cmd']}"
+            meta.remove('config')
+        }
+        catch (Exception e) {
+            log.error("setupMeta failed: ${e.getMessage()}", pkg.meta)
+        }
+        writeString("$meta", pkg, 'quilt_metadata.txt')
+        writeString(QuiltPackage.toJson(meta), pkg, 'quilt_metadata.json')
+        return shouldSkip(KEY_META) ? [:] : meta
+    }
+
     Map getMetadata(Map cf) {
         // TODO: Write out config files
-        cf.remove('params')
-        cf.remove('session')
-        cf.remove('executor')
-        printMap(cf, 'config')
+        if (cf != null) {
+            cf.remove('params')
+            cf.remove('session')
+            cf.remove('executor')
+            printMap(cf, 'config')
+        }
         Map params = session.getParams()
-        params.remove('genomes')
-        params.remove('test_data')
-        printMap(params, 'params')
+        if (params != null) {
+            params.remove('genomes')
+            params.remove('test_data')
+            printMap(params, 'params')
+        }
         Map wf = session.getWorkflowMetadata().toMap()
         String start = wf['start']
         String complete = wf['complete']
         String cmd = wf['commandLine']
-        BIG_KEYS.each { k -> wf[k] = "${wf[k]}" }
-        wf.remove('container')
-        wf.remove('start')
-        wf.remove('complete')
-        wf.remove('workflowStats')
-        wf.remove('commandLine')
-        printMap(wf, 'workflow')
-        log.info("\npublishing: ${wf['runName']}")
+        if (wf != null) {
+            BIG_KEYS.each { k -> wf[k] = "${wf[k]}" }
+            wf.remove('container')
+            wf.remove('start')
+            wf.remove('complete')
+            wf.remove('workflowStats')
+            wf.remove('commandLine')
+            printMap(wf, 'workflow')
+            log.info("\npublishing: ${wf['runName']}")
+        }
         return [
             cmd: cmd,
             config: cf,

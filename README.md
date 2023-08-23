@@ -93,8 +93,8 @@ From the command-line, do, e.g.:
 
 ```bash
 # export NXF_VER=23.04.0
-export NXF_PLUGINS_TEST_REPOSITORY=https://github.com/quiltdata/nf-quilt/releases/download/0.4.3/nf-quilt-0.4.3-meta.json
-nextflow run main.nf -plugins nf-quilt@0.4.3
+export NXF_PLUGINS_TEST_REPOSITORY=https://github.com/quiltdata/nf-quilt/releases/download/0.4.4/nf-quilt-0.4.4-meta.json
+nextflow run main.nf -plugins nf-quilt@0.4.4
 ```
 
 For Tower, you can use the "Pre-run script" to set the environment variables.
@@ -106,6 +106,7 @@ in order to customize the behavior of the plugin:
 
 * Fragment Parameters:
   * **catalog**: specify the DNS hostname of the Quilt catalog to use (default: `open.quiltdata.com`)
+  * **force**: force package update (even if already exists or local copy out-of-date)
   * **package**: specify the name of the package to read or write (default: `.`)
   * **path**: specify a path within the package to read or write (default: `.`) [not fully supported yet]
   * **workflow**: specify the name of a workflow to use for metadata validation (default: none)
@@ -113,7 +114,8 @@ in order to customize the behavior of the plugin:
 * Query Parameters: also stored as package-level metadata
   * **msg**: specify the commit message to use when saving the package
   * **readme**: specify a string for the package README
-    (will substitute "${variables}")
+    (will substitute "${variables}"), or SKIP to not create a README
+  * **metadata**: specify SKIP to not push any new metadata (implicit or explicit)
   * **_any other key_**: specify any other metadata key to store in the package
 
 See below for more details.  
@@ -150,7 +152,7 @@ and `readme` via metadata query keys:
 make pkg-test QUERY='?msg=text+str&readme=GStr+%24msg+%24now+%24%7Bmeta[%22quilt%22]%7D'
 ```
 
-The `readme` parameter is a Groovy GString template which expands the variables:
+The `readme` parameter is a Groovy GString template which expands the `${variables}`:
 
 * `msg`: the current commit message
 * `now`: the ISO 8601 date and time

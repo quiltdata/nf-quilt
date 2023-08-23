@@ -17,6 +17,8 @@
 package nextflow.quilt
 
 import nextflow.quilt.nio.QuiltPath
+import nextflow.quilt.nio.QuiltPathFactory
+import nextflow.quilt.jep.QuiltPackage
 
 import java.nio.ByteBuffer
 import java.nio.channels.SeekableByteChannel
@@ -45,20 +47,23 @@ import spock.lang.Specification
 @CompileDynamic
 class QuiltSpecification extends Specification {
 
+    @Shared String fullURL
+
     @Shared String pluginsMode
 
-    @Shared String writeBucket
+    @Shared Integer timestamp
 
-    @Shared String fullURL
+    @Shared String writeBucket
 
     void setupSpec() {
         // reset previous instances
         PluginExtensionProvider.reset()
         // this need to be set *before* the plugin manager class is created
-        writeBucket =  System.getenv('WRITE_BUCKET')
-        pluginsMode = System.getProperty('pf4j.mode')
         fullURL = 'quilt+s3://bkt?key=val&key2=val2' +
                   '#package=pre/suf@ab&path=p/t&property=prop&workflow=wf&catalog=quiltdata.com'
+        pluginsMode = System.getProperty('pf4j.mode')
+        timestamp = System.currentTimeMillis()
+        writeBucket =  System.getenv('WRITE_BUCKET')
 
         System.setProperty('pf4j.mode', 'dev')
         // the plugin root should
@@ -80,6 +85,19 @@ class QuiltSpecification extends Specification {
         }
         Plugins.init(root, 'dev', manager)
         Plugins.startIfMissing('nf-quilt')
+    }
+
+    String writeableURL(String suffix='QuiltSpecification') {
+        return "quilt+s3://${writeBucket}#package=test/${suffix}&force=true"
+    }
+
+    QuiltPackage writeablePackage(String suffix, String workflow=null) {
+        QuiltPathFactory factory = new QuiltPathFactory()
+        String url = writeableURL(suffix)
+        if (workflow) {
+            url += "&workflow=${workflow}"
+        }
+        return factory.parse(url).pkg()
     }
 
     void cleanupSpec() {

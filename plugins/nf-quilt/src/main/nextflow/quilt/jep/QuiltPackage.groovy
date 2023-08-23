@@ -190,6 +190,8 @@ class QuiltPackage {
         log.debug("key_meta.srcMeta $srcMeta")
         log.debug("key_meta.uriMeta ${meta}")
         Map metas = srcMeta + meta
+        if (metas.isEmpty()) { return '' }
+
         String jsonMeta = toJson(metas)
         log.debug("key_meta.jsonMeta $jsonMeta")
         return "--meta '$jsonMeta'"
