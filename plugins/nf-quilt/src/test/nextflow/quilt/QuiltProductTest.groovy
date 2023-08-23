@@ -19,6 +19,7 @@ package nextflow.quilt.nio
 import nextflow.Session
 import nextflow.quilt.QuiltSpecification
 import nextflow.quilt.QuiltProduct
+import nextflow.quilt.jep.QuiltParser
 
 import groovy.transform.CompileDynamic
 import spock.lang.IgnoreIf
@@ -31,14 +32,18 @@ import spock.lang.IgnoreIf
 class QuiltProductTest extends QuiltSpecification {
 
     QuiltProduct makeProduct(String query=null) {
-        String subURL = query ? fullURL.replace('?key=val&key2=val2', query) : fullURL
+        String subURL = query ? fullURL.replace('key=val&key2=val2', query) : fullURL
         Session session = Mock(Session)
         QuiltPath path = QuiltPathFactory.parse(subURL)
         return new QuiltProduct(path, session)
     }
 
-    QuiltProduct makeWriteProduct(String workflow) {
-        String subURL = writeableURL('quilt_product_test') + "&workflow=${workflow}"
+    QuiltProduct makeWriteProduct(Map meta = [:]) {
+        String subURL = writeableURL('quilt_product_test') + '&workflow=my-workflow'
+        if (meta) {
+            String query = QuiltParser.unparseQuery(meta)
+            subURL = subURL.replace('#', "?${query}#")
+        }
         Session session = Mock(Session)
         QuiltPath path = QuiltPathFactory.parse(subURL)
         return new QuiltProduct(path, session)
@@ -67,7 +72,7 @@ class QuiltProductTest extends QuiltSpecification {
 
     void 'shouldSkip is true if key=SKIP'() {
         given:
-        QuiltProduct product = makeProduct('?readme=SKIP&metadata=SKIP')
+        QuiltProduct product = makeProduct('readme=SKIP&metadata=SKIP')
         expect:
         !product.shouldSkip(QuiltProduct.KEY_SKIP)
         product.shouldSkip(QuiltProduct.KEY_README)
@@ -78,7 +83,7 @@ class QuiltProductTest extends QuiltSpecification {
 
     void 'does not create README if readme=SKIP'() {
         given:
-        QuiltProduct skipREADME = makeProduct('?readme=SKIP')
+        QuiltProduct skipREADME = makeProduct('readme=SKIP')
         String text = skipREADME.setupReadme()
         def files = skipREADME.pkg.folder.list().sort()
         expect:
@@ -90,7 +95,7 @@ class QuiltProductTest extends QuiltSpecification {
     void 'always creates README if readme!=SKIP'() {
         given:
         String readme_text = 'hasREADME'
-        QuiltProduct hasREADME = makeProduct("?readme=${readme_text}")
+        QuiltProduct hasREADME = makeProduct("readme=${readme_text}")
         String text = hasREADME.setupReadme()
         def files = hasREADME.pkg.folder.list().sort()
         expect:
@@ -102,10 +107,17 @@ class QuiltProductTest extends QuiltSpecification {
     @IgnoreIf({ env.WRITE_BUCKET == 'quilt-example' || env.WRITE_BUCKET ==  null })
     void 'pushes previous metadata if metadata=SKIP'() {
         given:
-        QuiltProduct product = makeWriteProduct('my-workflow')
+        Map meta = [
+            'Name': 'QuiltPackageTest',
+            'Owner': 'Ernest',
+            'Date': '1967-10-08',
+            'Type': 'NGS'
+        ]
+        QuiltProduct p0_empty = makeWriteProduct()
+        QuiltProduct p1_meta = makeWriteProduct(meta)
         expect:
-        product
-    //product.pkg.push() == 0
+        p0_empty.pubStatus == 1
+        p1_meta.pubStatus == 0
     }
 
 }

@@ -89,6 +89,7 @@ ${meta['workflow']['stats']['processes']}
     private final Session session
     private String msg
     private Map meta
+    final Integer pubStatus
 
     QuiltProduct(QuiltPath path, Session session) {
         this.path = path
@@ -96,8 +97,9 @@ ${meta['workflow']['stats']['processes']}
         this.msg =  pkg.toString()
         this.meta = [pkg: msg, time_start: now()]
         this.session = session
+        this.pubStatus = -1
         if (session.isSuccess() || pkg.is_force()) {
-            publish()
+            this.pubStatus = publish()
         } else {
             log.info("not publishing: ${pkg} [unsuccessful session]")
         }
