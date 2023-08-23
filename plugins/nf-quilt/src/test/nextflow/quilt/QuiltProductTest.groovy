@@ -37,6 +37,13 @@ class QuiltProductTest extends QuiltSpecification {
         return new QuiltProduct(path, session)
     }
 
+    QuiltProduct makeWriteProduct(String workflow) {
+        String subURL = writeableURL('quilt_product_test') + "&workflow=${workflow}"
+        Session session = Mock(Session)
+        QuiltPath path = QuiltPathFactory.parse(subURL)
+        return new QuiltProduct(path, session)
+    }
+
     void 'now should generate solid string for timestamp'() {
         when:
         def now = QuiltProduct.now()
@@ -94,10 +101,8 @@ class QuiltProductTest extends QuiltSpecification {
 
     @IgnoreIf({ env.WRITE_BUCKET == 'quilt-example' || env.WRITE_BUCKET ==  null })
     void 'pushes previous metadata if metadata=SKIP'() {
-        // TODO: ensure metadata is parsed into package
-        // TODO: specify a workflow
         given:
-        QuiltProduct product = makeProduct('?metadata=SKIP')
+        QuiltProduct product = makeWriteProduct('my-workflow')
         expect:
         product
     //product.pkg.push() == 0

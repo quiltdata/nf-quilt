@@ -212,12 +212,9 @@ class QuiltPackageTest extends QuiltSpecification {
         ]
         Map bad_meta = meta + ['Type': 'Workflow']
         QuiltPackage good_wf = writeablePackage('workflow-good', 'my-workflow')
-        println("good_wf: ${good_wf}")
         expect:
         good_wf.push('empty meta', [:]) == 1
-        println("my-workflow.bad_meta: ${bad_meta}")
         good_wf.push('bad_meta', bad_meta) == 1
-        println("my-workflow.meta: ${meta}")
         good_wf.push('my-workflow', meta) == 0
     }
 

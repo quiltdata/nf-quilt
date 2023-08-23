@@ -128,7 +128,7 @@ ${meta['workflow']['stats']['processes']}
             text = readme()
         }
         catch (Exception e) {
-            log.error('setupReadme: failed (invalid template?)', e)
+            log.error("setupReadme: failed (invalid template?)\n${pkg.meta}", e)
         }
         if (text != null && text.length() > 0) {
             log.debug("setupReadme: ${text.length()} bytes")
@@ -144,6 +144,7 @@ ${meta['workflow']['stats']['processes']}
         }
         GStringTemplateEngine engine = new GStringTemplateEngine()
         String raw_readme = pkg.meta_overrides(KEY_README, README_TEMPLATE)
+        log.debug("readme: ${raw_readme}")
         Writable template = engine.createTemplate(raw_readme).make([meta: meta, msg: msg, now: now()])
         return template.toString()
     }
@@ -165,26 +166,32 @@ ${meta['workflow']['stats']['processes']}
 
     Map getMetadata(Map cf) {
         // TODO: Write out config files
-        cf.remove('params')
-        cf.remove('session')
-        cf.remove('executor')
-        printMap(cf, 'config')
+        if (cf != null) {
+            cf.remove('params')
+            cf.remove('session')
+            cf.remove('executor')
+            printMap(cf, 'config')
+        }
         Map params = session.getParams()
-        params.remove('genomes')
-        params.remove('test_data')
-        printMap(params, 'params')
+        if (params != null) {
+            params.remove('genomes')
+            params.remove('test_data')
+            printMap(params, 'params')
+        }
         Map wf = session.getWorkflowMetadata().toMap()
         String start = wf['start']
         String complete = wf['complete']
         String cmd = wf['commandLine']
-        BIG_KEYS.each { k -> wf[k] = "${wf[k]}" }
-        wf.remove('container')
-        wf.remove('start')
-        wf.remove('complete')
-        wf.remove('workflowStats')
-        wf.remove('commandLine')
-        printMap(wf, 'workflow')
-        log.info("\npublishing: ${wf['runName']}")
+        if (wf != null) {
+            BIG_KEYS.each { k -> wf[k] = "${wf[k]}" }
+            wf.remove('container')
+            wf.remove('start')
+            wf.remove('complete')
+            wf.remove('workflowStats')
+            wf.remove('commandLine')
+            printMap(wf, 'workflow')
+            log.info("\npublishing: ${wf['runName']}")
+        }
         return [
             cmd: cmd,
             config: cf,
