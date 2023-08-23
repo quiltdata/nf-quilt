@@ -37,6 +37,7 @@ class QuiltObserver implements TraceObserver {
 
     private final Set<QuiltPath> paths = [] as Set
     private Session session
+    private Map<String,String> packageURIs
 
     static QuiltPath asQuiltPath(Path path) {
         if (path in QuiltPath) {
@@ -50,20 +51,23 @@ class QuiltObserver implements TraceObserver {
         return null
     }
 
-    static QuiltPath normalizePath(QuiltPath path, Map params) {
-        String bkt = path.getBucket()
-        String pname = path.getPackageName()
-        QuiltPath result = path
-        params.each { key, value ->
+    static Map<String,String> normalizedPaths(Map params) {
+        Map<String,String> result = [:]
+        params.each { k, value ->
             String uri = "$value"
-            if (uri.contains(bkt) && uri.contains(pname)) {
-                if (uri.endsWith(pname)) {
-                    return QuiltPathFactory.parse(uri)
-                }
+            if (uri.startsWith(QuiltParser.SCHEME)) {
+                log.debug("normalizedPaths.uri[$k]: $uri")
+                QuiltPath path = QuiltPathFactory.parse(uri)
+                String bkt = path.getBucket()
+                String pname = path.getPackageName()
+                String key = "${bkt}/${pname}"
                 String pathless = uri.replaceFirst(/&path=[^&]+/, '')
-                log.debug("`normalizePath.pathless` $uri\n -> $pathless")
-                QuiltPath npath = QuiltPathFactory.parse(pathless)
-                result = npath
+                log.debug("normalizedPaths.pathless[$key]: $pathless")
+                // only keep the longest match for that key
+                if (result[key]?.length() < pathless.length()) {
+                    log.debug("normalizedPath[$key] replace ${result[key]}")
+                    result[key] = pathless
+                }
             }
         }
         return result
@@ -73,7 +77,20 @@ class QuiltObserver implements TraceObserver {
     void onFlowCreate(Session session) {
         //log.debug("`onFlowCreate` $this")
         this.session = session
-        this.paths
+        this.packageURIs = normalizedPaths(session.getParams())
+        this.paths // already initialized
+    }
+
+    QuiltPath matchPath(QuiltPath path) {
+        String bkt = path.getBucket()
+        String pname = path.getPackageName()
+        String key = "${bkt}/${pname}"
+        String uri = packageURIs[key]
+        if (uri) {
+            log.debug("matchPath[$path] -> $uri")
+            return QuiltPathFactory.parse(uri)
+        }
+        return null
     }
 
     @Override
@@ -82,8 +99,14 @@ class QuiltObserver implements TraceObserver {
         QuiltPath qPath = asQuiltPath(path)
 
         if (qPath) {
-            QuiltPath npath = normalizePath(qPath, session.getParams())
-            this.paths.add(npath)
+            QuiltPath npath = matchPath(qPath)
+            // add if not already present
+            if (npath && !(npath in paths)) {
+                log.debug("onFilePublish.QuiltPath[$qPath] -> [$npath] (added)")
+                paths << npath
+            } else {
+                log.debug("onFilePublish.QuiltPath[$qPath] -> [$npath] (skipped)")
+            }
         } else {
             log.warn("onFilePublish.QuiltPath missing: $path")
         }

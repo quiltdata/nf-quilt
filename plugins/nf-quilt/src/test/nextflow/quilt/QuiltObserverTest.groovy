@@ -39,21 +39,24 @@ class QuiltObserverTest extends QuiltSpecification {
         QuiltObserver.asQuiltPath(pkg).toString() == 'quilt-example#package=examples%2fhurdat'
     }
 
-    void 'normalize path to original params if present'() {
+    void 'normalizedPaths from params, for matching'() {
         given:
-        Map params = [outdir: fullURL]
         String subURL = fullURL.replace('?key=val&key2=val2', '')
-        QuiltPath path = QuiltPathFactory.parse(subURL)
-        QuiltPath path_norm = QuiltObserver.normalizePath(path, params)
-        String noURL = subURL.replace('bkt', 'bucket')
-        QuiltPath no_path = QuiltPathFactory.parse(noURL)
-        QuiltPath no_path_norm = QuiltObserver.normalizePath(no_path, params)
+        String noURL = fullURL.replace('bkt', 'bucket')
+        Map params = [subdir: subURL, outdir: fullURL, nodir: noURL]
+        Map normed = QuiltObserver.normalizedPaths(params)
+        String n_bkt = normed['bkt/pre/suf']
+        String n_bucket = normed['bucket/pre/suf']
+
         expect:
-        path_norm
-        "$path_norm" != "$path"
-        path_norm.file_key() == ''
-        no_path_norm
-        "$no_path_norm" == "$no_path"
+        n_bkt != null
+        n_bucket != null
+        fullURL.contains('&path=')
+        !n_bkt.contains('&path=')
+        !n_bucket.contains('&path=')
+        n_bkt.split('#')[0] == 'quilt+s3://bkt?key=val&key2=val2'
+        n_bkt.contains('quilt+s3://bkt?key=val&key2=val2')
+        n_bucket.contains('quilt+s3://bucket?key=val&key2=val2')
     }
 
 }

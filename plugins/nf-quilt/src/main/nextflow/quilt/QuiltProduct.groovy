@@ -19,9 +19,14 @@ import nextflow.quilt.jep.QuiltPackage
 import nextflow.quilt.nio.QuiltPath
 import nextflow.Session
 
+import java.nio.file.attribute.BasicFileAttributes
 import java.nio.file.Files
+import java.nio.file.FileSystem
+import java.nio.file.FileVisitResult
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.nio.file.PathMatcher
+import java.nio.file.SimpleFileVisitor
 import java.time.LocalDateTime
 
 import groovy.transform.CompileStatic
@@ -48,8 +53,8 @@ class QuiltProduct {
 ## ${msg}
 
 ## workflow
-### scriptFile: ${meta['workflow']['scriptFile']}
-### sessionId: ${meta['workflow']['sessionId']}
+### scriptFile: ${meta['workflow']?.get('scriptFile')}
+### sessionId: ${meta['workflow']?.get('sessionId')}
 - start: ${meta['time_start']}
 - complete: ${meta['time_complete']}
 
@@ -108,8 +113,11 @@ ${meta['workflow']['stats']['processes']}
     }
 
     int publish() {
+        log.debug("publish($msg)")
         meta = setupMeta()
-        setupReadme()
+        log.debug("setupMeta: $meta")
+        String text = setupReadme()
+        log.debug("setupReadme: $text")
         int rc = pkg.push(msg, meta)
         log.info("$rc: pushed package[$pkg] $msg")
         if (rc > 0) {
@@ -249,7 +257,7 @@ ${meta['workflow']['stats']['processes']}
             return null
         }
         String summarize = pkg.meta_overrides(KEY_SUMMARIZE, DEFAULT_SUMMARIZE)
-        List<String> wildcards = summarize.split(',')
+        String[] wildcards = summarize.split(',')
         Map quilt_summarize = [:]
         wildcards.each { wildcard ->
             List<Path> paths = match(wildcard)

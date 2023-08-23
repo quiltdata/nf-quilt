@@ -5,6 +5,7 @@
 - fix metadata in README.md
 - write out nextflow_*.json files
 - add summarize wildcards for QuiltProduct
+- redo normalizedPaths
 - reduce logging (especially stack traces and filesystem calls)
 - convert non-fatal errors to warnings
 
