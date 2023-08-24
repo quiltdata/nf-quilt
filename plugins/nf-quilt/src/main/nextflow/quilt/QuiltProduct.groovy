@@ -32,6 +32,7 @@ import java.time.LocalDateTime
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import groovy.text.GStringTemplateEngine
+import groovy.json.JsonOutput
 
 /**
  * Plugin observer of workflow events
@@ -106,7 +107,12 @@ ${meta['workflow']['stats']['processes']}
         this.session = session
         this.pubStatus = -1
         if (session.isSuccess() || pkg.is_force()) {
-            this.pubStatus = publish()
+            try {
+                this.pubStatus = publish()
+            }
+            catch (Exception e) {
+                log.error("publish failed: ${e.getMessage()}", pkg.meta)
+            }
         } else {
             log.info("not publishing: ${pkg} [unsuccessful session]")
         }
@@ -118,6 +124,8 @@ ${meta['workflow']['stats']['processes']}
         log.debug("setupMeta: $meta")
         String text = setupReadme()
         log.debug("setupReadme: $text")
+        // Map quilt_summarize = setupSummarize()
+        // log.debug("setupSummarize: $quilt_summarize")
         int rc = pkg.push(msg, meta)
         log.info("$rc: pushed package[$pkg] $msg")
         if (rc > 0) {
@@ -236,7 +244,8 @@ ${meta['workflow']['stats']['processes']}
             FileVisitResult visitFile(Path path,
                     BasicFileAttributes attrs) throws IOException {
                 if (pathMatcher.matches(path)) {
-                    matches.add(path)
+                    Path rel = folder.relativize(path)
+                    matches.add(rel)
                 }
                 return FileVisitResult.CONTINUE
             }
@@ -251,24 +260,26 @@ ${meta['workflow']['stats']['processes']}
         return matches
     }
 
-    String setupSummarize() {
+    Map setupSummarize() {
+        Map quilt_summarize = [:]
         if (shouldSkip(KEY_SUMMARIZE)) {
             log.info("summarize=SKIP for ${pkg}")
-            return null
+            return quilt_summarize
         }
         String summarize = pkg.meta_overrides(KEY_SUMMARIZE, DEFAULT_SUMMARIZE)
         String[] wildcards = summarize.split(',')
-        Map quilt_summarize = [:]
         wildcards.each { wildcard ->
             List<Path> paths = match(wildcard)
             log.info("summarize: ${paths.size()} files\n\t${paths}")
             paths.each { path ->
                 String filename = path.getFileName()
-                quilt_summarize[filename] = path.toUri().toString()
+                quilt_summarize[filename] = path
             }
         }
 
-        return QuiltPackage.toJson(quilt_summarize)
+        String qs_json = JsonOutput.toJson(quilt_summarize.keySet() as String[])
+        writeString(qs_json, pkg, 'quilt_summarize.json')
+        return quilt_summarize
     }
 
 }
