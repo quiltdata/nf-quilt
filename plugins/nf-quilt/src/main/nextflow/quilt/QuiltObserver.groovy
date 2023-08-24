@@ -35,9 +35,9 @@ import nextflow.trace.TraceObserver
 @CompileStatic
 class QuiltObserver implements TraceObserver {
 
-    private final Set<QuiltPath> paths = [] as Set
     private Session session
-    private Map<String,String> packageURIs = [:]
+    final private Map<String,String> uniqueURIs = [:]
+    final private Map<String,String> publishedURIs = [:]
 
     static QuiltPath asQuiltPath(Path path) {
         if (path in QuiltPath) {
@@ -51,47 +51,42 @@ class QuiltObserver implements TraceObserver {
         return null
     }
 
-    static Map<String,String> normalizedPaths(Map params) {
-        Map<String,String> result = [:]
+    static String pkgKey(QuiltPath path) {
+        return "${path.getBucket()}/${path.getPackageName()}"
+    }
+
+    String checkPath(QuiltPath path, boolean published = false) {
+        log.debug("checkPath[$path] published[$published]")
+        String key = pkgKey(path)
+        String uri = path.toUriString()
+        String pathless = uri.replaceFirst(/&path=[^&]+/, '')
+        // only keep the longest pathless URI for each key
+        if (uniqueURIs[key]?.length() < pathless.length()) {
+            uniqueURIs[key] = pathless
+        }
+        if (published) {
+            publishedURIs[key] = uniqueURIs[key]
+        }
+        return uniqueURIs[key]
+    }
+
+    void checkParams(Map params) {
+        log.debug("checkParams[$params]")
         params.each { k, value ->
             String uri = "$value"
             if (uri.startsWith(QuiltParser.SCHEME)) {
-                log.debug("normalizedPaths.uri[$k]: $uri")
+                log.debug("checkParams.uri[$k]: $uri")
                 QuiltPath path = QuiltPathFactory.parse(uri)
-                String bkt = path.getBucket()
-                String pname = path.getPackageName()
-                String key = "${bkt}/${pname}"
-                String pathless = uri.replaceFirst(/&path=[^&]+/, '')
-                log.debug("normalizedPaths.pathless[$key]: $pathless")
-                // only keep the longest match for that key
-                if (result[key]?.length() < pathless.length()) {
-                    log.debug("normalizedPath[$key] replace ${result[key]}")
-                    result[key] = pathless
-                }
+                checkPath(path)
             }
         }
-        return result
     }
 
     @Override
     void onFlowCreate(Session session) {
         log.debug("`onFlowCreate` $this")
         this.session = session
-        this.packageURIs = normalizedPaths(session.getParams())
-        this.paths // already initialized
-    }
-
-    QuiltPath matchPath(QuiltPath path) {
-        log.debug("matchPath[$path]")
-        String bkt = path.getBucket()
-        String pname = path.getPackageName()
-        String key = "${bkt}/${pname}"
-        String uri = packageURIs[key]
-        if (uri) {
-            log.debug("matchPath[$path] -> $uri")
-            return QuiltPathFactory.parse(uri)
-        }
-        return path
+        checkParams(session.getParams())
     }
 
     // NOTE: TraceFileObserver calls onFilePublish _before_ onFlowCreate
@@ -99,26 +94,21 @@ class QuiltObserver implements TraceObserver {
     void onFilePublish(Path path) { //, Path source
         log.debug("onFilePublish.Path[$path]") //.Source[$source]
         QuiltPath qPath = asQuiltPath(path)
-
         if (qPath) {
-            QuiltPath npath = matchPath(qPath)
-            // add if not already present
-            if (npath && !(npath in paths)) {
-                log.debug("onFilePublish.QuiltPath[$qPath] -> [$npath] (added)")
-                paths << npath
-            } else {
-                log.debug("onFilePublish.QuiltPath[$qPath] -> [$npath] (skipped)")
-            }
+            checkPath(qPath, true)
         } else {
-            log.warn("onFilePublish.QuiltPath missing: $path")
+            log.warn("onFilePublish.not.QuiltPath: $path")
         }
     }
 
     @Override
     void onFlowComplete() {
-        log.debug("`onFlowComplete` ${paths}")
-        // publish pkgs to repository
-        this.paths.each { path -> new QuiltProduct(path, session) }
+        log.debug("`onFlowComplete` ${publishedURIs}")
+        // create QuiltProduct for each unique package URI
+        publishedURIs.each { k, uri ->
+            QuiltPath path = QuiltPathFactory.parse(uri)
+            new QuiltProduct(path, session)
+        }
     }
 
 }

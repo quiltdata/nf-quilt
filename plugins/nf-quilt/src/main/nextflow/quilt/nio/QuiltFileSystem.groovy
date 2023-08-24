@@ -113,7 +113,7 @@ final class QuiltFileSystem extends FileSystem implements Closeable {
             return new QuiltFileAttributes(path, path.toString(), attrs)
         }
         catch (NoSuchFileException e) {
-            //log.debug("No attributes yet for: ${installedPath}")
+            log.debug("No attributes yet for: ${installedPath}")
         }
         return null
     }

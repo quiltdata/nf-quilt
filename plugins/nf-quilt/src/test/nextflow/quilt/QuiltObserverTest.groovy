@@ -51,8 +51,8 @@ class QuiltObserverTest extends QuiltSpecification {
 
         when:
         observer.onFlowCreate(session)
-        String n_bkt = observer.packageURIs['bkt/pre/suf']
-        String n_bucket = observer.packageURIs['bucket/pre/suf']
+        String n_bkt = observer.uniqueURIs['bkt/pre/suf']
+        String n_bucket = observer.uniqueURIs['bucket/pre/suf']
 
         then:
         observer
@@ -74,10 +74,10 @@ class QuiltObserverTest extends QuiltSpecification {
         Path newPath = QuiltPathFactory.parse(newURL)
 
         then:
-        observer.matchPath(fullPath) == bktPath
-        observer.matchPath(subPath) == bktPath
-        observer.matchPath(noPath) == bucketPath
-        observer.matchPath(newPath) == newPath // just return if not found
+        observer.checkPath(fullPath) == bktPath
+        observer.checkPath(subPath) == bktPath
+        observer.checkPath(noPath) == bucketPath
+        observer.checkPath(newPath) == newURL
     }
 
 }
