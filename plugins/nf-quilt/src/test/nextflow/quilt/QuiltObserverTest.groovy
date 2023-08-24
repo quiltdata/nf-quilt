@@ -18,6 +18,7 @@ package nextflow.quilt.nio
 
 import nextflow.quilt.QuiltSpecification
 import nextflow.quilt.QuiltObserver
+import nextflow.Session
 
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -43,12 +44,17 @@ class QuiltObserverTest extends QuiltSpecification {
         given:
         String subURL = fullURL.replace('?key=val&key2=val2', '')
         String noURL = fullURL.replace('bkt', 'bucket')
-        Map params = [subdir: subURL, outdir: fullURL, nodir: noURL]
-        Map normed = QuiltObserver.normalizedPaths(params)
-        String n_bkt = normed['bkt/pre/suf']
-        String n_bucket = normed['bucket/pre/suf']
+        Session session = Stub(Session)
+        session.getParams() >> [subdir: subURL, outdir: fullURL, nodir: noURL]
+        QuiltObserver observer = new QuiltObserver()
 
-        expect:
+        when:
+        observer.onFlowCreate(session)
+        String n_bkt = observer.packageURIs['bkt/pre/suf']
+        String n_bucket = observer.packageURIs['bucket/pre/suf']
+
+        then:
+        observer
         n_bkt != null
         n_bucket != null
         fullURL.contains('&path=')
@@ -57,6 +63,18 @@ class QuiltObserverTest extends QuiltSpecification {
         n_bkt.split('#')[0] == 'quilt+s3://bkt?key=val&key2=val2'
         n_bkt.contains('quilt+s3://bkt?key=val&key2=val2')
         n_bucket.contains('quilt+s3://bucket?key=val&key2=val2')
+
+        when:
+        Path fullPath = QuiltPathFactory.parse(fullURL)
+        Path subPath = QuiltPathFactory.parse(subURL)
+        Path noPath = QuiltPathFactory.parse(noURL)
+        Path bktPath = QuiltPathFactory.parse(n_bkt)
+        Path bucketPath = QuiltPathFactory.parse(n_bucket)
+
+        then:
+        observer.matchPath(fullPath) == bktPath
+        observer.matchPath(subPath) == bktPath
+        observer.matchPath(noPath) == bucketPath
     }
 
 }
