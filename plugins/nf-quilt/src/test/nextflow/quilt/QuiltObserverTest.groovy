@@ -44,6 +44,7 @@ class QuiltObserverTest extends QuiltSpecification {
         given:
         String subURL = fullURL.replace('?key=val&key2=val2', '')
         String noURL = fullURL.replace('bkt', 'bucket')
+        String newURL = fullURL.replace('bkt', 'new-bucket')
         Session session = Stub(Session)
         session.getParams() >> [subdir: subURL, outdir: fullURL, nodir: noURL]
         QuiltObserver observer = new QuiltObserver()
@@ -70,11 +71,13 @@ class QuiltObserverTest extends QuiltSpecification {
         Path noPath = QuiltPathFactory.parse(noURL)
         Path bktPath = QuiltPathFactory.parse(n_bkt)
         Path bucketPath = QuiltPathFactory.parse(n_bucket)
+        Path newPath = QuiltPathFactory.parse(newURL)
 
         then:
         observer.matchPath(fullPath) == bktPath
         observer.matchPath(subPath) == bktPath
         observer.matchPath(noPath) == bucketPath
+        observer.matchPath(newPath) == newPath // just return if not found
     }
 
 }

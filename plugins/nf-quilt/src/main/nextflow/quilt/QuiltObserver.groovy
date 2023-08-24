@@ -37,7 +37,7 @@ class QuiltObserver implements TraceObserver {
 
     private final Set<QuiltPath> paths = [] as Set
     private Session session
-    private Map<String,String> packageURIs
+    private Map<String,String> packageURIs = [:]
 
     static QuiltPath asQuiltPath(Path path) {
         if (path in QuiltPath) {
@@ -75,13 +75,14 @@ class QuiltObserver implements TraceObserver {
 
     @Override
     void onFlowCreate(Session session) {
-        //log.debug("`onFlowCreate` $this")
+        log.debug("`onFlowCreate` $this")
         this.session = session
         this.packageURIs = normalizedPaths(session.getParams())
         this.paths // already initialized
     }
 
     QuiltPath matchPath(QuiltPath path) {
+        log.debug("matchPath[$path]")
         String bkt = path.getBucket()
         String pname = path.getPackageName()
         String key = "${bkt}/${pname}"
@@ -90,9 +91,10 @@ class QuiltObserver implements TraceObserver {
             log.debug("matchPath[$path] -> $uri")
             return QuiltPathFactory.parse(uri)
         }
-        return null
+        return path
     }
 
+    // NOTE: TraceFileObserver calls onFilePublish _before_ onFlowCreate
     @Override
     void onFilePublish(Path path) { //, Path source
         log.debug("onFilePublish.Path[$path]") //.Source[$source]
