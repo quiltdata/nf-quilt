@@ -151,14 +151,13 @@ ${meta['workflow']['stats']['processes']}
         catch (Exception e) {
             log.error("setupMeta failed: ${e.getMessage()}", pkg.meta)
         }
-        writeString("$meta", pkg, 'quilt_metadata.txt')
-        writeString(QuiltPackage.toJson(meta), pkg, 'quilt_metadata.json')
+        writeNextflowMetadata(meta, 'metadata')
         return shouldSkip(KEY_META) ? [:] : meta
     }
 
-    String writeNextflowMedata(Map map, String suffix) {
-        String filename = "nextflow_${suffix}.json"
-        log.debug("writeNextflowMedata[$suffix]: ${filename}")
+    String writeNextflowMetadata(Map map, String suffix) {
+        String filename = "nf-quilt/${suffix}.json"
+        log.debug("writeNextflowMetadata[$suffix]: ${filename}")
         writeString(QuiltPackage.toJson(map), pkg, filename)
         return filename
     }
@@ -168,13 +167,13 @@ ${meta['workflow']['stats']['processes']}
             cf.remove('executor')
             cf.remove('params')
             cf.remove('session')
-            writeNextflowMedata(cf, 'config')
+            writeNextflowMetadata(cf, 'config')
             cf.remove('process')
             printMap(cf, 'config')
         }
         Map params = session.getParams()
         if (params != null) {
-            writeNextflowMedata(params, 'params')
+            writeNextflowMetadata(params, 'params')
             params.remove('genomes')
             params.remove('test_data')
             //printMap(params, 'params')
@@ -185,7 +184,7 @@ ${meta['workflow']['stats']['processes']}
         String cmd = wf['commandLine']
         if (wf != null) {
             BIG_KEYS.each { k -> wf[k] = "${wf[k]}" }
-            writeNextflowMedata(wf, 'workflow')
+            writeNextflowMetadata(wf, 'workflow')
             wf.remove('container')
             wf.remove('start')
             wf.remove('complete')
