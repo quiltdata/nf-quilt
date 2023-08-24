@@ -158,17 +158,17 @@ ${meta['workflow']['stats']['processes']}
 
     String writeNextflowMedata(Map map, String suffix) {
         String filename = "nextflow_${suffix}.json"
-        log.info("writeNextflowMedata[$suffix]: ${filename}")
+        log.debug("writeNextflowMedata[$suffix]: ${filename}")
         writeString(QuiltPackage.toJson(map), pkg, filename)
         return filename
     }
 
     Map getMetadata(Map cf) {
         if (cf != null) {
+            cf.remove('executor')
             cf.remove('params')
             cf.remove('session')
             writeNextflowMedata(cf, 'config')
-            cf.remove('executor')
             cf.remove('process')
             printMap(cf, 'config')
         }
