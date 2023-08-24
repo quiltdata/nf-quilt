@@ -55,14 +55,17 @@ class QuiltObserver implements TraceObserver {
         return "${path.getBucket()}/${path.getPackageName()}"
     }
 
+    static String pathless(String uri) {
+        return uri.replaceFirst(/&path=[^&]+/, '')
+    }
+
     String checkPath(QuiltPath path, boolean published = false) {
         log.debug("checkPath[$path] published[$published]")
         String key = pkgKey(path)
-        String uri = path.toUriString()
-        String pathless = uri.replaceFirst(/&path=[^&]+/, '')
+        String uri = pathless(path.toUriString())
         // only keep the longest pathless URI for each key
-        if (uniqueURIs[key]?.length() < pathless.length()) {
-            uniqueURIs[key] = pathless
+        if (uniqueURIs[key]?.length() < uri.length()) {
+            uniqueURIs[key] = uri
         }
         if (published) {
             publishedURIs[key] = uniqueURIs[key]

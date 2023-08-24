@@ -40,7 +40,7 @@ class QuiltObserverTest extends QuiltSpecification {
         QuiltObserver.asQuiltPath(pkg).toString() == 'quilt-example#package=examples%2fhurdat'
     }
 
-    void 'normalizedPaths from params, for matching'() {
+    void 'normalized Paths from params, and match'() {
         given:
         String subURL = fullURL.replace('?key=val&key2=val2', '')
         String noURL = fullURL.replace('bkt', 'bucket')
@@ -53,6 +53,7 @@ class QuiltObserverTest extends QuiltSpecification {
         observer.onFlowCreate(session)
         String n_bkt = observer.uniqueURIs['bkt/pre/suf']
         String n_bucket = observer.uniqueURIs['bucket/pre/suf']
+        String n_new = QuiltObserver.pathless(newURL).replace('pre/suf', 'pre%2fsuf')
 
         then:
         observer
@@ -69,15 +70,13 @@ class QuiltObserverTest extends QuiltSpecification {
         Path fullPath = QuiltPathFactory.parse(fullURL)
         Path subPath = QuiltPathFactory.parse(subURL)
         Path noPath = QuiltPathFactory.parse(noURL)
-        Path bktPath = QuiltPathFactory.parse(n_bkt)
-        Path bucketPath = QuiltPathFactory.parse(n_bucket)
         Path newPath = QuiltPathFactory.parse(newURL)
 
         then:
-        observer.checkPath(fullPath) == bktPath
-        observer.checkPath(subPath) == bktPath
-        observer.checkPath(noPath) == bucketPath
-        observer.checkPath(newPath) == newURL
+        observer.checkPath(fullPath) == n_bkt
+        observer.checkPath(subPath) == n_bkt
+        observer.checkPath(noPath) == n_bucket
+        observer.checkPath(newPath) == n_new
     }
 
 }
