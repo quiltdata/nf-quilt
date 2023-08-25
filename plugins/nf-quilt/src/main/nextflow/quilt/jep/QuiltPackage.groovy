@@ -78,12 +78,12 @@ class QuiltPackage {
         pkg = new QuiltPackage(parsed)
         PKGS[pkgKey] = pkg
         if (pkg.is_force()) {
-            log.debug("Do not install `${pkg}` if force-overwriting output")
+            //log.debug("Do not install `${pkg}` if force-overwriting output")
             return pkg
         }
 
         try {
-            log.debug("Installing `${pkg}` for.pkgKey $pkgKey")
+            log.debug("${pkg}: attempting install for.pkgKey $pkgKey (okay if fails)")
             pkg.install()
         }
         catch (Exception e) {
@@ -123,7 +123,7 @@ class QuiltPackage {
         this.hash = parsed.getHash()
         this.meta = parsed.getMetadata()
         this.folder = Paths.get(INSTALL_ROOT.toString(), this.toString())
-        log.debug("QuiltParser.folder[${this.folder}]")
+        //log.debug("QuiltParser.folder[${this.folder}]")
         this.setup()
     }
 
@@ -148,7 +148,7 @@ class QuiltPackage {
         String base = subfolder.toString() + '/'
         List<String> result = []
         final String[] children = subfolder.list().sort()
-        log.debug("relativeChildren[${base}] $children")
+        //log.debug("relativeChildren[${base}] $children")
         for (String pathString : children) {
             def relative = pathString.replace(base, '')
             result.add(relative)
@@ -158,6 +158,7 @@ class QuiltPackage {
 
     void reset() {
         deleteDirectory(this.folder)
+        setup()
     }
 
     void setup() {
@@ -178,7 +179,7 @@ class QuiltPackage {
     }
 
     String key_force() {
-        log.debug("key_force.options[${parsed.options[QuiltParser.P_FORCE]}] ${parsed.options}")
+        //log.debug("key_force.options[${parsed.options[QuiltParser.P_FORCE]}] ${parsed.options}")
         return is_force() ? '--force' : ''
     }
 
@@ -187,8 +188,8 @@ class QuiltPackage {
     }
 
     String key_meta(Map srcMeta = [:]) {
-        log.debug("key_meta.srcMeta $srcMeta")
-        log.debug("key_meta.uriMeta ${meta}")
+        //log.debug("key_meta.srcMeta $srcMeta")
+        //log.debug("key_meta.uriMeta ${meta}")
         Map metas = srcMeta + meta
         if (metas.isEmpty()) { return '' }
 
@@ -226,25 +227,25 @@ class QuiltPackage {
         def command = ['quilt3']
         command.addAll(args)
         cmd = command.join(' ')
-        log.debug("call `${cmd}`")
+        log.debug("QuiltPackage.call `${cmd}`")
 
         try {
             ProcessBuilder pb = new ProcessBuilder('bash', '-c', cmd)
             pb.redirectErrorStream(true)
 
             Process p = pb.start()
-            log.debug("call.start ${p}")
+            //log.debug("call.start ${p}")
             String result = new String(p.getInputStream().readAllBytes())
-            log.debug("call.result ${result}")
+            //log.debug("call.result ${result}")
             int exitCode = p.waitFor()
-            log.debug("call.exitCode ${exitCode}")
+            //log.debug("call.exitCode ${exitCode}")
             if (exitCode != 0) {
                 log.debug("`call.fail` rc=${exitCode}[${cmd}]: ${result}\n")
             }
             return exitCode
         }
         catch (Exception e) {
-            log.error("Failed `${cmd}` ${this}", e)
+            log.warn("${e.getMessage()}: `${cmd}` ${this}")
             return -1
         }
     }
@@ -254,7 +255,7 @@ class QuiltPackage {
     Path install() {
         int exitCode = call('install', packageName, key_registry(), key_hash(), key_dest())
         if (exitCode != 0) {
-            log.error("`install.fail.exitCode` ${exitCode}: ${packageName}")
+            log.warn("${exitCode}: ${packageName} failed to install (may not exist)")
             return null
         }
         installed = true

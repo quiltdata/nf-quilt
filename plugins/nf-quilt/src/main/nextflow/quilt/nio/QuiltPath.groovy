@@ -48,7 +48,7 @@ final class QuiltPath implements Path, Comparable {
         this.filesystem = filesystem
         this.parsed = parsed
         this.paths = parsed.getPaths()
-        log.debug("Creating QuiltPath: $parsed")
+        //log.debug("Creating QuiltPath: $parsed")
     }
 
     String getBucket() {
@@ -79,7 +79,7 @@ final class QuiltPath implements Path, Comparable {
 
     boolean deinstall() {
         Path path = localPath()
-        log.debug("QuiltPath.deinstall: $path")
+        //log.debug("QuiltPath.deinstall: $path")
         return Files.delete(path)
     }
 
@@ -90,7 +90,6 @@ final class QuiltPath implements Path, Comparable {
 
     @Override
     boolean isAbsolute() {
-        log.debug("isAbsolute[${getPackageName()}]")
         return filesystem && getPackageName()
     }
 
@@ -111,13 +110,13 @@ final class QuiltPath implements Path, Comparable {
 
     @Override
     Path getFileName() {
-        log.debug("getFileName`[${this}]: paths=$paths")
+        //log.debug("getFileName`[${this}]: paths=$paths")
         return isJustPackage() ? this : new QuiltPath(filesystem, parsed.lastPath()) // IF DIRECTORY
     }
 
     @Override
     Path getParent() {
-        log.debug("${this}.getParent: ${paths}`")
+        //log.debug("${this}.getParent: ${paths}`")
         return new QuiltPath(filesystem, parsed.dropPath())
     }
 
@@ -202,7 +201,7 @@ final class QuiltPath implements Path, Comparable {
         if (this == other) { return null }
         String file = (other in QuiltPath) ? ((QuiltPath)other).localPath() : other.toString()
         String base = [pkg().toString(), parsed.getPath()].join(QuiltParser.SEP)
-        log.debug("relativize[$base] in [$file]")
+        //log.debug("relativize[$base] in [$file]")
         int i = file.indexOf(base)
         if (i < 1) {
             throw new UnsupportedOperationException("other[$file] does not contain package[$base]")
@@ -210,7 +209,7 @@ final class QuiltPath implements Path, Comparable {
 
         String tail = file.substring(i + base.size())
         if (tail.size() > 0 && tail[0] == '/') { tail = tail.substring(1) } // drop leading "/"
-        log.debug("tail[$i] -> $tail")
+        //log.debug("tail[$i] -> $tail")
         return Paths.get(tail)
     }
 
