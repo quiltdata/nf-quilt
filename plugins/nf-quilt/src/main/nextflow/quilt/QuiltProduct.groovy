@@ -79,7 +79,7 @@ ${meta['workflow']['stats']['processes']}
 
     static void writeString(String text, QuiltPackage pkg, String filename) {
         String dir = pkg.packageDest()
-        Path path  = Paths.get(dir, filename)
+        Path path  = Paths.get(dir, filename.split('/') as String[])
         try {
             Files.write(path, text.bytes)
         }
