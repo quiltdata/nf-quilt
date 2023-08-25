@@ -3,8 +3,8 @@
 ## [0.4.5] 2023-08-23
 
 - fix metadata in README.md
-- write out nextflow_*.json files
-- add summarize wildcards for QuiltProduct
+- write out nf-quilt/*.json files
+- add summarize wildcards (md, html) for QuiltProduct
 - redo normalizedPaths
 - reduce logging (especially stack traces and filesystem calls)
 - convert non-fatal errors to warnings
