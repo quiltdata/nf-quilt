@@ -158,6 +158,7 @@ class QuiltPackage {
 
     void reset() {
         deleteDirectory(this.folder)
+        setup()
     }
 
     void setup() {

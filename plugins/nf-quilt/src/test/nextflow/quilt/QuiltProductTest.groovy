@@ -104,6 +104,24 @@ class QuiltProductTest extends QuiltSpecification {
         files.size() == 1
     }
 
+    void 'setupSummarize empty if no files are present'() {
+        given:
+        QuiltProduct product = makeProduct('readme=SKIP')
+        product.pkg.reset()
+        expect:
+        !product.match('*.md')
+        product.setupSummarize() == [:]
+    }
+
+    void 'should create summarize if files are present'() {
+        String readme_text = 'hasREADME'
+        QuiltProduct product = makeProduct("readme=${readme_text}")
+        product.setupReadme()
+        expect:
+        product.match('*.md')
+        product.setupSummarize()
+    }
+
     @IgnoreIf({ env.WRITE_BUCKET == 'quilt-example' || env.WRITE_BUCKET ==  null })
     void 'pushes previous metadata if metadata=SKIP'() {
         given:

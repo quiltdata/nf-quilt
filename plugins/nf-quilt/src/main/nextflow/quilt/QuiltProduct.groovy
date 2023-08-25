@@ -22,6 +22,7 @@ import nextflow.Session
 import java.nio.file.attribute.BasicFileAttributes
 import java.nio.file.Files
 import java.nio.file.FileSystem
+import java.nio.file.FileSystems
 import java.nio.file.FileVisitResult
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -62,7 +63,7 @@ class QuiltProduct {
 ## processes
 ${meta['workflow']['stats']['processes']}
 '''
-    private final static String DEFAULT_SUMMARIZE = '*.md,*.html'
+    private final static String DEFAULT_SUMMARIZE = '**.md,**.html'
 
     private final static String[] BIG_KEYS = [
         'nextflow', 'commandLine', 'scriptFile', 'projectDir',
@@ -121,11 +122,10 @@ ${meta['workflow']['stats']['processes']}
     int publish() {
         log.debug("publish($msg)")
         meta = setupMeta()
-        log.debug("setupMeta: $meta")
         String text = setupReadme()
         log.debug("setupReadme: $text")
-        // Map quilt_summarize = setupSummarize()
-        // log.debug("setupSummarize: $quilt_summarize")
+        Map quilt_summarize = setupSummarize()
+        log.debug("setupSummarize: $quilt_summarize")
         int rc = pkg.push(msg, meta)
         log.info("$rc: pushed package[$pkg] $msg")
         if (rc > 0) {
@@ -233,8 +233,8 @@ ${meta['workflow']['stats']['processes']}
     List<Path> match(String glob) throws IOException {
         String dir = pkg.packageDest()
         Path folder = Paths.get(dir)
-        FileSystem fs = folder.getFileSystem()
-        PathMatcher pathMatcher = fs.getPathMatcher(glob)
+        FileSystem fs = FileSystems.getDefault()
+        PathMatcher pathMatcher = fs.getPathMatcher("glob:${glob}")
         List<Path> matches = []
 
         Files.walkFileTree(folder, new SimpleFileVisitor<Path>() {
@@ -242,8 +242,8 @@ ${meta['workflow']['stats']['processes']}
             @Override
             FileVisitResult visitFile(Path path,
                     BasicFileAttributes attrs) throws IOException {
-                if (pathMatcher.matches(path)) {
-                    Path rel = folder.relativize(path)
+                Path rel = folder.relativize(path)
+                if (pathMatcher.matches(rel)) {
                     matches.add(rel)
                 }
                 return FileVisitResult.CONTINUE
@@ -262,14 +262,12 @@ ${meta['workflow']['stats']['processes']}
     Map setupSummarize() {
         Map quilt_summarize = [:]
         if (shouldSkip(KEY_SUMMARIZE)) {
-            log.info("summarize=SKIP for ${pkg}")
             return quilt_summarize
         }
         String summarize = pkg.meta_overrides(KEY_SUMMARIZE, DEFAULT_SUMMARIZE)
         String[] wildcards = summarize.split(',')
         wildcards.each { wildcard ->
             List<Path> paths = match(wildcard)
-            log.info("summarize: ${paths.size()} files\n\t${paths}")
             paths.each { path ->
                 String filename = path.getFileName()
                 quilt_summarize[filename] = path
