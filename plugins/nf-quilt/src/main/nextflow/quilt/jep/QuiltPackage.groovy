@@ -196,6 +196,10 @@ class QuiltPackage {
 
     Path install() {
         Path dest = packageDest()
+        if (isInstalled()) {
+            log.debug("QuiltPackage.install: already installed: $dest")
+            return dest
+        }
 
         try {
             log.info("installing $packageName from $bucket...")
