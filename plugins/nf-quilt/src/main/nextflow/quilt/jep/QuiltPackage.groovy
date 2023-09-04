@@ -162,8 +162,14 @@ class QuiltPackage {
 
     List<String> relativeChildren(String subpath) {
         Manifest manifest = packageManifest()
-        List<String> result = manifest.listDirectory(subpath)
-        return result
+        // get names of entries
+        List<String> children = manifest.getEntries().keySet().collect { String key ->
+            if (key.startsWith(subpath)) {
+                return key
+            }
+            return null
+        }
+        return children
     }
 
     void reset() {
