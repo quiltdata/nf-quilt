@@ -192,6 +192,7 @@ class QuiltPackageTest extends QuiltSpecification {
         opkg.push('msg', meta) == 0
     }
 
+    @Ignore('QuiltCore-java does not support workflows yet')
     @IgnoreIf({ env.WRITE_BUCKET == 'quilt-example' || env.WRITE_BUCKET ==  null })
     void 'should fail if invalid workflow'() {
         given:
@@ -201,6 +202,7 @@ class QuiltPackageTest extends QuiltSpecification {
         bad_wf.push('missing-workflow first time', [:]) == 1
     }
 
+    @Ignore('QuiltCore-java does not support workflows yet')
     @IgnoreIf({ env.WRITE_BUCKET == 'quilt-example' || env.WRITE_BUCKET ==  null })
     void 'should fail push if unsatisfied workflow'() {
         given:

@@ -3,6 +3,7 @@
 ## [0.5.0] 2023-09-04+
 
 - Switch to quiltcore-java
+- Stop trying to pre-install every package
 
 ## [0.4.5] 2023-08-23
 

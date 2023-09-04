@@ -35,8 +35,8 @@ import com.quiltdata.quiltcore.Manifest
 import com.quiltdata.quiltcore.key.LocalPhysicalKey
 import com.quiltdata.quiltcore.key.S3PhysicalKey
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.node.ObjectNode
 
 @Slf4j
 @CompileStatic
@@ -91,13 +91,7 @@ class QuiltPackage {
             return pkg
         }
 
-        try {
-            log.debug("${pkg}: attempting install for.pkgKey $pkgKey (okay if fails)")
-            pkg.install()
-        }
-        catch (IOException e) {
-            log.warn("Package `${parsed.toUriString()}` does not yet exist")
-        }
+        log.debug("${pkg}: Do NOT pre-install every package (use list API instead)")
         return pkg
     }
 
@@ -195,21 +189,21 @@ class QuiltPackage {
             S3PhysicalKey registryPath = new S3PhysicalKey(bucket, '', null)
             Registry registry = new Registry(registryPath)
             Namespace namespace = registry.getNamespace(packageName)
-            String resolvedHash = (hash == 'latest' || hash == null || hash == 'null') ? namespace.getHash('latest') : hash
+            boolean defaultHash = (hash == 'latest' || hash == null || hash == 'null')
+            String resolvedHash = defaultHash ? namespace.getHash('latest') : hash
             log.info("hash: $hash -> $resolvedHash")
             Manifest manifest = namespace.getManifest(resolvedHash)
 
             manifest.install(dest)
-            log.info("done")
+            log.info('done')
+            installed = true
+            recursiveDeleteOnExit()
+
+            return dest
         } catch (IOException e) {
             log.error("failed to install $packageName")
-            return null
         }
-
-        installed = true
-        recursiveDeleteOnExit()
-
-        return dest
+        return null
     }
 
     // https://stackoverflow.com/questions/15022219
@@ -240,7 +234,7 @@ class QuiltPackage {
         Manifest.Builder builder = Manifest.builder()
 
         Files.walk(packageDest()).filter(f -> Files.isRegularFile(f)).forEach(f -> {
-            System.out.println(f)
+            println(f)
             String logicalKey = packageDest().relativize(f)
             LocalPhysicalKey physicalKey = new LocalPhysicalKey(f)
             long size = Files.size(f)
@@ -248,8 +242,8 @@ class QuiltPackage {
         });
 
         Map<String, Object> fullMeta = [
-            "version": Manifest.VERSION,
-            "user_meta": meta + this.meta,
+            'version': Manifest.VERSION,
+            'user_meta': meta + this.meta,
         ]
         ObjectMapper mapper = new ObjectMapper()
         builder.setMetadata((ObjectNode)mapper.valueToTree(fullMeta))
