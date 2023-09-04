@@ -87,12 +87,12 @@ class QuiltPackage {
         pkg = new QuiltPackage(parsed)
         PKGS[pkgKey] = pkg
         if (pkg.is_force()) {
-            log.debug("Do not install `${pkg}` if force-overwriting output")
+            //log.debug("Do not install `${pkg}` if force-overwriting output")
             return pkg
         }
 
         try {
-            log.debug("Installing `${pkg}` for.pkgKey $pkgKey")
+            log.debug("${pkg}: attempting install for.pkgKey $pkgKey (okay if fails)")
             pkg.install()
         }
         catch (IOException e) {
@@ -132,7 +132,7 @@ class QuiltPackage {
         this.hash = parsed.getHash()
         this.meta = parsed.getMetadata()
         this.folder = Paths.get(INSTALL_ROOT.toString(), this.toString())
-        log.debug("QuiltParser.folder[${this.folder}]")
+        //log.debug("QuiltParser.folder[${this.folder}]")
         this.setup()
     }
 
@@ -157,7 +157,7 @@ class QuiltPackage {
         String base = subfolder.toString() + '/'
         List<String> result = []
         final String[] children = subfolder.list().sort()
-        log.debug("relativeChildren[${base}] $children")
+        //log.debug("relativeChildren[${base}] $children")
         for (String pathString : children) {
             def relative = pathString.replace(base, '')
             result.add(relative)
@@ -167,6 +167,7 @@ class QuiltPackage {
 
     void reset() {
         deleteDirectory(this.folder)
+        setup()
     }
 
     void setup() {

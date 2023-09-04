@@ -18,6 +18,7 @@ package nextflow.quilt.nio
 
 import nextflow.quilt.QuiltSpecification
 import nextflow.quilt.QuiltObserver
+import nextflow.Session
 
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -39,21 +40,43 @@ class QuiltObserverTest extends QuiltSpecification {
         QuiltObserver.asQuiltPath(pkg).toString() == 'quilt-example#package=examples%2fhurdat'
     }
 
-    void 'normalize path to original params if present'() {
+    void 'normalized Paths from params, and match'() {
         given:
-        Map params = [outdir: fullURL]
         String subURL = fullURL.replace('?key=val&key2=val2', '')
-        QuiltPath path = QuiltPathFactory.parse(subURL)
-        QuiltPath path_norm = QuiltObserver.normalizePath(path, params)
-        String noURL = subURL.replace('bkt', 'bucket')
-        QuiltPath no_path = QuiltPathFactory.parse(noURL)
-        QuiltPath no_path_norm = QuiltObserver.normalizePath(no_path, params)
-        expect:
-        path_norm
-        "$path_norm" != "$path"
-        path_norm.file_key() == ''
-        no_path_norm
-        "$no_path_norm" == "$no_path"
+        String noURL = fullURL.replace('bkt', 'bucket')
+        String newURL = fullURL.replace('bkt', 'new-bucket')
+        Session session = Stub(Session)
+        session.getParams() >> [subdir: subURL, outdir: fullURL, nodir: noURL]
+        QuiltObserver observer = new QuiltObserver()
+
+        when:
+        observer.onFlowCreate(session)
+        String n_bkt = observer.uniqueURIs['bkt/pre/suf']
+        String n_bucket = observer.uniqueURIs['bucket/pre/suf']
+        String n_new = QuiltObserver.pathless(newURL).replace('pre/suf', 'pre%2fsuf')
+
+        then:
+        observer
+        n_bkt != null
+        n_bucket != null
+        fullURL.contains('&path=')
+        !n_bkt.contains('&path=')
+        !n_bucket.contains('&path=')
+        n_bkt.split('#')[0] == 'quilt+s3://bkt?key=val&key2=val2'
+        n_bkt.contains('quilt+s3://bkt?key=val&key2=val2')
+        n_bucket.contains('quilt+s3://bucket?key=val&key2=val2')
+
+        when:
+        Path fullPath = QuiltPathFactory.parse(fullURL)
+        Path subPath = QuiltPathFactory.parse(subURL)
+        Path noPath = QuiltPathFactory.parse(noURL)
+        Path newPath = QuiltPathFactory.parse(newURL)
+
+        then:
+        observer.checkPath(fullPath) == n_bkt
+        observer.checkPath(subPath) == n_bkt
+        observer.checkPath(noPath) == n_bucket
+        observer.checkPath(newPath) == n_new
     }
 
 }

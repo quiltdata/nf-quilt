@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.4.5] 2023-08-23
+
+- fix metadata in README.md
+- write out nf-quilt/*.json files
+- add summarize wildcards (md, html) for QuiltProduct
+- redo normalizedPaths
+- reduce logging (especially stack traces and filesystem calls)
+- convert non-fatal errors to warnings
+
 ## [0.4.4] 2023-08-22
 
 - JDK 11 compatibility (i.e., remove stripIndent)
