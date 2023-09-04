@@ -130,32 +130,39 @@ class QuiltPackage {
         this.setup()
     }
 
+    Namespace packageNamespace() {
+        S3PhysicalKey registryPath = new S3PhysicalKey(bucket, '', null)
+        Registry registry = new Registry(registryPath)
+        Namespace namespace = registry.getNamespace(packageName)
+        return namespace
+    }
+
+    String resolveHash() {
+        if (hash == 'latest' || hash == null || hash == 'null') {
+            Namespace namespace = packageNamespace()
+            return namespace.getHash('latest')
+        }
+        return hash
+    }
+
+    Manifest packageManifest() {
+        Namespace namespace = packageNamespace()
+        Manifest manifest = namespace.getManifest(resolveHash())
+        return manifest
+    }
+
     /**
      * Returns {@code List<String>} of object keys below a subpath.
-     *
-     * <p> Because the `quilt3` CLI does not provide a direct way to list
-     * the logical keys ("files") inside a package, we have to infer it
-     * from the actual files inside the install folder.
-     *
-     * <p> To do this, we list the full path of the files directly inside
-     * the subfolder, then remove the top-level folder ("base") to get
-     * the relative keys.
      *
      * @param   subpath
      *          folder inside the package (use '' for top-level)
      *
      * @return  List of the child object keys, as Strings
      */
+
     List<String> relativeChildren(String subpath) {
-        Path subfolder = folder.resolve(subpath)
-        String base = subfolder.toString() + '/'
-        List<String> result = []
-        final String[] children = subfolder.list().sort()
-        //log.debug("relativeChildren[${base}] $children")
-        for (String pathString : children) {
-            def relative = pathString.replace(base, '')
-            result.add(relative)
-        }
+        Manifest manifest = packageManifest()
+        List<String> result = manifest.listDirectory(subpath)
         return result
     }
 
@@ -186,13 +193,7 @@ class QuiltPackage {
 
         try {
             log.info("installing $packageName from $bucket...")
-            S3PhysicalKey registryPath = new S3PhysicalKey(bucket, '', null)
-            Registry registry = new Registry(registryPath)
-            Namespace namespace = registry.getNamespace(packageName)
-            boolean defaultHash = (hash == 'latest' || hash == null || hash == 'null')
-            String resolvedHash = defaultHash ? namespace.getHash('latest') : hash
-            log.info("hash: $hash -> $resolvedHash")
-            Manifest manifest = namespace.getManifest(resolvedHash)
+            Manifest manifest = packageManifest()
 
             manifest.install(dest)
             log.info('done')
@@ -227,12 +228,8 @@ class QuiltPackage {
     }
     // https://docs.quiltdata.com/v/version-5.0.x/examples/gitlike#install-a-package
     int push(String msg = 'update', Map meta = [:]) {
-        S3PhysicalKey registryPath = new S3PhysicalKey(bucket, '', null)
-        Registry registry = new Registry(registryPath)
-        Namespace namespace = registry.getNamespace(packageName)
-
+        Namespace namespace = packageNamespace()
         Manifest.Builder builder = Manifest.builder()
-
         Files.walk(packageDest()).filter(f -> Files.isRegularFile(f)).forEach(f -> {
             println(f)
             String logicalKey = packageDest().relativize(f)
