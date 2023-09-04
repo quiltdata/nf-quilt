@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.5.0] 2023-09-04+
+
+- Switch to quiltcore-java
+
 ## [0.4.5] 2023-08-23
 
 - fix metadata in README.md
