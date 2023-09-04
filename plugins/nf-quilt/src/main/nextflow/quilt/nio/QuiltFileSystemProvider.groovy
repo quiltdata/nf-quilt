@@ -44,6 +44,7 @@ import groovy.util.logging.Slf4j
 import nextflow.Global
 import nextflow.Session
 import nextflow.quilt.jep.QuiltParser
+import nextflow.quilt.jep.QuiltPackage
 
 /**
  * Implements NIO File system provider for Quilt Blob Storage
@@ -270,6 +271,10 @@ class QuiltFileSystemProvider extends FileSystemProvider {
                 //options = [WRITE,CREATE] as Set<OpenOption>
                 attributesCache = [:] // reset cache
                 notifyFilePublish(qPath)
+            } else {
+                // ensure QuiltPackage installed
+                QuiltPackage pkg = qPath.pkg()
+                pkg.install()
             }
             //log.debug("\tOpening channel to: $installedPath")
             FileChannel channel = FileChannel.open(installedPath, options)

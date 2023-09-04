@@ -78,7 +78,6 @@ class QuiltObserver implements TraceObserver {
         params.each { k, value ->
             String uri = "$value"
             if (uri.startsWith(QuiltParser.SCHEME)) {
-                log.debug("checkParams.uri[$k]: $uri")
                 QuiltPath path = QuiltPathFactory.parse(uri)
                 checkPath(path)
             }

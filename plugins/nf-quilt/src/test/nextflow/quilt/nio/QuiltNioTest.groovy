@@ -67,8 +67,11 @@ class QuiltNioTest extends QuiltSpecification {
 
     @IgnoreIf({ System.getProperty('os.name').contains('indows') })
     void 'should read from a path'() {
+        // quilt+s3://quilt-example#package=examples/hurdat@f8d1478d93&path=data%2Fatlantic-storms.csv
+        // https://open.quiltdata.com/b/quilt-example/packages/examples/hurdat/tree/latest/data/atlantic-storms.csv
         given:
         Path path = Paths.get(new URI(READ_URL))
+        log.info("QuiltNioTest:Reading from $path")
 
         when:
         String text = readObject(path)
