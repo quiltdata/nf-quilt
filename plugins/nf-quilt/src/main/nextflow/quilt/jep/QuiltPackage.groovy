@@ -137,9 +137,8 @@ class QuiltPackage {
         return namespace
     }
 
-    String resolveHash() {
+    String resolveHash(Namespace namespace) {
         if (hash == 'latest' || hash == null || hash == 'null') {
-            Namespace namespace = packageNamespace()
             return namespace.getHash('latest')
         }
         return hash
@@ -147,7 +146,8 @@ class QuiltPackage {
 
     Manifest packageManifest() {
         Namespace namespace = packageNamespace()
-        Manifest manifest = namespace.getManifest(resolveHash())
+        String newHash = resolveHash(namespace)
+        Manifest manifest = namespace.getManifest(newHash)
         return manifest
     }
 
@@ -204,7 +204,6 @@ class QuiltPackage {
         try {
             log.info("installing $packageName from $bucket...")
             Manifest manifest = packageManifest()
-
             manifest.install(dest)
             log.info('done')
             installed = true

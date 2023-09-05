@@ -272,12 +272,13 @@ class QuiltFileSystemProvider extends FileSystemProvider {
                 attributesCache = [:] // reset cache
                 notifyFilePublish(qPath)
             } else {
+                // log.debug("\tEnsure installed: $installedPath")
                 // ensure QuiltPackage installed
-                QuiltPackage pkg = qPath.pkg()
-                pkg.install()
+                qPath.pkg().install()
+                log.debug("\tReading from: $installedPath")
             }
-            //log.debug("\tOpening channel to: $installedPath")
             FileChannel channel = FileChannel.open(installedPath, options)
+            log.debug("FileChannel.open: ${channel}")
             return channel
         }
         catch (java.nio.file.NoSuchFileException e) {

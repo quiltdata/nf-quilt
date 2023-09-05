@@ -230,8 +230,9 @@ ${meta['workflow']['stats']['processes']}
         return template.toString()
     }
 
-    List<Path> match(String glob) throws IOException {
-        Path folder = pkg.install()
+    List<Path> match(String glob, boolean shouldInstall = false) throws IOException {
+        log.debug("QuiltProduct.match[$shouldInstall]: $glob")
+        Path folder = shouldInstall ? pkg.install() : pkg.packageDest()
         FileSystem fs = FileSystems.getDefault()
         PathMatcher pathMatcher = fs.getPathMatcher("glob:${glob}")
         List<Path> matches = []
