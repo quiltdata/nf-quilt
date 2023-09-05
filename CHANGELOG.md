@@ -2,8 +2,9 @@
 
 ## [0.5.0] 2023-09-04+
 
-- Switch to quiltcore-java
-- Stop trying to pre-install every package
+- Switch to quiltcore-java [NOTE: this pre-release does NOT check workflows]
+- Do not pre-install packages (only install before write)
+
 
 ## [0.4.5] 2023-08-23
 
