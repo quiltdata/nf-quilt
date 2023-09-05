@@ -71,8 +71,8 @@ final class QuiltPath implements Path, Comparable {
         return sub_paths()
     }
 
-    Path localPath() {
-        Path pkgPath = pkg().packageDest()
+    Path localPath(boolean shouldInstall = false) {
+        Path pkgPath = shouldInstall ? pkg().install() : pkg().packageDest()
         assert pkgPath
         return Paths.get(pkgPath.toUriString(), sub_paths())
     }

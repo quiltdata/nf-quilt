@@ -107,7 +107,7 @@ final class QuiltFileSystem extends FileSystem implements Closeable {
 
     QuiltFileAttributes readAttributes(QuiltPath path)  {
         //log.debug("QuiltFileAttributes QuiltFileSystem.readAttributes($path)")
-        Path installedPath = path.localPath()
+        Path installedPath = path.localPath(true)
         try {
             BasicFileAttributes attrs = Files.readAttributes(installedPath, BasicFileAttributes)
             return new QuiltFileAttributes(path, path.toString(), attrs)

@@ -231,8 +231,7 @@ ${meta['workflow']['stats']['processes']}
     }
 
     List<Path> match(String glob) throws IOException {
-        String dir = pkg.packageDest()
-        Path folder = Paths.get(dir)
+        Path folder = pkg.install()
         FileSystem fs = FileSystems.getDefault()
         PathMatcher pathMatcher = fs.getPathMatcher("glob:${glob}")
         List<Path> matches = []
