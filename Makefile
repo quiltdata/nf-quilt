@@ -83,19 +83,17 @@ deps:
 
 deps-all:
 	./gradlew -q dependencyInsight
-#	./gradlew -q ${mm}dependencies --configuration ${CONFIG}  --dependency ${module}
 
 #
 # Refresh SNAPSHOTs dependencies
 #
+
 refresh:
 	./gradlew --refresh-dependencies dependencies
 
 #
 # Run all tests or selected ones
 #
-#test:
-#	./gradlew ${mm}test
 
 test-class:
 	./gradlew ${mm}test --tests ${class}
@@ -105,6 +103,7 @@ fast:
 
 #
 # Upload JAR artifacts to Maven Central
+#
 
 publish:
 	echo "Ensure you have set 'github_organization=<owner>' in gradle.properties"
