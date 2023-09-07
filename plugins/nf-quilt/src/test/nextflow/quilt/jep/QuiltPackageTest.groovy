@@ -119,11 +119,11 @@ class QuiltPackageTest extends QuiltSpecification {
     @IgnoreIf({ System.getProperty('os.name').contains('indows') })
     void 'should deinstall files'() {
         expect:
-        Files.exists(qpath.localPath())
+        Files.exists(qpath.localPath(true))
         when:
         qpath.deinstall()
         then:
-        !Files.exists(qpath.localPath())
+        !Files.exists(qpath.localPath(false))
         /* when:
         Files.readAttributes(qpath, BasicFileAttributes)
         then:
