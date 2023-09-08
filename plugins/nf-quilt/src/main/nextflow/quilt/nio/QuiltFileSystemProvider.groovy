@@ -400,7 +400,7 @@ class QuiltFileSystemProvider extends FileSystemProvider {
     @Override
     def <A extends BasicFileAttributes> A readAttributes(Path path, Class<A> type, LinkOption... options)
          throws IOException {
-        //log.debug '<A>BasicFileAttributes QuiltFileSystemProvider.readAttributes()'
+        log.debug '<A>BasicFileAttributes QuiltFileSystemProvider.readAttributes()'
         def attr = attributesCache.get(path)
         if (attr) {
             return attr

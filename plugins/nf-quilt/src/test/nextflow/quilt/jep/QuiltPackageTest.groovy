@@ -120,17 +120,18 @@ class QuiltPackageTest extends QuiltSpecification {
     void 'should deinstall files'() {
         expect:
         Files.exists(qpath.localPath(true))
+        Files.readAttributes(qpath, BasicFileAttributes)
         when:
         qpath.deinstall()
         then:
         !Files.exists(qpath.localPath(false))
-        /* when:
+
+        /*when:
         Files.readAttributes(qpath, BasicFileAttributes)
         then:
-        thrown(java.nio.file.NoSuchFileException) */
+        thrown(java.nio.file.NoSuchFileException)*/
     }
 
-    @Ignore()
     void 'should iterate over installed files '() {
         given:
         def root = qpath.getRoot()

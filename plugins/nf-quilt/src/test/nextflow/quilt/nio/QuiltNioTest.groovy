@@ -79,7 +79,7 @@ class QuiltNioTest extends QuiltSpecification {
         text.startsWith('id')
     }
 
-    @IgnoreIf({ System.getProperty('os.name').contains('ux') })
+    // @IgnoreIf({ System.getProperty('os.name').contains('ux') })
     @IgnoreIf({ System.getProperty('os.name').contains('indows') })
     void 'should read file attributes'() {
         given:
@@ -197,7 +197,7 @@ class QuiltNioTest extends QuiltSpecification {
         if (source) { Files.delete(source) }
     }
 
-    @Ignore
+    @IgnoreIf({ env.WRITE_BUCKET == 'quilt-example' || env.WRITE_BUCKET ==  null })
     void 'copy a remote file to a bucket'() {
         given:
         Path path = Paths.get(new URI(WRITE_URL))
@@ -212,15 +212,18 @@ class QuiltNioTest extends QuiltSpecification {
         readObject(path).trim() == TEXT
     }
 
-    @Ignore
+    @Ignore('QuiltFileSystem.copy not implemented')
     void 'move a remote file to a bucket'() {
         given:
         Path path = Paths.get(new URI(WRITE_URL))
-        final source_url = WRITE_URL.replace('test_folder', 'source')
+        println("QuiltNioTest:move:path $path")
+        final source_url = WRITE_URL.replace('folder', 'source')
         final source = Paths.get(new URI(source_url))
+        println("QuiltNioTest:move:source $source")
         Files.write(source, TEXT.bytes)
         and:
         Files.move(source, path)
+        println("QuiltNioTest:move: $source -> $path")
         expect:
         !existsPath(source)
         existsPath(path)
@@ -471,7 +474,7 @@ class QuiltNioTest extends QuiltSpecification {
         thrown(FileSystemException)
     }
 
-    @Ignore
+    @Ignore('Can not write to null_path')
     void 'should stream directory content'() {
         given:
         makeObject(null_path('foo/file1.txt'), 'A')
@@ -515,7 +518,7 @@ class QuiltNioTest extends QuiltSpecification {
         list  == [ 'file4.txt' ]
     }
 
-    @Ignore
+    @Ignore('Can not write to null_path')
     void 'should check walkTree'() {
         given:
         makeObject(null_path('foo/file1.txt'), 'A')
