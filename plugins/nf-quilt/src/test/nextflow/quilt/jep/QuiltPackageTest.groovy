@@ -22,6 +22,7 @@ import nextflow.quilt.nio.QuiltPath
 
 import spock.lang.Ignore
 import spock.lang.IgnoreIf
+import spock.lang.Unroll
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -61,6 +62,25 @@ class QuiltPackageTest extends QuiltSpecification {
         pkg.toString() == 'QuiltPackage.quilt_example_examples_smart_report'
         pkgPath.toUriString() == PACKAGE_URL
         pkg == pkg2
+    }
+
+    @Unroll
+    void 'should find relativeChildren of complete folders'() {
+        given:
+        Path path = Paths.get(new URI(PACKAGE_URL))
+        when:
+        QuiltPackage pkg = path.pkg()
+        then:
+        pkg.relativeChildren(subpath).size() == expected_size
+        
+        where:
+        subpath               | expected_size
+        ''                    | 8
+        '.ipynb_checkpoints'  | 1
+        '/.ipynb_checkpoints' | 1
+        '.ipynb'              | 1
+        '/.ipynb'             | 0
+
     }
 
     void 'should distinguish Packages with same name in different Buckets '() {
