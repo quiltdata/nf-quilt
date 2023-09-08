@@ -43,6 +43,7 @@ import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import nextflow.Global
 import nextflow.Session
+import nextflow.file.FileSystemTransferAware
 import nextflow.quilt.jep.QuiltParser
 import nextflow.quilt.jep.QuiltPackage
 
@@ -54,7 +55,7 @@ import nextflow.quilt.jep.QuiltPackage
 
 @Slf4j
 @CompileStatic
-class QuiltFileSystemProvider extends FileSystemProvider {
+class QuiltFileSystemProvider extends FileSystemProvider implements FileSystemTransferAware {
 
     private final Map<String,String> myEnv = new HashMap<>(System.getenv())
     private final Map<String,QuiltFileSystem> fileSystems = [:]
@@ -82,6 +83,24 @@ class QuiltFileSystemProvider extends FileSystemProvider {
 
     static FileSystemProvider provider(Path path) {
         return path.getFileSystem().provider()
+    }
+
+    boolean canUpload(Path source, Path target) {
+        log.debug("QuiltFileSystemProvider.canUpload[${source}] -> ${target}")
+        return false
+    }
+
+    boolean canDownload(Path source, Path target) {
+        log.debug("QuiltFileSystemProvider.canDownload[${source}] -> ${target}")
+        return false
+    }
+
+    void download(Path source, Path target, CopyOption... options) throws IOException {
+        throw new UnsupportedOperationException("Operation 'download' is not supported by QuiltFileSystem")
+    }
+
+    void upload(Path source, Path target, CopyOption... options) throws IOException {
+        throw new UnsupportedOperationException("Operation 'upload' is not supported by QuiltFileSystem")
     }
 
     /**
