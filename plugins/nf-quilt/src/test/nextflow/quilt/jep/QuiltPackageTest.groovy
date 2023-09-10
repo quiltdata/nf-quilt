@@ -86,6 +86,31 @@ class QuiltPackageTest extends QuiltSpecification {
         Files.exists(installPath)
     }
 
+    void 'should copy temp files into install folder'() {
+        given:
+        String filename = 'test.txt'
+        Path installPath = pkg.packageDest()
+        Path tempFile = File.createTempFile('test', '.txt').toPath()
+        println("tempFile: "+tempFile);
+        Path installedFile = Paths.get(installPath.toString(), filename)
+        expect:
+        Files.exists(tempFile)
+        Files.exists(installPath)
+        !Files.exists(installedFile)
+        Files.copy(tempFile, installedFile)
+        Files.exists(installedFile)
+    }
+
+    void 'should copy package files to temp Path'() {
+        given:
+        Path installPath = pkg.packageDest()
+        expect:
+        Files.exists(installPath)
+        Files.isDirectory(installPath)
+        Files.readAttributes(installPath, BasicFileAttributes)
+    }
+
+
     void 'should get attributes for package folder'() {
         given:
         def root = qpath.getRoot()
@@ -106,6 +131,7 @@ class QuiltPackageTest extends QuiltSpecification {
         Files.readAttributes(qpath, BasicFileAttributes)
     }
 
+
     void 'should return null on failed install'() {
         given:
         def url2 = TEST_URL.replace('quilt-', 'quilted-')
@@ -125,11 +151,6 @@ class QuiltPackageTest extends QuiltSpecification {
         qpath.deinstall()
         then:
         !Files.exists(qpath.localPath(false))
-
-        /*when:
-        Files.readAttributes(qpath, BasicFileAttributes)
-        then:
-        thrown(java.nio.file.NoSuchFileException)*/
     }
 
     void 'should iterate over installed files '() {

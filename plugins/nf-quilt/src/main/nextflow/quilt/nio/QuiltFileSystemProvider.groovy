@@ -46,6 +46,8 @@ import nextflow.Session
 import nextflow.file.FileSystemTransferAware
 import nextflow.quilt.jep.QuiltParser
 import nextflow.quilt.jep.QuiltPackage
+import sun.nio.fs.UnixFileSystemProvider
+import sun.nio.fs.MacOSXFileSystemProvider
 
 /**
  * Implements NIO File system provider for Quilt Blob Storage
@@ -85,22 +87,33 @@ class QuiltFileSystemProvider extends FileSystemProvider implements FileSystemTr
         return path.getFileSystem().provider()
     }
 
-    boolean canUpload(Path source, Path target) {
-        log.debug("QuiltFileSystemProvider.canUpload[${source}] -> ${target}")
-        return false
+    static boolean localProvider(Path path) {
+        FileSystemProvider provider = provider(path)
+        log.debug("QuiltFileSystemProvider.localProvider[${path}] -> ${provider}")
+        return provider instanceof UnixFileSystemProvider ||
+               provider instanceof MacOSXFileSystemProvider
     }
 
     boolean canDownload(Path source, Path target) {
         log.debug("QuiltFileSystemProvider.canDownload[${source}] -> ${target}")
-        return false
+        return localProvider(target) && source instanceof QuiltPath
+    }
+
+    boolean canUpload(Path source, Path target) {
+        log.debug("QuiltFileSystemProvider.canUpload[${source}] -> ${target}")
+        return localProvider(source) && target instanceof QuiltPath
     }
 
     void download(Path source, Path target, CopyOption... options) throws IOException {
-        throw new UnsupportedOperationException("Operation 'download' is not supported by QuiltFileSystem")
+        QuiltPath qSource = asQuiltPath(source)
+        Path local_source = qSource.localPath()
+        Files.copy(local_source, target, options)
     }
 
     void upload(Path source, Path target, CopyOption... options) throws IOException {
-        throw new UnsupportedOperationException("Operation 'upload' is not supported by QuiltFileSystem")
+        QuiltPath qTarget = asQuiltPath(target)
+        Path local_target = qTarget.localPath()
+        Files.copy(source, local_target, options)
     }
 
     /**
@@ -359,7 +372,7 @@ class QuiltFileSystemProvider extends FileSystemProvider implements FileSystemTr
 
     @Override
     void copy(Path from, Path to, CopyOption... options) throws IOException {
-        //log.debug("Attempting `copy`: ${from} -> ${to}")
+        log.debug("Attempting `copy`: ${from} -> ${to}")
         assert provider(from) == provider(to)
         if (from == to) {
             return // nothing to do -- just return
