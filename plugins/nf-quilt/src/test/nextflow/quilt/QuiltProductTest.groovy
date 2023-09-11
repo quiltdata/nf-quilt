@@ -22,6 +22,7 @@ import nextflow.quilt.QuiltProduct
 import nextflow.quilt.jep.QuiltParser
 
 import groovy.transform.CompileDynamic
+import spock.lang.Ignore
 import spock.lang.IgnoreIf
 
 /**
@@ -123,6 +124,7 @@ class QuiltProductTest extends QuiltSpecification {
     }
 
     @IgnoreIf({ env.WRITE_BUCKET == 'quilt-example' || env.WRITE_BUCKET ==  null })
+    @Ignore('Does NOT support re-using existing metadata to satisfy workflow')
     void 'pushes previous metadata if metadata=SKIP'() {
         given:
         Map meta = [

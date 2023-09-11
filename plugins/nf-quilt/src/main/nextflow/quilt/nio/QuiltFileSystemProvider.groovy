@@ -43,7 +43,9 @@ import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import nextflow.Global
 import nextflow.Session
+import nextflow.file.FileSystemTransferAware
 import nextflow.quilt.jep.QuiltParser
+import nextflow.quilt.jep.QuiltPackage
 
 /**
  * Implements NIO File system provider for Quilt Blob Storage
@@ -53,7 +55,7 @@ import nextflow.quilt.jep.QuiltParser
 
 @Slf4j
 @CompileStatic
-class QuiltFileSystemProvider extends FileSystemProvider {
+class QuiltFileSystemProvider extends FileSystemProvider implements FileSystemTransferAware {
 
     private final Map<String,String> myEnv = new HashMap<>(System.getenv())
     private final Map<String,QuiltFileSystem> fileSystems = [:]
@@ -81,6 +83,36 @@ class QuiltFileSystemProvider extends FileSystemProvider {
 
     static FileSystemProvider provider(Path path) {
         return path.getFileSystem().provider()
+    }
+
+    static boolean isLocalProvider(Path path) {
+        FileSystemProvider provider = provider(path)
+        String providerName = provider?.class?.name?.toLowerCase() ?: 'N/A'
+        println("QuiltFileSystemProvider.isLocalProvider[${path}] -> ${providerName}")
+        return providerName.contains("xfile") || providerName.contains("win") ||\
+               providerName.contains("fat") || providerName == 'N/A'
+    }
+
+    boolean canDownload(Path source, Path target) {
+        log.debug("QuiltFileSystemProvider.canDownload[${source}] -> ${target}")
+        return isLocalProvider(target) && source instanceof QuiltPath
+    }
+
+    boolean canUpload(Path source, Path target) {
+        log.debug("QuiltFileSystemProvider.canUpload[${source}] -> ${target}")
+        return isLocalProvider(source) && target instanceof QuiltPath
+    }
+
+    void download(Path source, Path target, CopyOption... options) throws IOException {
+        QuiltPath qSource = asQuiltPath(source)
+        Path local_source = qSource.localPath()
+        Files.copy(local_source, target, options)
+    }
+
+    void upload(Path source, Path target, CopyOption... options) throws IOException {
+        QuiltPath qTarget = asQuiltPath(target)
+        Path local_target = qTarget.localPath()
+        Files.copy(source, local_target, options)
     }
 
     /**
@@ -270,9 +302,14 @@ class QuiltFileSystemProvider extends FileSystemProvider {
                 //options = [WRITE,CREATE] as Set<OpenOption>
                 attributesCache = [:] // reset cache
                 notifyFilePublish(qPath)
+            } else {
+                // log.debug("\tEnsure installed: $installedPath")
+                // ensure QuiltPackage installed
+                qPath.pkg().install()
+                log.debug("\tReading from: $installedPath")
             }
-            //log.debug("\tOpening channel to: $installedPath")
             FileChannel channel = FileChannel.open(installedPath, options)
+            log.debug("FileChannel.open: ${channel}")
             return channel
         }
         catch (java.nio.file.NoSuchFileException e) {
@@ -334,7 +371,7 @@ class QuiltFileSystemProvider extends FileSystemProvider {
 
     @Override
     void copy(Path from, Path to, CopyOption... options) throws IOException {
-        //log.debug("Attempting `copy`: ${from} -> ${to}")
+        log.debug("Attempting `copy`: ${from} -> ${to}")
         assert provider(from) == provider(to)
         if (from == to) {
             return // nothing to do -- just return
@@ -360,7 +397,7 @@ class QuiltFileSystemProvider extends FileSystemProvider {
 
     @Override
     boolean isHidden(Path path) throws IOException {
-        return path.getFileName()?.toString()?.startsWith('.')
+        return path.getFileName()?.toString()?.contains('.')
     }
 
     @Override
@@ -394,7 +431,7 @@ class QuiltFileSystemProvider extends FileSystemProvider {
     @Override
     def <A extends BasicFileAttributes> A readAttributes(Path path, Class<A> type, LinkOption... options)
          throws IOException {
-        //log.debug '<A>BasicFileAttributes QuiltFileSystemProvider.readAttributes()'
+        log.debug '<A>BasicFileAttributes QuiltFileSystemProvider.readAttributes()'
         def attr = attributesCache.get(path)
         if (attr) {
             return attr
