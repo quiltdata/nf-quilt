@@ -32,7 +32,7 @@ compile:
 
 nextflow:
 	if [ ! -d "$(NF_DIR)" ]; then git clone https://github.com/nextflow-io/nextflow.git  "$(NF_DIR)"; fi
-	pushd "$(NF_DIR)"; git checkout && make compile && git restore .; popd
+	cd "$(NF_DIR)" && git checkout && make compile && ./nextflow -v
 
 compile-all: nextflow compile
 

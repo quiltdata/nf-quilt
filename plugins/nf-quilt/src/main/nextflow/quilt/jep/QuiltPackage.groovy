@@ -161,15 +161,13 @@ class QuiltPackage {
      */
 
     List<String> relativeChildren(String subpath) {
-        Manifest manifest = packageManifest()
-        // get names of entries
-        List<String> children = manifest.getEntries().keySet().collect { String key ->
-            if (key.startsWith(subpath)) {
-                return key
-            }
-            return null
+        Set<String> keys = packageManifest().getEntries().keySet()
+        println("relativeChildren[${subpath}]: ${keys}")
+        Collection children = keys.findResults { String key ->
+            key.startsWith(subpath) ? key : null
         }
-        return children
+        println("relativeChildren.children: ${children}")
+        return children as List<String>
     }
 
     void reset() {
@@ -240,7 +238,6 @@ class QuiltPackage {
         Namespace namespace = packageNamespace()
         Manifest.Builder builder = Manifest.builder()
         Files.walk(packageDest()).filter(f -> Files.isRegularFile(f)).forEach(f -> {
-            println(f)
             String logicalKey = packageDest().relativize(f)
             LocalPhysicalKey physicalKey = new LocalPhysicalKey(f)
             long size = Files.size(f)
