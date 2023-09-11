@@ -91,7 +91,6 @@ class QuiltPackageTest extends QuiltSpecification {
         String filename = 'test.txt'
         Path installPath = pkg.packageDest()
         Path tempFile = File.createTempFile('test', '.txt').toPath()
-        println("tempFile: "+tempFile);
         Path installedFile = Paths.get(installPath.toString(), filename)
         expect:
         Files.exists(tempFile)
