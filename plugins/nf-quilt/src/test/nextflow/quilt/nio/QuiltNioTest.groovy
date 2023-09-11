@@ -79,7 +79,7 @@ class QuiltNioTest extends QuiltSpecification {
         text.startsWith('id')
     }
 
-    @IgnoreIf({ System.getProperty('os.name').contains('ux') })
+    // @IgnoreIf({ System.getProperty('os.name').contains('ux') })
     @IgnoreIf({ System.getProperty('os.name').contains('indows') })
     void 'should read file attributes'() {
         given:
@@ -132,7 +132,7 @@ class QuiltNioTest extends QuiltSpecification {
         then:
         !attrs.isRegularFile()
         attrs.isDirectory()
-        attrs.size() == 128
+        attrs.size() > 100 // differs by platform
         !attrs.isSymbolicLink()
         !attrs.isOther()
         attrs.fileKey() == root
@@ -148,7 +148,7 @@ class QuiltNioTest extends QuiltSpecification {
         then:
         !attrs.isRegularFile()
         attrs.isDirectory()
-        attrs.size() == 224
+        attrs.size() > 100 // differs by platform
         !attrs.isSymbolicLink()
         !attrs.isOther()
         attrs.fileKey() == '/'
@@ -197,7 +197,7 @@ class QuiltNioTest extends QuiltSpecification {
         if (source) { Files.delete(source) }
     }
 
-    @Ignore
+    @IgnoreIf({ env.WRITE_BUCKET == 'quilt-example' || env.WRITE_BUCKET ==  null })
     void 'copy a remote file to a bucket'() {
         given:
         Path path = Paths.get(new URI(WRITE_URL))
@@ -212,11 +212,11 @@ class QuiltNioTest extends QuiltSpecification {
         readObject(path).trim() == TEXT
     }
 
-    @Ignore
+    @Ignore('QuiltFileSystem.copy not implemented')
     void 'move a remote file to a bucket'() {
         given:
         Path path = Paths.get(new URI(WRITE_URL))
-        final source_url = WRITE_URL.replace('test_folder', 'source')
+        final source_url = WRITE_URL.replace('folder', 'source')
         final source = Paths.get(new URI(source_url))
         Files.write(source, TEXT.bytes)
         and:
@@ -471,7 +471,7 @@ class QuiltNioTest extends QuiltSpecification {
         thrown(FileSystemException)
     }
 
-    @Ignore
+    @Ignore('Can not write to null_path')
     void 'should stream directory content'() {
         given:
         makeObject(null_path('foo/file1.txt'), 'A')
@@ -515,7 +515,7 @@ class QuiltNioTest extends QuiltSpecification {
         list  == [ 'file4.txt' ]
     }
 
-    @Ignore
+    @Ignore('Can not write to null_path')
     void 'should check walkTree'() {
         given:
         makeObject(null_path('foo/file1.txt'), 'A')

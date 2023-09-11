@@ -80,11 +80,17 @@ ${meta['workflow']['stats']['processes']}
     static void writeString(String text, QuiltPackage pkg, String filename) {
         String dir = pkg.packageDest()
         Path path  = Paths.get(dir, filename.split('/') as String[])
+        File parent = path.getParent().toFile()
+        if (parent != null && !parent.exists() && !parent.mkdirs()) {
+            throw new IllegalStateException("Couldn't create dir: " + parent);
+        }
+
         try {
             Files.write(path, text.bytes)
         }
         catch (Exception e) {
-            log.error("writeString: cannot write `$text` to `$path` for `${pkg}`")
+            log.error("writeString[${e.getMessage()}]: fail write `$path` for `${pkg}`")
+            e.printStackTrace()
         }
     }
 

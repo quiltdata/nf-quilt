@@ -77,9 +77,9 @@ class QuiltPackageTest extends QuiltSpecification {
         subpath               | expected_size
         ''                    | 8
         '.ipynb_checkpoints'  | 1
-        '/.ipynb_checkpoints' | 1
+        '.ipynb_checkpoints/' | 1
         '.ipynb'              | 1
-        '/.ipynb'             | 0
+        '.ipynb/'             | 0
 
     }
 
@@ -106,6 +106,30 @@ class QuiltPackageTest extends QuiltSpecification {
         Files.exists(installPath)
     }
 
+    void 'should copy temp files into install folder'() {
+        given:
+        String filename = 'test.txt'
+        Path installPath = pkg.packageDest()
+        Path tempFile = File.createTempFile('test', '.txt').toPath()
+        Path installedFile = Paths.get(installPath.toString(), filename)
+        expect:
+        Files.exists(tempFile)
+        Files.exists(installPath)
+        !Files.exists(installedFile)
+        Files.copy(tempFile, installedFile)
+        Files.exists(installedFile)
+    }
+
+    void 'should copy package files to temp Path'() {
+        given:
+        Path installPath = pkg.packageDest()
+        expect:
+        Files.exists(installPath)
+        Files.isDirectory(installPath)
+        Files.readAttributes(installPath, BasicFileAttributes)
+    }
+
+
     void 'should get attributes for package folder'() {
         given:
         def root = qpath.getRoot()
@@ -126,6 +150,7 @@ class QuiltPackageTest extends QuiltSpecification {
         Files.readAttributes(qpath, BasicFileAttributes)
     }
 
+
     void 'should return null on failed install'() {
         given:
         def url2 = TEST_URL.replace('quilt-', 'quilted-')
@@ -140,17 +165,13 @@ class QuiltPackageTest extends QuiltSpecification {
     void 'should deinstall files'() {
         expect:
         Files.exists(qpath.localPath(true))
+        Files.readAttributes(qpath, BasicFileAttributes)
         when:
         qpath.deinstall()
         then:
         !Files.exists(qpath.localPath(false))
-        /* when:
-        Files.readAttributes(qpath, BasicFileAttributes)
-        then:
-        thrown(java.nio.file.NoSuchFileException) */
     }
 
-    @Ignore()
     void 'should iterate over installed files '() {
         given:
         def root = qpath.getRoot()
