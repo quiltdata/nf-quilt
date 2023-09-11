@@ -162,11 +162,10 @@ class QuiltPackage {
 
     List<String> relativeChildren(String subpath) {
         Set<String> keys = packageManifest().getEntries().keySet()
-        println("relativeChildren[${subpath}]: ${keys}")
+        log.debug("relativeChildren[${subpath}]: ${keys}")
         Collection children = keys.findResults { String key ->
             key.startsWith(subpath) ? key : null
         }
-        println("relativeChildren.children: ${children}")
         return children as List<String>
     }
 

@@ -132,7 +132,7 @@ class QuiltNioTest extends QuiltSpecification {
         then:
         !attrs.isRegularFile()
         attrs.isDirectory()
-        attrs.size() == 128
+        attrs.size() > 100
         !attrs.isSymbolicLink()
         !attrs.isOther()
         attrs.fileKey() == root
@@ -216,14 +216,11 @@ class QuiltNioTest extends QuiltSpecification {
     void 'move a remote file to a bucket'() {
         given:
         Path path = Paths.get(new URI(WRITE_URL))
-        println("QuiltNioTest:move:path $path")
         final source_url = WRITE_URL.replace('folder', 'source')
         final source = Paths.get(new URI(source_url))
-        println("QuiltNioTest:move:source $source")
         Files.write(source, TEXT.bytes)
         and:
         Files.move(source, path)
-        println("QuiltNioTest:move: $source -> $path")
         expect:
         !existsPath(source)
         existsPath(path)

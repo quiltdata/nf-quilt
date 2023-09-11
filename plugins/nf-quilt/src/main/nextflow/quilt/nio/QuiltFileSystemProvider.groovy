@@ -88,7 +88,7 @@ class QuiltFileSystemProvider extends FileSystemProvider implements FileSystemTr
     static boolean localProvider(Path path) {
         FileSystemProvider provider = provider(path)
         String providerName = provider?.class?.name?.toLowerCase() ?: '-'
-        log.debug("QuiltFileSystemProvider.localProvider[${path}] -> ${providerName}")
+        println("QuiltFileSystemProvider.localProvider[${path}] -> ${providerName}")
         return providerName.startsWith("unix") || providerName.startsWith("win") ||\
                providerName.startsWith("mac") || providerName.startsWith("fat")
     }

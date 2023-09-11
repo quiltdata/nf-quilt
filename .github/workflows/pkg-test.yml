@@ -10,7 +10,7 @@ permissions: read-all
 
 jobs:
   build:
-    name: Test
+    name: Package Test
     permissions:
       contents: read
       id-token: write
