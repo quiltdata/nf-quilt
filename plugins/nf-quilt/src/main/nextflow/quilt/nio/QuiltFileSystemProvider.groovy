@@ -46,7 +46,6 @@ import nextflow.Session
 import nextflow.file.FileSystemTransferAware
 import nextflow.quilt.jep.QuiltParser
 import nextflow.quilt.jep.QuiltPackage
-import sun.nio.fs.UnixFileSystemProvider
 
 /**
  * Implements NIO File system provider for Quilt Blob Storage

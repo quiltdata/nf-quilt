@@ -77,9 +77,9 @@ class QuiltPackageTest extends QuiltSpecification {
         subpath               | expected_size
         ''                    | 8
         '.ipynb_checkpoints'  | 1
-        '/.ipynb_checkpoints' | 1
+        '.ipynb_checkpoints/' | 1
         '.ipynb'              | 1
-        '/.ipynb'             | 0
+        '.ipynb/'             | 0
 
     }
 
