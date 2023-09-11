@@ -47,7 +47,6 @@ import nextflow.file.FileSystemTransferAware
 import nextflow.quilt.jep.QuiltParser
 import nextflow.quilt.jep.QuiltPackage
 import sun.nio.fs.UnixFileSystemProvider
-import sun.nio.fs.MacOSXFileSystemProvider
 
 /**
  * Implements NIO File system provider for Quilt Blob Storage
@@ -89,9 +88,10 @@ class QuiltFileSystemProvider extends FileSystemProvider implements FileSystemTr
 
     static boolean localProvider(Path path) {
         FileSystemProvider provider = provider(path)
-        log.debug("QuiltFileSystemProvider.localProvider[${path}] -> ${provider}")
-        return provider instanceof UnixFileSystemProvider ||
-               provider instanceof MacOSXFileSystemProvider
+        String providerName = provider?.class?.name?.toLowerCase() ?: '-'
+        log.debug("QuiltFileSystemProvider.localProvider[${path}] -> ${providerName}")
+        return providerName.startsWith("unix") || providerName.startsWith("win") ||\
+               providerName.startsWith("mac") || providerName.startsWith("fat")
     }
 
     boolean canDownload(Path source, Path target) {
