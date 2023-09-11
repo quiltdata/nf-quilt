@@ -3,6 +3,8 @@ package nextflow.quilt.nio
 
 import nextflow.quilt.QuiltSpecification
 import groovy.transform.CompileDynamic
+import java.nio.file.Path
+import java.nio.file.Paths
 
 /**
  *
@@ -21,5 +23,15 @@ class QuiltFileSystemProviderTest extends QuiltSpecification {
     // newDirectoryStream returns local path for read
     // newDirectoryStream returns package path for write
     // do we need a new schema for quilt+local?
+
+    void 'should recognize isLocalProvider'() {
+        given:
+        Path local = Paths.get('file:///tmp')
+        Path remote = Paths.get(new URI(fullURL))
+
+        expect:
+        QuiltFileSystemProvider.isLocalProvider(local) == true
+        QuiltFileSystemProvider.isLocalProvider(remote) == false
+    }
 
 }

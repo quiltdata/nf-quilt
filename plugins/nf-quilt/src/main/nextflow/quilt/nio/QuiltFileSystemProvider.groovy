@@ -85,22 +85,23 @@ class QuiltFileSystemProvider extends FileSystemProvider implements FileSystemTr
         return path.getFileSystem().provider()
     }
 
-    static boolean localProvider(Path path) {
+    static boolean isLocalProvider(Path path) {
         FileSystemProvider provider = provider(path)
-        String providerName = provider?.class?.name?.toLowerCase() ?: '-'
-        println("QuiltFileSystemProvider.localProvider[${path}] -> ${providerName}")
-        return providerName.startsWith("unix") || providerName.startsWith("win") ||\
-               providerName.startsWith("mac") || providerName.startsWith("fat")
+        String providerName = provider?.class?.name?.toLowerCase() ?: 'N/A'
+        println("QuiltFileSystemProvider.isLocalProvider[${path}] -> ${providerName}")
+        return providerName.contains("unix") || providerName.contains("win") ||\
+               providerName.contains("mac") || providerName.contains("fat") ||\
+               providerName == 'N/A'
     }
 
     boolean canDownload(Path source, Path target) {
         log.debug("QuiltFileSystemProvider.canDownload[${source}] -> ${target}")
-        return localProvider(target) && source instanceof QuiltPath
+        return isLocalProvider(target) && source instanceof QuiltPath
     }
 
     boolean canUpload(Path source, Path target) {
         log.debug("QuiltFileSystemProvider.canUpload[${source}] -> ${target}")
-        return localProvider(source) && target instanceof QuiltPath
+        return isLocalProvider(source) && target instanceof QuiltPath
     }
 
     void download(Path source, Path target, CopyOption... options) throws IOException {
@@ -397,7 +398,7 @@ class QuiltFileSystemProvider extends FileSystemProvider implements FileSystemTr
 
     @Override
     boolean isHidden(Path path) throws IOException {
-        return path.getFileName()?.toString()?.startsWith('.')
+        return path.getFileName()?.toString()?.contains('.')
     }
 
     @Override
