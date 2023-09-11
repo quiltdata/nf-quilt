@@ -26,7 +26,7 @@ class QuiltFileSystemProviderTest extends QuiltSpecification {
 
     void 'should recognize isLocalProvider'() {
         given:
-        Path local = Paths.get('file:///tmp')
+        Path local = File.createTempFile('test', '.txt').toPath()
         Path remote = Paths.get(new URI(fullURL))
 
         expect:

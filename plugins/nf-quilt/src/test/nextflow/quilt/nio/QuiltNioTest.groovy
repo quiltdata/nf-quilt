@@ -132,7 +132,7 @@ class QuiltNioTest extends QuiltSpecification {
         then:
         !attrs.isRegularFile()
         attrs.isDirectory()
-        attrs.size() > 100
+        attrs.size() > 100 // differs by platform
         !attrs.isSymbolicLink()
         !attrs.isOther()
         attrs.fileKey() == root
@@ -148,7 +148,7 @@ class QuiltNioTest extends QuiltSpecification {
         then:
         !attrs.isRegularFile()
         attrs.isDirectory()
-        attrs.size() == 224
+        attrs.size() > 100 // differs by platform
         !attrs.isSymbolicLink()
         !attrs.isOther()
         attrs.fileKey() == '/'

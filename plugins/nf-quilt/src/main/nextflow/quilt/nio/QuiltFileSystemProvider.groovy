@@ -89,9 +89,8 @@ class QuiltFileSystemProvider extends FileSystemProvider implements FileSystemTr
         FileSystemProvider provider = provider(path)
         String providerName = provider?.class?.name?.toLowerCase() ?: 'N/A'
         println("QuiltFileSystemProvider.isLocalProvider[${path}] -> ${providerName}")
-        return providerName.contains("unix") || providerName.contains("win") ||\
-               providerName.contains("mac") || providerName.contains("fat") ||\
-               providerName == 'N/A'
+        return providerName.contains("xfile") || providerName.contains("win") ||\
+               providerName.contains("fat") || providerName == 'N/A'
     }
 
     boolean canDownload(Path source, Path target) {
