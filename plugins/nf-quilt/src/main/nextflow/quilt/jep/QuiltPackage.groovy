@@ -253,7 +253,7 @@ class QuiltPackage {
         Manifest m = builder.build()
 
         try {
-            m.push(namespace, "nf-quilt:${today()}-${msg}")
+            m.push(namespace, "nf-quilt:${today()}-${msg}", parsed.workflowName)
         } catch (IOException e) {
             return 1
         }
