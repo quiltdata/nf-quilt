@@ -34,6 +34,7 @@ import com.quiltdata.quiltcore.Namespace
 import com.quiltdata.quiltcore.Manifest
 import com.quiltdata.quiltcore.key.LocalPhysicalKey
 import com.quiltdata.quiltcore.key.S3PhysicalKey
+import com.quiltdata.quiltcore.workflows.WorkflowException
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.node.ObjectNode
@@ -254,6 +255,8 @@ class QuiltPackage {
 
         try {
             m.push(namespace, "nf-quilt:${today()}-${msg}", parsed.workflowName)
+        } catch (WorkflowException e) {
+            return 1
         } catch (IOException e) {
             return 1
         }
