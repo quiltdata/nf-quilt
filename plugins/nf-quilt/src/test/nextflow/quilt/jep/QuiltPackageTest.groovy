@@ -106,6 +106,30 @@ class QuiltPackageTest extends QuiltSpecification {
         Files.exists(installPath)
     }
 
+    void 'should copy temp files into install folder'() {
+        given:
+        String filename = 'test.txt'
+        Path installPath = pkg.packageDest()
+        Path tempFile = File.createTempFile('test', '.txt').toPath()
+        Path installedFile = Paths.get(installPath.toString(), filename)
+        expect:
+        Files.exists(tempFile)
+        Files.exists(installPath)
+        !Files.exists(installedFile)
+        Files.copy(tempFile, installedFile)
+        Files.exists(installedFile)
+    }
+
+    void 'should copy package files to temp Path'() {
+        given:
+        Path installPath = pkg.packageDest()
+        expect:
+        Files.exists(installPath)
+        Files.isDirectory(installPath)
+        Files.readAttributes(installPath, BasicFileAttributes)
+    }
+
+
     void 'should get attributes for package folder'() {
         given:
         def root = qpath.getRoot()
@@ -126,6 +150,7 @@ class QuiltPackageTest extends QuiltSpecification {
         Files.readAttributes(qpath, BasicFileAttributes)
     }
 
+
     void 'should return null on failed install'() {
         given:
         def url2 = TEST_URL.replace('quilt-', 'quilted-')
@@ -140,17 +165,13 @@ class QuiltPackageTest extends QuiltSpecification {
     void 'should deinstall files'() {
         expect:
         Files.exists(qpath.localPath(true))
+        Files.readAttributes(qpath, BasicFileAttributes)
         when:
         qpath.deinstall()
         then:
         !Files.exists(qpath.localPath(false))
-        /* when:
-        Files.readAttributes(qpath, BasicFileAttributes)
-        then:
-        thrown(java.nio.file.NoSuchFileException) */
     }
 
-    @Ignore()
     void 'should iterate over installed files '() {
         given:
         def root = qpath.getRoot()
@@ -212,7 +233,7 @@ class QuiltPackageTest extends QuiltSpecification {
         opkg.push('msg', meta) == 0
     }
 
-    @Ignore('QuiltCore-java does not support workflows yet')
+    // @Ignore('QuiltCore-java does not support workflows yet')
     @IgnoreIf({ env.WRITE_BUCKET == 'quilt-example' || env.WRITE_BUCKET ==  null })
     void 'should fail if invalid workflow'() {
         given:
@@ -222,7 +243,7 @@ class QuiltPackageTest extends QuiltSpecification {
         bad_wf.push('missing-workflow first time', [:]) == 1
     }
 
-    @Ignore('QuiltCore-java does not support workflows yet')
+    // @Ignore('QuiltCore-java does not support workflows yet')
     @IgnoreIf({ env.WRITE_BUCKET == 'quilt-example' || env.WRITE_BUCKET ==  null })
     void 'should fail push if unsatisfied workflow'() {
         given:
