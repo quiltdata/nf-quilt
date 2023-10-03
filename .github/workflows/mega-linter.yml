@@ -37,7 +37,7 @@ jobs:
         id: ml
         # You can override MegaLinter flavor used to have faster performances
         # More info at https://megalinter.github.io/flavors/
-        uses: oxsecurity/megalinter/flavors/dotnet@v7.3.0
+        uses: oxsecurity/megalinter/flavors/dotnet@v7.4.0
         env:
           # All available variables are described in documentation
           # https://megalinter.github.io/configuration/
@@ -48,7 +48,6 @@ jobs:
 
       # Upload MegaLinter artifacts
       - name: Archive production artifacts
-        if: ${{ success() }} || ${{ failure() }}
         uses: actions/upload-artifact@v3
         with:
           name: MegaLinter reports
