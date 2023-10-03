@@ -44,6 +44,8 @@ import groovy.json.JsonOutput
 @CompileStatic
 class QuiltProduct {
     public final static String README_FILE = 'README_NF_QUILT.md'
+    public final static String SUMMARY_FILE = 'quilt_summarize.json'
+
 
     private final static String KEY_META = 'metadata'
     private final static String KEY_README = 'readme'
@@ -64,7 +66,7 @@ class QuiltProduct {
 ## processes
 ${meta['workflow']['stats']['processes']}
 '''
-    private final static String DEFAULT_SUMMARIZE = '**.md,**.html'
+    private final static String DEFAULT_SUMMARIZE = '*.md,*.html,*.?sv,*.pdf,multiqc/multiqc_report.html'
 
     private final static String[] BIG_KEYS = [
         'nextflow', 'commandLine', 'scriptFile', 'projectDir',
@@ -276,7 +278,7 @@ ${meta['workflow']['stats']['processes']}
         }
 
         String qs_json = JsonOutput.toJson(quilt_summarize.keySet() as String[])
-        writeString(qs_json, pkg, 'quilt_summarize.json')
+        writeString(qs_json, pkg, SUMMARY_FILE)
         return quilt_summarize
     }
 
