@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.5.0] 2023-10-03
+## [0.6.0] 2023-10-03
 
 - Stop overwriting README.md (use README_NF_QUILT.md instead)
   - improve formatting
