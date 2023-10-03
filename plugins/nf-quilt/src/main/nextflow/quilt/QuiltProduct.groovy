@@ -54,17 +54,33 @@ class QuiltProduct {
 
     /* groovylint-disable-next-line GStringExpressionWithinString */
     private final static String DEFAULT_README = '''
-# ${now}
-## ${msg}
+# ${pkg}
 
-## workflow
-### scriptFile: ${meta['workflow']?.get('scriptFile')}
-### sessionId: ${meta['workflow']?.get('sessionId')}
-- start: ${meta['time_start']}
-- complete: ${meta['time_complete']}
+## ${now}
 
-## processes
-${meta['workflow']['stats']['processes']}
+## Run Command
+
+```bash
+${cmd}
+```
+
+### Workflow
+
+- workflow run name: ```${meta['workflow']?.get('runName')}```
+- scriptFile: ```${meta['workflow']?.get('scriptFile')}```
+- sessionId: ```${meta['workflow']?.get('sessionId')}```
+- start: ```${meta['time_start']}```
+- complete: ```${meta['time_complete']}```
+
+### Nextflow
+
+```bash
+${nextflow}
+```
+
+### Processes
+
+`${meta['workflow']['stats']['processes']}`
 '''
     private final static String DEFAULT_SUMMARIZE = '*.md,*.html,*.?sv,*.pdf,multiqc/multiqc_report.html'
 
@@ -179,7 +195,7 @@ ${meta['workflow']['stats']['processes']}
             writeNextflowMetadata(params, 'params')
             params.remove('genomes')
             params.remove('test_data')
-            //printMap(params, 'params')
+            // printMap(params, 'params')
         }
         Map wf = session.getWorkflowMetadata().toMap()
         String start = wf['start']
@@ -193,7 +209,7 @@ ${meta['workflow']['stats']['processes']}
             wf.remove('complete')
             wf.remove('workflowStats')
             wf.remove('commandLine')
-            //printMap(wf, 'workflow')
+            // printMap(wf, 'workflow')
             log.info("\npublishing: ${wf['runName']}")
         }
         return [
@@ -209,7 +225,7 @@ ${meta['workflow']['stats']['processes']}
     String setupReadme() {
         String text = 'Stub README'
         try {
-            text = readme()
+            text = makeReadme()
         }
         catch (Exception e) {
             log.error("setupReadme failed: ${e.getMessage()}", pkg.meta)
@@ -221,15 +237,27 @@ ${meta['workflow']['stats']['processes']}
         return text
     }
 
-    String readme() {
+    String makeReadme() {
         if (shouldSkip(KEY_README)) {
             log.info("readme=SKIP for ${pkg}")
             return null
         }
         GStringTemplateEngine engine = new GStringTemplateEngine()
         String raw_readme = pkg.meta_overrides(KEY_README, DEFAULT_README)
+        String cmd = "${meta['cmd']}".replace(' -', ' \\\n  -')
+        String nf = meta['workflow']['nextflow']
+        String nextflow = nf.replace(', ', '\\\n  -')\
+            .replace('nextflow.NextflowMeta(', ' \\\n -')\
+            .replace(')', '')
         //log.debug("readme: ${raw_readme}")
-        Writable template = engine.createTemplate(raw_readme).make([meta: meta, msg: msg, now: now()])
+        Writable template = engine.createTemplate(raw_readme).make([
+            cmd: cmd,
+            meta: meta,
+            msg: msg,
+            nextflow: nextflow,
+            now: now(),
+            pkg: pkg.toString(),
+        ])
         return template.toString()
     }
 
