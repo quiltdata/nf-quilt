@@ -43,7 +43,7 @@ import groovy.json.JsonOutput
 @Slf4j
 @CompileStatic
 class QuiltProduct {
-    public final static String README_FILE = 'README.md'
+    public final static String README_FILE = 'README_NF_QUILT.md'
 
     private final static String KEY_META = 'metadata'
     private final static String KEY_README = 'readme'

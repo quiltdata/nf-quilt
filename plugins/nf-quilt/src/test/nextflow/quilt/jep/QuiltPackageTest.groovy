@@ -40,7 +40,7 @@ import groovy.transform.CompileDynamic
 class QuiltPackageTest extends QuiltSpecification {
 
     private final static String PACKAGE_URL = 'quilt+s3://quilt-example#package=examples%2fsmart-report@d68a7e9'
-    private final static String TEST_URL = PACKAGE_URL + "&path=${QuiltProduct.README_FILE}"
+    private final static String TEST_URL = PACKAGE_URL + "&path=README.md"
 
     private QuiltPathFactory factory
     private QuiltPath qpath
