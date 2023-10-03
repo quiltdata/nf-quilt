@@ -19,6 +19,7 @@ package nextflow.quilt.jep
 import nextflow.quilt.QuiltSpecification
 import nextflow.quilt.nio.QuiltPathFactory
 import nextflow.quilt.nio.QuiltPath
+import nextflow.quilt.QuiltProduct
 
 import spock.lang.Ignore
 import spock.lang.IgnoreIf
@@ -39,7 +40,7 @@ import groovy.transform.CompileDynamic
 class QuiltPackageTest extends QuiltSpecification {
 
     private final static String PACKAGE_URL = 'quilt+s3://quilt-example#package=examples%2fsmart-report@d68a7e9'
-    private final static String TEST_URL = PACKAGE_URL + '&path=README.md'
+    private final static String TEST_URL = PACKAGE_URL + "&path=${QuiltProduct.README_FILE}"
 
     private QuiltPathFactory factory
     private QuiltPath qpath
@@ -149,7 +150,7 @@ class QuiltPackageTest extends QuiltSpecification {
         given:
         def qout = factory.parseUri(TEST_URL)
         def opkg = qout.pkg()
-        def outPath = Paths.get(opkg.packageDest().toString(), 'README.md')
+        def outPath = Paths.get(opkg.packageDest().toString(), QuiltProduct.README_FILE)
         Files.writeString(outPath, "Time: ${timestamp}")
         expect:
         Files.exists(outPath)
@@ -171,7 +172,7 @@ class QuiltPackageTest extends QuiltSpecification {
     void 'should succeed pushing new files to writeable bucket '() {
         given:
         QuiltPackage opkg = writeablePackage('observer')
-        def outPath = Paths.get(opkg.packageDest().toString(), 'README.md')
+        def outPath = Paths.get(opkg.packageDest().toString(), QuiltProduct.README_FILE)
         Files.writeString(outPath, "Time: ${timestamp}")
         expect:
         Files.exists(outPath)

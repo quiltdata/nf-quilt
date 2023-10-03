@@ -43,6 +43,7 @@ import groovy.json.JsonOutput
 @Slf4j
 @CompileStatic
 class QuiltProduct {
+    public final static String README_FILE = 'README.md'
 
     private final static String KEY_META = 'metadata'
     private final static String KEY_README = 'readme'
@@ -213,7 +214,7 @@ ${meta['workflow']['stats']['processes']}
         }
         if (text != null && text.length() > 0) {
             //log.debug("setupReadme: ${text.length()} bytes")
-            writeString(text, pkg, 'README.md')
+            writeString(text, pkg, README_FILE)
         }
         return text
     }
