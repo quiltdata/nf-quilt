@@ -66,17 +66,15 @@ ${cmd}
 
 ### Workflow
 
-- workflow run name: ```${meta['workflow']?.get('runName')}```
-- scriptFile: ```${meta['workflow']?.get('scriptFile')}```
-- sessionId: ```${meta['workflow']?.get('sessionId')}```
-- start: ```${meta['time_start']}```
-- complete: ```${meta['time_complete']}```
+- **workflow run name**: ```${meta['workflow']?.get('runName')}```
+- **scriptFile**: ```${meta['workflow']?.get('scriptFile')}```
+- **sessionI**: ```${meta['workflow']?.get('sessionId')}```
+- **start**: ```${meta['time_start']}```
+- **complete**: ```${meta['time_complete']}```
 
 ### Nextflow
 
-```bash
 ${nextflow}
-```
 
 ### Processes
 
@@ -245,20 +243,21 @@ ${nextflow}
         GStringTemplateEngine engine = new GStringTemplateEngine()
         String raw_readme = pkg.meta_overrides(KEY_README, DEFAULT_README)
         String cmd = "${meta['cmd']}".replace(' -', ' \\\n  -')
-        String nf = meta['workflow']['nextflow']
-        String nextflow = nf.replace(', ', '\\\n  -')\
-            .replace('nextflow.NextflowMeta(', ' \\\n -')\
-            .replace(')', '')
-        //log.debug("readme: ${raw_readme}")
-        Writable template = engine.createTemplate(raw_readme).make([
+        String nf = meta['workflow']?['nextflow']
+        String nextflow = nf?.replace(', ', '```\n  - **')\
+            ?.replace('nextflow.NextflowMeta(', '  - **')\
+            ?.replace(')', '```')
+            ?.replace(':', '**: ```')
+        String template = engine.createTemplate(raw_readme).make([
             cmd: cmd,
             meta: meta,
             msg: msg,
             nextflow: nextflow,
             now: now(),
-            pkg: pkg.toString(),
-        ])
-        return template.toString()
+            pkg: pkg.packageName,
+        ]).toString()
+        log.debug("readme.template: ${template}")
+        return template
     }
 
     List<Path> match(String glob) throws IOException {
