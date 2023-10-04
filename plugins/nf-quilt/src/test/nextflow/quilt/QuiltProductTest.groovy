@@ -20,9 +20,14 @@ import nextflow.Session
 import nextflow.quilt.QuiltSpecification
 import nextflow.quilt.QuiltProduct
 import nextflow.quilt.jep.QuiltParser
+import nextflow.quilt.jep.QuiltPackage
 
+import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.Paths
 import groovy.transform.CompileDynamic
 import spock.lang.IgnoreIf
+import spock.lang.Unroll
 
 /**
  *
@@ -143,6 +148,47 @@ class QuiltProductTest extends QuiltSpecification {
         // NOTE: push does NOT update local registry
         makeWriteProduct().pkg.install() // try to merge existing metadata
         makeWriteProduct(skip_meta).pubStatus == 1 // still fails on implicit metadata
+    }
+
+    void writeFile(root, filename) {
+        Path outPath = Paths.get(root, filename)
+        outPath.getParent().toFile().mkdirs()
+        Files.writeString(outPath, "#Time, Filename\n${timestamp},${filename}")
+        println("writeFile: ${filename} -> ${outPath}")
+    }
+
+    int writeFiles(dest) {
+        String root  = dest.toString()
+        String[] filenames = [
+            'SUMMARIZE_ME.md',
+            'SUMMARIZE_ME.csv',
+            'SUMMARIZE_ME.tsv',
+            'SUMMARIZE_ME.html',
+            'SUMMARIZE_ME.pdf',
+            'SUMMARIZE_ME.xml',
+            'multiqc/multiqc_report.html'
+        ]
+        filenames.each { writeFile(root, it) }
+        return filenames.size()
+    }
+
+    @Unroll
+    @IgnoreIf({ env.WRITE_BUCKET == 'quilt-example' || env.WRITE_BUCKET ==  null })
+    void 'should summarize top-level readable files + multiqc '() {
+        given:
+        String sumURL = writeableURL('summarized')
+        QuiltPackage sumPkg = writeablePackage('summarized')
+        writeFiles(sumPkg.packageDest())
+
+        and:
+        Session session = Mock(Session)
+        QuiltPath path = QuiltPathFactory.parse(sumURL)
+        QuiltProduct product = new QuiltProduct(path, session)
+
+        expect:
+        product.publish() == 0
+        sumPkg.install()
+        Files.exists(Paths.get(sumPkg.packageDest().toString(), QuiltProduct.SUMMARY_FILE))
     }
 
 }

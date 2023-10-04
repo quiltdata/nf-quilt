@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.6.0] 2023-10-03
+
+- Stop overwriting README.md (use README_NF_QUILT.md instead)
+  - improve formatting
+- Smarter quilt_summarize.json
+  - Top level (only): md, html, pdf, csv, tsv
+  - multiqc sub-folder HTML
+
 ## [0.4.5] 2023-08-23
 
 - fix metadata in README.md

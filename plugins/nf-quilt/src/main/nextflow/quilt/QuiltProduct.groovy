@@ -43,6 +43,9 @@ import groovy.json.JsonOutput
 @Slf4j
 @CompileStatic
 class QuiltProduct {
+    public final static String README_FILE = 'README_NF_QUILT.md'
+    public final static String SUMMARY_FILE = 'quilt_summarize.json'
+
 
     private final static String KEY_META = 'metadata'
     private final static String KEY_README = 'readme'
@@ -51,19 +54,33 @@ class QuiltProduct {
 
     /* groovylint-disable-next-line GStringExpressionWithinString */
     private final static String DEFAULT_README = '''
-# ${now}
-## ${msg}
+# ${pkg}
 
-## workflow
-### scriptFile: ${meta['workflow']?.get('scriptFile')}
-### sessionId: ${meta['workflow']?.get('sessionId')}
-- start: ${meta['time_start']}
-- complete: ${meta['time_complete']}
+## ${now}
 
-## processes
-${meta['workflow']['stats']['processes']}
+## Run Command
+
+```bash
+${cmd}
+```
+
+### Workflow
+
+- **workflow run name**: ```${meta['workflow']?.get('runName')}```
+- **scriptFile**: ```${meta['workflow']?.get('scriptFile')}```
+- **sessionI**: ```${meta['workflow']?.get('sessionId')}```
+- **start**: ```${meta['time_start']}```
+- **complete**: ```${meta['time_complete']}```
+
+### Nextflow
+
+${nextflow}
+
+### Processes
+
+`${meta['workflow']['stats']['processes']}`
 '''
-    private final static String DEFAULT_SUMMARIZE = '**.md,**.html'
+    private final static String DEFAULT_SUMMARIZE = '*.md,*.html,*.?sv,*.pdf,multiqc/multiqc_report.html'
 
     private final static String[] BIG_KEYS = [
         'nextflow', 'commandLine', 'scriptFile', 'projectDir',
@@ -176,7 +193,7 @@ ${meta['workflow']['stats']['processes']}
             writeNextflowMetadata(params, 'params')
             params.remove('genomes')
             params.remove('test_data')
-            //printMap(params, 'params')
+            // printMap(params, 'params')
         }
         Map wf = session.getWorkflowMetadata().toMap()
         String start = wf['start']
@@ -190,7 +207,7 @@ ${meta['workflow']['stats']['processes']}
             wf.remove('complete')
             wf.remove('workflowStats')
             wf.remove('commandLine')
-            //printMap(wf, 'workflow')
+            // printMap(wf, 'workflow')
             log.info("\npublishing: ${wf['runName']}")
         }
         return [
@@ -206,28 +223,41 @@ ${meta['workflow']['stats']['processes']}
     String setupReadme() {
         String text = 'Stub README'
         try {
-            text = readme()
+            text = makeReadme()
         }
         catch (Exception e) {
             log.error("setupReadme failed: ${e.getMessage()}", pkg.meta)
         }
         if (text != null && text.length() > 0) {
             //log.debug("setupReadme: ${text.length()} bytes")
-            writeString(text, pkg, 'README.md')
+            writeString(text, pkg, README_FILE)
         }
         return text
     }
 
-    String readme() {
+    String makeReadme() {
         if (shouldSkip(KEY_README)) {
             log.info("readme=SKIP for ${pkg}")
             return null
         }
         GStringTemplateEngine engine = new GStringTemplateEngine()
         String raw_readme = pkg.meta_overrides(KEY_README, DEFAULT_README)
-        //log.debug("readme: ${raw_readme}")
-        Writable template = engine.createTemplate(raw_readme).make([meta: meta, msg: msg, now: now()])
-        return template.toString()
+        String cmd = "${meta['cmd']}".replace(' -', ' \\\n  -')
+        String nf = meta['workflow']?['nextflow']
+        String nextflow = nf?.replace(', ', '```\n  - **')\
+            ?.replace('nextflow.NextflowMeta(', '  - **')\
+            ?.replace(')', '```')
+            ?.replace(':', '**: ```')
+        String template = engine.createTemplate(raw_readme).make([
+            cmd: cmd,
+            meta: meta,
+            msg: msg,
+            nextflow: nextflow,
+            now: now(),
+            pkg: pkg.packageName,
+        ]).toString()
+        log.debug("readme.template: ${template}")
+        return template
     }
 
     List<Path> match(String glob) throws IOException {
@@ -275,7 +305,7 @@ ${meta['workflow']['stats']['processes']}
         }
 
         String qs_json = JsonOutput.toJson(quilt_summarize.keySet() as String[])
-        writeString(qs_json, pkg, 'quilt_summarize.json')
+        writeString(qs_json, pkg, SUMMARY_FILE)
         return quilt_summarize
     }
 
