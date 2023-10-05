@@ -53,7 +53,6 @@ jobs:
       run: make test
 
     - name: Archive production artifacts
-      if: ${{ success() }} || ${{ failure() }}
       uses: actions/upload-artifact@v3
       with:
         name: nf-quilt-test-reports
