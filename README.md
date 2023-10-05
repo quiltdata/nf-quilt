@@ -15,25 +15,6 @@ to read and write versioned Quilt packages stored on Amazon S3.
 
 Use the following four steps to configure NextFlow Tower or your command-line environment.
 
-1. Install the `quilt3` command-line tool
-
-This is distributed as an open source Python package you can install using `pip3`,
-and must be available in the PATH used by `nextflow`.
-
-```bash
-yum install python3-pip -y
-yum install git -y        
-pip3 install quilt3
-which quilt3
-```
-
-The above instructions use the 'yum' package manager,
-which NextFlow Tower uses in the "Pre-run script"
-when you edit the Pipeline settings from the Launchpad.
-
-If you are running from the command-line, you may need to use your own package manager
-(or just skip those lines if you already have Python and Git).
-
 1. Enable the `nf-quilt` plugin
 
 The usual way to enable a plugin is to add the following to your `nextflow.config` file,
@@ -181,13 +162,6 @@ The simplest way to do that is to pull them both directly from GitHub:
 git clone https://github.com/nextflow.io/nextflow.git
 git clone https://github.com/quiltdata/nf-quilt.git
 cd ./nf-quilt
-```
-
-You also need to use Python to install the `quilt3` command-line tool used by `nf-quilt`:
-
-```bash
-pip install quilt3
-which quilt3
 ```
 
 ### Unit Testing
