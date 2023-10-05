@@ -6,14 +6,15 @@ NextFlow plugin for reading and writing Quilt packages as a FileSystem
 developed by [Quilt Data](https://quiltdata.com/) that enables you read and write directly
 to Quilt packages using `quilt+s3` URIs wherever your NextFlow pipeline currently use `s3` URIs.
 
-Inspired by the original [`nf-quilt`](https://github.com/nextflow-io/nf-quilt) plugin (v0.2.0) developed by Seqera labs
+Inspired by the original [`nf-quilt`](https://github.com/nextflow-io/nf-quilt) plugin (v0.2.0) developed by Seqera labs.
 
 ## I. Using the nf-quilt plugin in Production
 
 This plugin allows your existing pipelines, without modification,
 to read and write versioned Quilt packages stored on Amazon S3.
 
-Use the following four steps to configure NextFlow Tower or your command-line environment.
+Use the following three steps to configure NextFlow Tower or your command-line environment.
+[Note: versions 0.7.0 and later no longer require the `quilt3` Python client.]
 
 1. Enable the `nf-quilt` plugin
 
