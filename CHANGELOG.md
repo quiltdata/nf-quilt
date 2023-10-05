@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.7.0] 2023-10-05
+
+- Use QuiltCore 0.1.0 instead of Python
+
 ## [0.6.0] 2023-10-03
 
 - Stop overwriting README.md (use README_NF_QUILT.md instead)
