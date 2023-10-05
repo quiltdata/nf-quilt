@@ -1,12 +1,23 @@
 # Changelog
 
+## [0.7.0] 2023-10-05
+
+- Officially QuiltCore 0.1.0 instead of Python
+
 ## [0.6.0] 2023-10-03
+
+(interim release still using Python)
 
 - Stop overwriting README.md (use README_NF_QUILT.md instead)
   - improve formatting
 - Smarter quilt_summarize.json
   - Top level (only): md, html, pdf, csv, tsv
   - multiqc sub-folder HTML
+
+## [0.5.0] 2023-09-04
+
+- Switch to quiltcore-java [NOTE: this pre-release does NOT check workflows]
+- Do not pre-install packages (only install before write)
 
 ## [0.4.5] 2023-08-23
 

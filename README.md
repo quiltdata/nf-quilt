@@ -6,33 +6,15 @@ NextFlow plugin for reading and writing Quilt packages as a FileSystem
 developed by [Quilt Data](https://quiltdata.com/) that enables you read and write directly
 to Quilt packages using `quilt+s3` URIs wherever your NextFlow pipeline currently use `s3` URIs.
 
-Inspired by the original [`nf-quilt`](https://github.com/nextflow-io/nf-quilt) plugin (v0.2.0) developed by Seqera labs
+Inspired by the original [`nf-quilt`](https://github.com/nextflow-io/nf-quilt) plugin (v0.2.0) developed by Seqera labs.
 
 ## I. Using the nf-quilt plugin in Production
 
 This plugin allows your existing pipelines, without modification,
 to read and write versioned Quilt packages stored on Amazon S3.
 
-Use the following four steps to configure NextFlow Tower or your command-line environment.
-
-1. Install the `quilt3` command-line tool
-
-This is distributed as an open source Python package you can install using `pip3`,
-and must be available in the PATH used by `nextflow`.
-
-```bash
-yum install python3-pip -y
-yum install git -y        
-pip3 install quilt3
-which quilt3
-```
-
-The above instructions use the 'yum' package manager,
-which NextFlow Tower uses in the "Pre-run script"
-when you edit the Pipeline settings from the Launchpad.
-
-If you are running from the command-line, you may need to use your own package manager
-(or just skip those lines if you already have Python and Git).
+Use the following three steps to configure NextFlow Tower or your command-line environment.
+[Note: versions 0.7.0 and later no longer require the `quilt3` Python client.]
 
 1. Enable the `nf-quilt` plugin
 
@@ -93,8 +75,8 @@ From the command-line, do, e.g.:
 
 ```bash
 # export NXF_VER=23.04.3
-export NXF_PLUGINS_TEST_REPOSITORY=https://github.com/quiltdata/nf-quilt/releases/download/0.6.0/nf-quilt-0.6.0-meta.json
-nextflow run main.nf -plugins nf-quilt@0.6.0
+export NXF_PLUGINS_TEST_REPOSITORY=https://github.com/quiltdata/nf-quilt/releases/download/0.7.0/nf-quilt-0.7.0-meta.json
+nextflow run main.nf -plugins nf-quilt@0.7.0
 ```
 
 For Tower, you can use the "Pre-run script" to set the environment variables.
@@ -181,13 +163,6 @@ The simplest way to do that is to pull them both directly from GitHub:
 git clone https://github.com/nextflow.io/nextflow.git
 git clone https://github.com/quiltdata/nf-quilt.git
 cd ./nf-quilt
-```
-
-You also need to use Python to install the `quilt3` command-line tool used by `nf-quilt`:
-
-```bash
-pip install quilt3
-which quilt3
 ```
 
 ### Unit Testing

@@ -60,7 +60,8 @@ class QuiltSpecification extends Specification {
         PluginExtensionProvider.reset()
         // this need to be set *before* the plugin manager class is created
         fullURL = 'quilt+s3://bkt?key=val&key2=val2' +
-                  '#package=pre/suf@ab&path=p/t&property=prop&workflow=wf&catalog=quiltdata.com'
+                  '#package=pre/suf@abcdef314159265'+
+                  '&path=p/t&property=prop&workflow=wf&catalog=quiltdata.com'
         pluginsMode = System.getProperty('pf4j.mode')
         timestamp = System.currentTimeMillis()
         writeBucket =  System.getenv('WRITE_BUCKET')

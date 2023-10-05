@@ -27,9 +27,9 @@ jobs:
     steps:
       # Git Checkout
       - name: Checkout Code
-        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4
+        uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4
         with:
-          token: ${{ secrets.GITHUB_TOKEN }} # secrets.PAT || 
+          token: ${{ secrets.PAT || secrets.GITHUB_TOKEN }}
           fetch-depth: 0 # If you use VALIDATE_ALL_CODEBASE = true, you can remove this line to improve performances
 
       # MegaLinter
@@ -37,7 +37,7 @@ jobs:
         id: ml
         # You can override MegaLinter flavor used to have faster performances
         # More info at https://megalinter.github.io/flavors/
-        uses: oxsecurity/megalinter/flavors/dotnet@v7.4.0
+        uses: oxsecurity/megalinter/flavors/dotnet@v7.3.0
         env:
           # All available variables are described in documentation
           # https://megalinter.github.io/configuration/
@@ -48,6 +48,7 @@ jobs:
 
       # Upload MegaLinter artifacts
       - name: Archive production artifacts
+        if: ${{ success() }} || ${{ failure() }}
         uses: actions/upload-artifact@v3
         with:
           name: MegaLinter reports
