@@ -10,7 +10,7 @@ permissions: read-all
 
 jobs:
   build:
-    name: Test
+    name: Package Test
     permissions:
       contents: read
       id-token: write
@@ -20,8 +20,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
-        java_version: [11, 17, 19]
+        os: [ubuntu-latest]
+        java_version: [19]
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -49,13 +49,13 @@ jobs:
     - name: Setup Gradle
       uses: gradle/gradle-build-action@v2
 
-    - name: Run Gradle Tests
-      run: make test
+    - name: Run Package Tests
+      run: make pkg-test
 
     - name: Archive production artifacts
       if: ${{ success() }} || ${{ failure() }}
       uses: actions/upload-artifact@v3
       with:
-        name: nf-quilt-test-reports
+        name: nf-quilt-pkg-test
         path: |
           /home/runner/work/nf-quilt/nf-quilt/plugins/nf-quilt/build/reports/tests/test/
