@@ -55,9 +55,7 @@ sourceSets {
 }
 
 ext {
-    nextflowVersion = '23.04.3'
-    // nextflowVersion = rootProject.file('VERSION').text.trim()
-
+    nextflowVersion = rootProject.file('VERSION').text.trim()
 }
 
 dependencies {
