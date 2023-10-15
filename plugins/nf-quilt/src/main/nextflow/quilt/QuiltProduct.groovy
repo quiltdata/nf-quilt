@@ -98,6 +98,8 @@ ${nextflow}
         String dir = pkg.packageDest()
         Path path  = Paths.get(dir, filename.split('/') as String[])
         try {
+            // ensure directories exist first
+            path.getParent().toFile().mkdirs()
             Files.write(path, text.bytes)
         }
         catch (Exception e) {
@@ -141,7 +143,7 @@ ${nextflow}
         meta = setupMeta()
         String text = setupReadme()
         log.debug("setupReadme: $text")
-        Map quilt_summarize = setupSummarize()
+        List<Map> quilt_summarize = setupSummarize()
         log.debug("setupSummarize: $quilt_summarize")
         int rc = pkg.push(msg, meta)
         log.info("$rc: pushed package[$pkg] $msg")
@@ -289,8 +291,8 @@ ${nextflow}
         return matches
     }
 
-    Map setupSummarize() {
-        Map quilt_summarize = [:]
+    List<Map> setupSummarize() {
+        List<Map> quilt_summarize = []
         if (shouldSkip(KEY_SUMMARIZE)) {
             return quilt_summarize
         }
@@ -300,11 +302,12 @@ ${nextflow}
             List<Path> paths = match(wildcard)
             paths.each { path ->
                 String filename = path.getFileName()
-                quilt_summarize[filename] = path
+                Map entry = ["path": path.toString(), "title": filename]
+                quilt_summarize.add(entry)
             }
         }
 
-        String qs_json = JsonOutput.toJson(quilt_summarize.keySet() as String[])
+        String qs_json = JsonOutput.toJson(quilt_summarize)
         writeString(qs_json, pkg, SUMMARY_FILE)
         return quilt_summarize
     }

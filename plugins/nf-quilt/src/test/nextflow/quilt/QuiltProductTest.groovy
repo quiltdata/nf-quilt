@@ -115,16 +115,18 @@ class QuiltProductTest extends QuiltSpecification {
         product.pkg.reset()
         expect:
         !product.match('*.md')
-        product.setupSummarize() == [:]
+        product.setupSummarize() == []
     }
 
     void 'should create summarize if files are present'() {
         String readme_text = 'hasREADME'
         QuiltProduct product = makeProduct("readme=${readme_text}")
         product.setupReadme()
-        expect:
         product.match('*.md')
-        product.setupSummarize()
+        List<Map> quilt_summarize = product.setupSummarize()
+        expect:
+        quilt_summarize
+        quilt_summarize.size() == 1
     }
 
     @IgnoreIf({ env.WRITE_BUCKET == 'quilt-example' || env.WRITE_BUCKET ==  null })

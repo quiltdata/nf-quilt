@@ -54,8 +54,8 @@ sourceSets {
     test.resources.srcDirs = ['src/testResources']
 }
 
-ext{
-    nextflowVersion = '23.04.3'
+ext {
+    nextflowVersion = rootProject.file('VERSION').text.trim()
 }
 
 dependencies {
