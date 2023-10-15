@@ -68,7 +68,10 @@ class QuiltNioTest extends QuiltSpecification {
     @IgnoreIf({ System.getProperty('os.name').contains('indows') })
     void 'should read from a path'() {
         given:
-        Path path = Paths.get(new URI(READ_URL))
+        QuiltPath path = Paths.get(new URI(READ_URL)) as QuiltPath
+        path.pkg().install()
+
+        when:
 
         when:
         String text = readObject(path)
