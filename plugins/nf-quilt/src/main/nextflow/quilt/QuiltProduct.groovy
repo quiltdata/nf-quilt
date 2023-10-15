@@ -98,6 +98,8 @@ ${nextflow}
         String dir = pkg.packageDest()
         Path path  = Paths.get(dir, filename.split('/') as String[])
         try {
+            // ensure directories exist first
+            path.getParent().toFile().mkdirs()
             Files.write(path, text.bytes)
         }
         catch (Exception e) {

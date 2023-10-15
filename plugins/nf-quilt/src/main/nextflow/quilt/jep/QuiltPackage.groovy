@@ -87,18 +87,6 @@ class QuiltPackage {
 
         pkg = new QuiltPackage(parsed)
         PKGS[pkgKey] = pkg
-        if (pkg.is_force()) {
-            //log.debug("Do not install `${pkg}` if force-overwriting output")
-            return pkg
-        }
-
-        try {
-            log.debug("${pkg}: attempting install for.pkgKey $pkgKey (okay if fails)")
-            pkg.install()
-        }
-        catch (IOException e) {
-            log.warn("Package `${parsed.toUriString()}` does not yet exist")
-        }
         return pkg
     }
 

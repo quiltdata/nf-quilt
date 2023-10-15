@@ -3,7 +3,7 @@
 ## [0.7.1] 2023-10-15
 
 - Fix [quiltdata/nf-quilt#145](https://github.com/quiltdata/nf-quilt/issues/145)
-- Add back "nf_quilt" folder for pipeline metadata
+- Remove automatic pre-install of packages
 
 ## [0.7.0] 2023-10-05
 
