@@ -74,7 +74,7 @@ If a plugin is not yet available in the NextFlow plugin registry, you can use a 
 From the command-line, do, e.g.:
 
 ```bash
-# export NXF_VER=23.04.3
+# export NXF_VER=23.10.0
 export NXF_PLUGINS_TEST_REPOSITORY=https://github.com/quiltdata/nf-quilt/releases/download/0.7.0/nf-quilt-0.7.0-meta.json
 nextflow run main.nf -plugins nf-quilt@0.7.0
 ```
