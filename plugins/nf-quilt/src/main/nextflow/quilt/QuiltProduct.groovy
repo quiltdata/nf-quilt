@@ -138,7 +138,12 @@ ${nextflow}
         log.debug("setupReadme: $text")
         List<Map> quilt_summarize = setupSummarize()
         log.debug("setupSummarize: $quilt_summarize")
-        pkg.push(msg, meta)
+        try {
+            pkg.push(msg, meta)
+        }
+        catch (Exception e) {
+            log.error("publish failed: ${e.getMessage()}\n${e}", pkg.meta)
+        }
         print("SUCCESS: $pkg\n")
     }
 
