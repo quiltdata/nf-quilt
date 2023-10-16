@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.7.2] 2023-10-16
+
+- Throw exceptions on push failure
+
 ## [0.7.1] 2023-10-15
 
 - Fix [quiltdata/nf-quilt#145](https://github.com/quiltdata/nf-quilt/issues/145)
