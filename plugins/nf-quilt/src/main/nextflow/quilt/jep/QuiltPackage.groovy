@@ -221,7 +221,7 @@ class QuiltPackage {
         })
     }
     // https://docs.quiltdata.com/v/version-5.0.x/examples/gitlike#install-a-package
-    int push(String msg = 'update', Map meta = [:]) {
+    void push(String msg = 'update', Map meta = [:]) {
         S3PhysicalKey registryPath = new S3PhysicalKey(bucket, '', null)
         Registry registry = new Registry(registryPath)
         Namespace namespace = registry.getNamespace(packageName)
@@ -245,14 +245,7 @@ class QuiltPackage {
 
         Manifest m = builder.build()
 
-        try {
-            m.push(namespace, "nf-quilt:${today()}-${msg}", parsed.workflowName)
-        } catch (WorkflowException e) {
-            return 1
-        } catch (IOException e) {
-            return 1
-        }
-        return 0
+        m.push(namespace, "nf-quilt:${today()}-${msg}", parsed.workflowName)
     }
 
     @Override

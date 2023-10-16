@@ -154,7 +154,10 @@ class QuiltPackageTest extends QuiltSpecification {
         Files.writeString(outPath, "Time: ${timestamp}")
         expect:
         Files.exists(outPath)
-        opkg.push() != 0
+        when:
+        opkg.push()
+        then:
+        thrown(java.io.IOException)
     }
 
     @IgnoreIf({ env.WRITE_BUCKET == 'quilt-example' || env.WRITE_BUCKET ==  null })
@@ -176,7 +179,7 @@ class QuiltPackageTest extends QuiltSpecification {
         Files.writeString(outPath, "Time: ${timestamp}")
         expect:
         Files.exists(outPath)
-        opkg.push() == 0
+        opkg.push()
         opkg.reset()
         !Files.exists(outPath)
         opkg.install() // returns Path
@@ -190,7 +193,7 @@ class QuiltPackageTest extends QuiltSpecification {
         QuiltPackage opkg = writeablePackage('observer')
         Map meta =  ['key': "val=\'(key)\'"]
         expect:
-        opkg.push('msg', meta) == 0
+        opkg.push('msg', meta)
     }
 
     @IgnoreIf({ env.WRITE_BUCKET == 'quilt-example' || env.WRITE_BUCKET ==  null })
@@ -198,8 +201,10 @@ class QuiltPackageTest extends QuiltSpecification {
         given:
         String pkgName = "workflow-bad-${timestamp}"
         QuiltPackage bad_wf = writeablePackage(pkgName, 'missing-workflow')
-        expect:
-        bad_wf.push('missing-workflow first time', [:]) == 1
+        when:
+        bad_wf.push('missing-workflow first time', [:])
+        then:
+        thrown(com.quiltdata.quiltcore.workflows.WorkflowException)
     }
 
     @IgnoreIf({ env.WRITE_BUCKET == 'quilt-example' || env.WRITE_BUCKET ==  null })
@@ -213,10 +218,19 @@ class QuiltPackageTest extends QuiltSpecification {
         ]
         Map bad_meta = meta + ['Type': 'Workflow']
         QuiltPackage good_wf = writeablePackage('workflow-good', 'my-workflow')
+
+        when:
+        good_wf.push('empty meta', [:])
+        then:
+        thrown(com.quiltdata.quiltcore.workflows.WorkflowException)
+
+        when:
+        good_wf.push('bad_meta', bad_meta)
+        then:
+        thrown(com.quiltdata.quiltcore.workflows.WorkflowException)
+
         expect:
-        good_wf.push('empty meta', [:]) == 1
-        good_wf.push('bad_meta', bad_meta) == 1
-        good_wf.push('my-workflow', meta) == 0
+        good_wf.push('my-workflow', meta)
     }
 
 }
