@@ -117,7 +117,6 @@ ${nextflow}
     private final Session session
     private String msg
     private Map meta
-    final Integer pubStatus
 
     QuiltProduct(QuiltPath path, Session session) {
         this.path = path
@@ -125,35 +124,22 @@ ${nextflow}
         this.msg =  pkg.toString()
         this.meta = [pkg: msg, time_start: now()]
         this.session = session
-        this.pubStatus = -1
         if (session.isSuccess() || pkg.is_force()) {
-            try {
-                this.pubStatus = publish()
-            }
-            catch (Exception e) {
-                log.error("publish failed: ${e.getMessage()}", pkg.meta)
-            }
+            publish()
         } else {
             log.info("not publishing: ${pkg} [unsuccessful session]")
         }
     }
 
-    int publish() {
+    void publish() {
         log.debug("publish($msg)")
         meta = setupMeta()
         String text = setupReadme()
         log.debug("setupReadme: $text")
         List<Map> quilt_summarize = setupSummarize()
         log.debug("setupSummarize: $quilt_summarize")
-        int rc = pkg.push(msg, meta)
-        log.info("$rc: pushed package[$pkg] $msg")
-        if (rc > 0) {
-            print("ERROR[package push failed]: $pkg\n")
-        } else {
-            print("SUCCESS: $pkg\n")
-        }
-
-        return rc
+        pkg.push(msg, meta)
+        print("SUCCESS: $pkg\n")
     }
 
     boolean shouldSkip(key) {
