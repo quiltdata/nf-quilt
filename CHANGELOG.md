@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.7.3] 2023-10-16a
+
+- Catch and log exception on push failure
+
 ## [0.7.2] 2023-10-16
 
 - Throw exceptions on push failure
