@@ -141,15 +141,37 @@ class QuiltProductTest extends QuiltSpecification {
         Map bad_meta = meta + ['Type': 'Workflow']
         Map skip_meta = ['metadata': 'SKIP']
 
+        when:
+        makeWriteProduct() // no metadata
+        then:
+        thrown(com.quiltdata.quiltcore.workflows.WorkflowException)
+
         expect:
-        makeWriteProduct().pubStatus == 1 // no metadata
-        makeWriteProduct(meta).pubStatus == 0 // valid metadata
-        makeWriteProduct().pubStatus == 1 // invalid default metadata
-        makeWriteProduct(bad_meta).pubStatus == 1 // invalid explicit metadata
-        makeWriteProduct(skip_meta).pubStatus == 1 // no default metadata
+        makeWriteProduct(meta) // valid metadata
+
+        when:
+        makeWriteProduct() // invalid default metadata
+        then:
+        thrown(com.quiltdata.quiltcore.workflows.WorkflowException)
+
+        when:
+        makeWriteProduct(bad_meta) // invalid explicit metadata
+        then:
+        thrown(com.quiltdata.quiltcore.workflows.WorkflowException)
+
+        when:
+        makeWriteProduct(skip_meta) // no default metadata
+        then:
+        thrown(com.quiltdata.quiltcore.workflows.WorkflowException)
+
         // NOTE: push does NOT update local registry
+        expect:
         makeWriteProduct().pkg.install() // try to merge existing metadata
-        makeWriteProduct(skip_meta).pubStatus == 1 // still fails on implicit metadata
+
+        when:
+        makeWriteProduct(skip_meta) // still fails on implicit metadata
+        then:
+        thrown(com.quiltdata.quiltcore.workflows.WorkflowException)
     }
 
     void writeFile(root, filename) {
@@ -188,7 +210,7 @@ class QuiltProductTest extends QuiltSpecification {
         QuiltProduct product = new QuiltProduct(path, session)
 
         expect:
-        product.publish() == 0
+        product.publish()
         sumPkg.install()
         Files.exists(Paths.get(sumPkg.packageDest().toString(), QuiltProduct.SUMMARY_FILE))
     }
