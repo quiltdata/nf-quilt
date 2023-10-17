@@ -146,6 +146,7 @@ class QuiltPackageTest extends QuiltSpecification {
         !Files.isDirectory(qpath)
     }
 
+    @IgnoreIf({ System.getProperty('os.name').contains('indows') })
     void 'should fail pushing new files to read-only bucket '() {
         given:
         def qout = factory.parseUri(TEST_URL)
