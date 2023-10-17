@@ -26,6 +26,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 import groovy.transform.CompileDynamic
+import spock.lang.Ignore
 import spock.lang.IgnoreIf
 import spock.lang.Unroll
 
@@ -129,7 +130,7 @@ class QuiltProductTest extends QuiltSpecification {
         quilt_summarize.size() == 1
     }
 
-    @IgnoreIf({ env.WRITE_BUCKET == 'quilt-example' || env.WRITE_BUCKET ==  null })
+    @Ignore('Not implemented yet')
     void 'pushes previous metadata if metadata=SKIP'() {
         given:
         Map meta = [

@@ -63,7 +63,7 @@ You can also specify these as YAML to pass to `-params-file`:
 
 ```yaml
 input: "quilt+s3://quilt-example#package=examples/hurdat"
-outdir: "quilt+s3://seqera-quilt#package=test/hurdat"
+outdir: "quilt+s3://nf-core-gallery#package=test/hurdat"
 ```
 
 Note that `--key` on the command-line corresponds to `params.key` in your script.
@@ -75,15 +75,15 @@ From the command-line, do, e.g.:
 
 ```bash
 # export NXF_VER=23.04.3
-export NXF_PLUGINS_TEST_REPOSITORY=https://github.com/quiltdata/nf-quilt/releases/download/0.7.3/nf-quilt-0.7.3-meta.json
-nextflow run main.nf -plugins nf-quilt@0.7.3
+export NXF_PLUGINS_TEST_REPOSITORY=https://github.com/quiltdata/nf-quilt/releases/download/0.7.4/nf-quilt-0.7.4-meta.json
+nextflow run main.nf -plugins nf-quilt@0.7.4
 ```
 
 For Tower, you can use the "Pre-run script" to set the environment variables.
 
 ## II. Advanced URI Options
 
-There are a number of additional paramters you can add to Quilt+ URIs,
+There are a number of additional parameters you can add to Quilt+ URIs,
 in order to customize the behavior of the plugin:
 
 * Fragment Parameters:
@@ -95,7 +95,7 @@ in order to customize the behavior of the plugin:
 
 * Query Parameters: also stored as package-level metadata
   * **msg**: specify the commit message to use when saving the package
-  * **readme**: specify a string for the package README
+  * **readme**: specify a string for the package README_NF_QUILT.md file
     (will substitute "${variables}"), or SKIP to not create a README
   * **metadata**: specify SKIP to not push any new metadata (implicit or explicit)
   * **_any other key_**: specify any other metadata key to store in the package

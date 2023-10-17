@@ -142,7 +142,8 @@ ${nextflow}
             pkg.push(msg, meta)
         }
         catch (Exception e) {
-            log.error("publish failed: ${e.getMessage()}\n${e}", pkg.meta)
+            log.error("publish failed:", e)
+            throw e
         }
         print("SUCCESS: $pkg\n")
     }
