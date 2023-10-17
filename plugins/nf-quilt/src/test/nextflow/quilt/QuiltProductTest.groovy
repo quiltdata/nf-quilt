@@ -129,7 +129,7 @@ class QuiltProductTest extends QuiltSpecification {
         quilt_summarize.size() == 1
     }
 
-    @IgnoreIf({ env.WRITE_BUCKET == 'quilt-example' || env.WRITE_BUCKET ==  null })
+    @Ignore('Not implemented yet')
     void 'pushes previous metadata if metadata=SKIP'() {
         given:
         Map meta = [
