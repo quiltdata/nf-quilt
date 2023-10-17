@@ -9,12 +9,17 @@ QUERY ?= ?Name=$(USER)&Owner=Kevin+Moore&Date=2023-03-07&Type=CRISPR&Notebook+UR
 TEST_URI ?= quilt+s3://$(WRITE_BUCKET)$(QUERY)\#package=test/hurdat$(FRAGMENT)
 QUILT_URI ?=  quilt+s3://$(WRITE_BUCKET)\#package=$(PROJECT)/$(PIPELINE)
 REPORT ?= ./plugins/$(PROJECT)/build/reports/tests/test/index.html
+VERSION ?= $(shell grep 'Plugin-Version' plugins/$(PROJECT)/src/resources/META-INF/MANIFEST.MF | awk '{ print $$2 }')
 
 verify: #compile
 	echo $(WRITE_BUCKET)
 	./gradlew check || open $(REPORT)
 
+fast:
+	./gradlew ${mm}test --fail-fast || open ./plugins/nf-quilt/build/reports/tests/test/index.html
+
 check-env:
+	echo $(VERSION)
 	echo $(WRITE_BUCKET)
 	echo "$(TEST_URI)"
 	echo "Use 'make WRITE_BUCKET=<value>' to override" 
@@ -64,10 +69,10 @@ tower-test: compile-all
 
 # use `make $(PIPELINE) WRITE_BUCKET=my-s3-bucket` to publish `--outdir` to a Quilt package
 
-$(PIPELINE): compile-all
+$(PIPELINE): compile install
 	echo "Ensure you have docker running"
-	./launch.sh pull nf-core/$(PIPELINE)
-	./launch.sh run nf-core/$(PIPELINE) -profile test,docker -plugins $(PROJECT) --outdir "$(QUILT_URI)"
+	nextflow pull nf-core/$(PIPELINE)
+	nextflow run nf-core/$(PIPELINE) -profile test,docker -plugins $(PROJECT)@$(VERSION) --outdir "$(QUILT_URI)"
 
 #
 # Show dependencies
@@ -82,9 +87,10 @@ deps:
 refresh:
 	./gradlew --refresh-dependencies dependencies
 
-fast:
-	./gradlew ${mm}test --fail-fast || open ./plugins/nf-quilt/build/reports/tests/test/index.html
-
+install:
+	./gradlew copyPluginZip
+	rm -rf ${HOME}/.nextflow/plugins/$(PROJECT)-${VERSION}
+	cp -r build/plugins/$(PROJECT)-${VERSION} ${HOME}/.nextflow/plugins/
 #
 # Upload JAR artifacts to Maven Central
 

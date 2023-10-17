@@ -3,6 +3,7 @@
 ## [0.7.4] 2023-10-16b
 
 - Actually print the exception stack trace
+- `make install` to enable nextflow testing
 
 ## [0.7.3] 2023-10-16a
 
