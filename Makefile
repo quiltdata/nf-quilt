@@ -39,9 +39,6 @@ compile-all: nextflow compile
 check:
 	./gradlew check --warning-mode all
 
-coverage: compile
-	./gradlew cloverInstrumentCodeForTest
-
 .PHONY: clean test test-all all pkg-test tower-test
 
 test: clean compile check #coverage
@@ -78,27 +75,12 @@ $(PIPELINE): compile-all
 
 deps:
 	./gradlew -q ${mm}dependencies
-# 	echo "try 'make deps CONFIG=runtimeClasspath' or 'make deps CONFIG=groovyDoc'"
-# 	./gradlew -q ${mm}dependencies --configuration ${CONFIG}
-
-deps-all:
-	./gradlew -q dependencyInsight
-#	./gradlew -q ${mm}dependencies --configuration ${CONFIG}  --dependency ${module}
 
 #
 # Refresh SNAPSHOTs dependencies
 #
 refresh:
 	./gradlew --refresh-dependencies dependencies
-
-#
-# Run all tests or selected ones
-#
-#test:
-#	./gradlew ${mm}test
-
-test-class:
-	./gradlew ${mm}test --tests ${class}
 
 fast:
 	./gradlew ${mm}test --fail-fast || open ./plugins/nf-quilt/build/reports/tests/test/index.html
