@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.7.4] 2023-10-16b
+
+- Actually print the exception stack trace
+
 ## [0.7.3] 2023-10-16a
 
 - Catch and log exception on push failure
