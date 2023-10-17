@@ -244,7 +244,7 @@ class QuiltPackage {
         builder.setMetadata((ObjectNode)mapper.valueToTree(fullMeta))
 
         Manifest m = builder.build()
-
+        log.debug("QuiltPackage.push", m)
         m.push(namespace, "nf-quilt:${today()}-${msg}", parsed.workflowName)
     }
 

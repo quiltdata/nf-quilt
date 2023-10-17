@@ -143,7 +143,9 @@ ${nextflow}
         }
         catch (Exception e) {
             log.error("publish failed:", e)
-            throw e
+            print("FAILED: $pkg\n")
+            return
+            // throw e
         }
         print("SUCCESS: $pkg\n")
     }
