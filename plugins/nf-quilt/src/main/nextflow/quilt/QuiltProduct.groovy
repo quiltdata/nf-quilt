@@ -80,7 +80,7 @@ ${nextflow}
 
 `${meta['workflow']['stats']['processes']}`
 '''
-    private final static String DEFAULT_SUMMARIZE = '*.md,*.html,*.?sv,*.pdf,**/multiqc_report.html'
+    private final static String DEFAULT_SUMMARIZE = '*.md,*.html,*.?sv,*.pdf,igv.json,**/multiqc_report.html'
 
     private final static String[] BIG_KEYS = [
         'nextflow', 'commandLine', 'scriptFile', 'projectDir',
