@@ -80,7 +80,7 @@ ${nextflow}
 
 `${meta['workflow']['stats']['processes']}`
 '''
-    private final static String DEFAULT_SUMMARIZE = '*.md,*.html,*.?sv,*.pdf,multiqc/multiqc_report.html'
+    private final static String DEFAULT_SUMMARIZE = '*.md,*.html,*.?sv,*.pdf,igv.json,**/multiqc_report.html'
 
     private final static String[] BIG_KEYS = [
         'nextflow', 'commandLine', 'scriptFile', 'projectDir',
@@ -143,7 +143,9 @@ ${nextflow}
         }
         catch (Exception e) {
             log.error("publish failed:", e)
-            throw e
+            print("FAILED: $pkg\n")
+            return
+            // throw e
         }
         print("SUCCESS: $pkg\n")
     }

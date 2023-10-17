@@ -29,3 +29,5 @@ gradle-app.setting
 *.icloud
 params.yaml
 *.old
+null
+quilt+*

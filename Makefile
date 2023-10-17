@@ -87,7 +87,7 @@ deps:
 refresh:
 	./gradlew --refresh-dependencies dependencies
 
-install:
+install: compile
 	./gradlew copyPluginZip
 	rm -rf ${HOME}/.nextflow/plugins/$(PROJECT)-${VERSION}
 	cp -r build/plugins/$(PROJECT)-${VERSION} ${HOME}/.nextflow/plugins/
