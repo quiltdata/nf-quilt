@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.7.5] 2023-10-17
+
+- Grab all multiqc subfolders
+
 ## [0.7.4] 2023-10-16b
 
 - Actually print the exception stack trace
