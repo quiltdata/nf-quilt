@@ -87,6 +87,15 @@ ${nextflow}
         'homeDir', 'workDir', 'launchDir', 'manifest', 'configFiles'
     ]
 
+    private final static String[] GOOD_ENVARS = [
+        'BENCHLING_TENANT', 'LOCAL_GIT', 'LOGNAME', 'LaunchInstanceID',
+        'NXF', 'TOWER'
+    ]
+
+    private final static String[] BAD_ENVARS = [
+        'TOKEN', 'KEY', 'SECRET', 'PASS',
+    ]
+
     static void printMap(Map map, String title) {
         log.info("\n\n\n# $title")
         map.each {
@@ -175,6 +184,20 @@ ${nextflow}
         return filename
     }
 
+    Map getEnvars() {
+        Map envars = [:]
+        System.getenv().each { key, value ->
+            if (GOOD_ENVARS.any { key.contains(it) }) {
+                if (BAD_ENVARS.any { key.contains(it) }) {
+                    envars[key] = '********'
+                } else {
+                    envars[key] = value
+                }
+            }
+        }
+        return envars
+    }
+
     Map getMetadata(Map cf) {
         if (cf != null) {
             cf.remove('executor')
@@ -213,6 +236,7 @@ ${nextflow}
             time_start: start,
             time_complete: complete,
             workflow: wf,
+            env: getEnvars(),
         ]
     }
 
