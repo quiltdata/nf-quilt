@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.7.6] 2023-10-18
+
+- Show MultiQC first
+- Add envars to package metadata
+
 ## [0.7.5] 2023-10-17
 
 - Grab all multiqc subfolders
