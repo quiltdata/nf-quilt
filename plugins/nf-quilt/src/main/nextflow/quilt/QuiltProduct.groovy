@@ -187,13 +187,13 @@ ${nextflow}
     Map getEnvars() {
         Map envars = [:]
         System.getenv().each { key, value ->
-            if (GOOD_ENVARS.any { key.contains(it) }) {
+            // if (GOOD_ENVARS.any { key.contains(it) }) {
                 if (BAD_ENVARS.any { key.contains(it) }) {
                     envars[key] = '********'
                 } else {
                     envars[key] = value
                 }
-            }
+            // }
         }
         return envars
     }
