@@ -1,10 +1,10 @@
 # nf-quilt
 
-NextFlow plugin for reading and writing Quilt packages as a FileSystem
+Nextflow plugin for reading and writing Quilt packages as a FileSystem
 
-[`nf-quilt`](https://github.com/quiltdata/nf-quilt) (v0.3.2 or later) is a NextFlow [plugin](https://www.nextflow.io/docs/latest/plugins.html)
+[`nf-quilt`](https://github.com/quiltdata/nf-quilt) (v0.3.2 or later) is a Nextflow [plugin](https://www.nextflow.io/docs/latest/plugins.html)
 developed by [Quilt Data](https://quiltdata.com/) that enables you read and write directly
-to Quilt packages using `quilt+s3` URIs wherever your NextFlow pipeline currently use `s3` URIs.
+to Quilt packages using `quilt+s3` URIs wherever your Nextflow pipeline currently use `s3` URIs.
 
 Inspired by the original [`nf-quilt`](https://github.com/nextflow-io/nf-quilt) plugin (v0.2.0) developed by Seqera labs.
 
@@ -13,7 +13,7 @@ Inspired by the original [`nf-quilt`](https://github.com/nextflow-io/nf-quilt) p
 This plugin allows your existing pipelines, without modification,
 to read and write versioned Quilt packages stored on Amazon S3.
 
-Use the following three steps to configure NextFlow Tower or your command-line environment.
+Use the following three steps to configure Nextflow Tower or your command-line environment.
 [Note: versions 0.7.0 and later no longer require the `quilt3` Python client.]
 
 1. Enable the `nf-quilt` plugin
@@ -70,7 +70,7 @@ Note that `--key` on the command-line corresponds to `params.key` in your script
 
 1. Optional: use a pre-release plugin
 
-If a plugin is not yet available in the NextFlow plugin registry, you can use a pre-release version.
+If a plugin is not yet available in the Nextflow plugin registry, you can use a pre-release version.
 From the command-line, do, e.g.:
 
 ```bash
@@ -100,7 +100,7 @@ in order to customize the behavior of the plugin:
   * **metadata**: specify SKIP to not push any new metadata (implicit or explicit)
   * **_any other key_**: specify any other metadata key to store in the package
 
-See below for more details.  
+See below for more details.
 When running from the git repository,
 you can use the Makefile to test the various options,
 as long as you set a WRITE_BUCKET:
@@ -173,13 +173,13 @@ You can compile run unit tests with:
 make check
 ```
 
-### Verifying NextFlow
+### Verifying Nextflow
 
-If this is your first time using NextFlow, you may also need to install a recent
+If this is your first time using Nextflow, you may also need to install a recent
 [version of Java](https://www.java.com/en/download/help/download_options.html) for your platform.
-NextFlow itself will take care of all the other dependencies.
+Nextflow itself will take care of all the other dependencies.
 
-You can verify and compile NextFlow with:
+You can verify and compile Nextflow with:
 
 ```bash
 make nextflow
