@@ -3,6 +3,7 @@ PROJECT ?= nf-quilt
 WRITE_BUCKET ?= quilt-example
 FRAGMENT ?= &path=.
 NF_DIR ?= ../nextflow
+NF_BIN ?= ./nextflow
 PID ?= $$$$
 PIPELINE ?= sarek
 QUERY ?= ?Name=$(USER)&Owner=Kevin+Moore&Date=2023-03-07&Type=CRISPR&Notebook+URL=http%3A%2F%2Fexample.com
@@ -35,7 +36,11 @@ compile:
 	./gradlew compileGroovy exportClasspath
 	@echo "DONE `date`"
 
-nextflow:
+$(NF_BIN):
+	curl -s https://get.nextflow.io | bash
+	chmod +x $(NF_BIN)
+
+nextflow-git:
 	if [ ! -d "$(NF_DIR)" ]; then git clone https://github.com/nextflow-io/nextflow.git  "$(NF_DIR)"; fi
 	cd "$(NF_DIR)"; git checkout && make compile && git restore .; cd ..
 
@@ -48,7 +53,7 @@ check:
 
 test: clean compile check #coverage
 
-test-nextflow: clean nextflow compile check #coverage
+test-nextflow: clean nextflow-git compile check #coverage
 
 test-all: clean compile-all check #coverage
 
@@ -64,15 +69,15 @@ pkg-fail: compile
 	echo "$(TEST_URI)"
 	./launch.sh run ./fail.nf -profile standard -plugins $(PROJECT) --outdir "$(TEST_URI)"
 
-tower-test: compile-all
-	nextflow run "https://github.com/quiltdata/nf-quilt" -name local_einstein  -with-tower -r main -latest --pub "$(TEST_URI)"
+tower-test: $(NF_BIN)
+	$(NF_BIN) run "https://github.com/quiltdata/nf-quilt" -name local_einstein  -with-tower -r main -latest --pub "$(TEST_URI)"
 
 # use `make $(PIPELINE) WRITE_BUCKET=my-s3-bucket` to publish `--outdir` to a Quilt package
 
-$(PIPELINE): compile install
+$(PIPELINE): $(NF_BIN) install
 	echo "Ensure you have docker running"
-	nextflow pull nf-core/$(PIPELINE)
-	nextflow run nf-core/$(PIPELINE) -profile test,docker -plugins $(PROJECT)@$(VERSION) --outdir "$(QUILT_URI)"
+	$(NF_BIN) pull nf-core/$(PIPELINE)
+	$(NF_BIN) run nf-core/$(PIPELINE) -profile test,docker -plugins $(PROJECT)@$(VERSION) --outdir "$(QUILT_URI)"
 
 #
 # Show dependencies
