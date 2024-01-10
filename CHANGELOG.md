@@ -87,12 +87,12 @@ Beta release (not yet on nextflow-io/plugins)
 
 - Alpha: Call Benchling API after publishing package
 - accept "?commit_message=text+string&readme=GString" in Quilt+ URI
-- Support NextFlow 23+
+- Support Nextflow 23+
 
 ## [0.3.3] 2023-03-08
 
 - Fail gracefully on `quilt3` errors
-- Detailed NextFlow Tower instructions
+- Detailed Nextflow Tower instructions
 - Call `quilt3` during integration tests
 - Add full Quilt+ URL support, including metadata in query string
 
