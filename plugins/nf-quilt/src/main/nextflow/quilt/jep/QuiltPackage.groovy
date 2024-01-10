@@ -1,3 +1,4 @@
+/* groovylint-disable ReturnNullFromCatchBlock */
 /*
  * Copyright 2022, Quilt Data Inc
  *
@@ -34,10 +35,9 @@ import com.quiltdata.quiltcore.Namespace
 import com.quiltdata.quiltcore.Manifest
 import com.quiltdata.quiltcore.key.LocalPhysicalKey
 import com.quiltdata.quiltcore.key.S3PhysicalKey
-import com.quiltdata.quiltcore.workflows.WorkflowException
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.node.ObjectNode
 
 @Slf4j
 @CompileStatic
@@ -184,15 +184,19 @@ class QuiltPackage {
             S3PhysicalKey registryPath = new S3PhysicalKey(bucket, '', null)
             Registry registry = new Registry(registryPath)
             Namespace namespace = registry.getNamespace(packageName)
-            String resolvedHash = (hash == 'latest' || hash == null || hash == 'null') ? namespace.getHash('latest') : hash
+            String resolvedHash = (hash == 'latest' || hash == null || hash == 'null')
+              ? namespace.getHash('latest')
+              : hash
             log.info("hash: $hash -> $resolvedHash")
             Manifest manifest = namespace.getManifest(resolvedHash)
 
             manifest.install(dest)
-            log.info("done")
+            log.info('done')
         } catch (IOException e) {
             log.error("failed to install $packageName")
-            return null
+            // this is non-fatal error, so we don't want to stop the pipeline
+            /* groovylint-disable-next-line ReturnNullFromCatchBlock */
+            return
         }
 
         installed = true
@@ -229,7 +233,7 @@ class QuiltPackage {
         Manifest.Builder builder = Manifest.builder()
 
         Files.walk(packageDest()).filter(f -> Files.isRegularFile(f)).forEach(f -> {
-            System.out.println(f)
+            log.debug(f)
             String logicalKey = packageDest().relativize(f)
             LocalPhysicalKey physicalKey = new LocalPhysicalKey(f)
             long size = Files.size(f)
@@ -237,14 +241,14 @@ class QuiltPackage {
         });
 
         Map<String, Object> fullMeta = [
-            "version": Manifest.VERSION,
-            "user_meta": meta + this.meta,
+            'version': Manifest.VERSION,
+            'user_meta': meta + this.meta,
         ]
         ObjectMapper mapper = new ObjectMapper()
         builder.setMetadata((ObjectNode)mapper.valueToTree(fullMeta))
 
         Manifest m = builder.build()
-        log.debug("QuiltPackage.push", m)
+        log.debug('QuiltPackage.push', m)
         m.push(namespace, "nf-quilt:${today()}-${msg}", parsed.workflowName)
     }
 

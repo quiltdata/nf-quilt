@@ -43,9 +43,9 @@ import groovy.json.JsonOutput
 @Slf4j
 @CompileStatic
 class QuiltProduct {
+
     public final static String README_FILE = 'README_NF_QUILT.md'
     public final static String SUMMARY_FILE = 'quilt_summarize.json'
-
 
     private final static String KEY_META = 'metadata'
     private final static String KEY_README = 'readme'
@@ -142,7 +142,7 @@ ${nextflow}
             pkg.push(msg, meta)
         }
         catch (Exception e) {
-            log.error("publish failed:", e)
+            log.error('publish failed:', e)
             print("FAILED: $pkg\n")
             return
             // throw e
@@ -251,7 +251,7 @@ ${nextflow}
             nextflow: nextflow,
             now: now(),
             pkg: pkg.packageName,
-        ]).toString()
+        ])
         log.debug("readme.template: ${template}")
         return template
     }
@@ -296,7 +296,7 @@ ${nextflow}
             List<Path> paths = match(wildcard)
             paths.each { path ->
                 String filename = path.getFileName()
-                Map entry = ["path": path.toString(), "title": filename]
+                Map entry = ['path': path.toString(), 'title': filename]
                 quilt_summarize.add(entry)
             }
         }

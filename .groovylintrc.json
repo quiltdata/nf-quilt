@@ -1,24 +1,6 @@
 {
     "extends": "recommended",
     "rules": {
-        "MethodCount": {
-            "enabled": false
-        },
-        "JavadocMissingParamDescription": {
-            "enabled": false
-        },
-        "JavadocMissingThrowsDescription": {
-            "enabled": false
-        },
-        "JavadocEmptyReturnTag": {
-            "enabled": false
-        },
-        "JavadocEmptyFirstLine": {
-            "enabled": false
-        },
-        "JUnitPublicNonTestMethod": {
-            "enabled": false
-        },
         "CatchException": {
             "enabled": false
         },
@@ -40,7 +22,28 @@
         "FieldTypeRequired": {
             "enabled": false
         },
+        "ImplicitClosureParameter": {
+            "enabled": false
+        },
+        "JUnitPublicNonTestMethod": {
+            "enabled": false
+        },
         "JavaIoPackageAccess": {
+            "enabled": false
+        },
+        "JavadocEmptyFirstLine": {
+            "enabled": false
+        },
+        "JavadocEmptyReturnTag": {
+            "enabled": false
+        },
+        "JavadocMissingParamDescription": {
+            "enabled": false
+        },
+        "JavadocMissingThrowsDescription": {
+            "enabled": false
+        },
+        "MethodCount": {
             "enabled": false
         },
         "MethodParameterTypeRequired": {
@@ -59,6 +62,9 @@
             "enabled": false
         },
         "SpaceAroundMapEntryColon": {
+            "enabled": false
+        },
+        "SpaceAroundOperator": {
             "enabled": false
         },
         "SystemExit": {
