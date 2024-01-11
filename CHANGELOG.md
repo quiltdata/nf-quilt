@@ -1,19 +1,23 @@
 # Changelog
 
+## [0.7.6] 2024-01-10 UNOFFICIAL
+
+- Re-enable crash on failure
+
 ## [0.7.5] 2023-10-17
 
 - Grab all multiqc subfolders
 
-## [0.7.4] 2023-10-16b
+## [0.7.4] 2023-10-16b UNOFFICIAL
 
 - Actually print the exception stack trace
 - `make install` to enable nextflow testing
 
-## [0.7.3] 2023-10-16a
+## [0.7.3] 2023-10-16a UNOFFICIAL
 
 - Catch and log exception on push failure
 
-## [0.7.2] 2023-10-16
+## [0.7.2] 2023-10-16 UNOFFICIAL
 
 - Throw exceptions on push failure
 
@@ -26,7 +30,7 @@
 
 - Officially QuiltCore 0.1.0 instead of Python
 
-## [0.6.0] 2023-10-03
+## [0.6.0] 2023-10-03 UNOFFICIAL
 
 (interim release still using Python)
 
@@ -36,7 +40,7 @@
   - Top level (only): md, html, pdf, csv, tsv
   - multiqc sub-folder HTML
 
-## [0.5.0] 2023-09-04
+## [0.5.0] 2023-09-04 UNOFFICIAL
 
 - Switch to quiltcore-java [NOTE: this pre-release does NOT check workflows]
 - Do not pre-install packages (only install before write)

@@ -233,7 +233,7 @@ class QuiltPackage {
         Manifest.Builder builder = Manifest.builder()
 
         Files.walk(packageDest()).filter(f -> Files.isRegularFile(f)).forEach(f -> {
-            log.debug(f)
+            log.debug("push: ${f} -> ${packageDest()}")
             String logicalKey = packageDest().relativize(f)
             LocalPhysicalKey physicalKey = new LocalPhysicalKey(f)
             long size = Files.size(f)
