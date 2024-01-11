@@ -144,6 +144,7 @@ ${nextflow}
         catch (Exception e) {
             log.error("Exception: ${e}")
             print("FAILED: $pkg\n")
+            e.printStackTrace()
             throw new RuntimeException(e)
         }
         print("SUCCESS: $pkg\n")
