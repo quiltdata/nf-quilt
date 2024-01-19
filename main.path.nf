@@ -14,11 +14,11 @@ process CHECK_INPUT {
         path input
 
     output:
-        path 'build/output/README.md'           , emit: output
+        path 'README.md', emit: output
 
     script:
     """
-    cp $input input.txt
+    cp $input ../../tmp/
     """
 }
 
