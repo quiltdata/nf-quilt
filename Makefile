@@ -69,6 +69,10 @@ pkg-fail: compile
 	echo "$(TEST_URI)"
 	$(NF_BIN) run ./fail.nf -profile standard -plugins $(PROJECT) --outdir "$(TEST_URI)"
 
+path-input: compile
+	echo "$(TEST_URI)"
+	$(NF_BIN) run ./main.path.nf -profile standard -plugins $(PROJECT) --outdir "./results"
+
 tower-test: $(NF_BIN)
 	$(NF_BIN) run "https://github.com/quiltdata/nf-quilt" -name local_einstein  -with-tower -r main -latest --pub "$(TEST_URI)"
 
