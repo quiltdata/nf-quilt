@@ -100,7 +100,7 @@ in order to customize the behavior of the plugin:
   * **metadata**: specify SKIP to not push any new metadata (implicit or explicit)
   * **_any other key_**: specify any other metadata key to store in the package
 
-See below for more details.  
+See below for more details.
 When running from the git repository,
 you can use the Makefile to test the various options,
 as long as you set a WRITE_BUCKET:
