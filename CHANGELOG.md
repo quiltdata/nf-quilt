@@ -1,8 +1,10 @@
 # Changelog
 
-## [0.7.6] 2024-01-10 UNOFFICIAL
+## [0.7.6] 2024-01-24
 
-- Fix "&path=" Quilt+ URIs
+- Pre-install package if "&path" present
+- Add `path-input` integration test
+- Add unit test for "&path=" Quilt+ URIs
 - Re-enable crash on failure
 
 ## [0.7.5] 2023-10-17
