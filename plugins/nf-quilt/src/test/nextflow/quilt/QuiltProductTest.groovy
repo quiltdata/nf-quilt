@@ -183,7 +183,7 @@ class QuiltProductTest extends QuiltSpecification {
     }
 
     int writeFiles(dest) {
-        String root  = dest.toString()
+        String root  = dest
         String[] filenames = [
             'SUMMARIZE_ME.md',
             'SUMMARIZE_ME.csv',
