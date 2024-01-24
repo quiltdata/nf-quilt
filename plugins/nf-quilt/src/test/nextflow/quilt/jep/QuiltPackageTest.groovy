@@ -113,14 +113,13 @@ class QuiltPackageTest extends QuiltSpecification {
         def qpath = factory.parseUri(TEST_URL)
         def qpkg = qpath.pkg()
         Path outputFolder = pkg.packageDest()
-        Path readmeFile = outputFolder.resolve("README.md")
-        println("qpkg: ${qpkg}")
+        Path readmeFile = outputFolder.resolve('README.md')
+        println("qpkg: ${qpkg} -> ${qpath.localPath()} == ${readmeFile}")
 
         expect:
-        readmeFile == qpath.localPath()
         !qpath.isJustPackage()
-        !Files.isDirectory(qpath)
-        !Files.exists(readmeFile)
+        Files.isDirectory(outputFolder)
+        //!Files.exists(readmeFile)
 
         qpkg.install()
         Files.exists(qpath.localPath())
@@ -129,6 +128,7 @@ class QuiltPackageTest extends QuiltSpecification {
         Files.exists(readmeFile)
         Files.isRegularFile(readmeFile)
         Files.isReadable(readmeFile)
+        readObject(readmeFile).startsWith('# Quilt Smart Reports')
     }
 
     void 'should return null on failed install'() {

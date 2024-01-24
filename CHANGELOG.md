@@ -2,6 +2,7 @@
 
 ## [0.7.6] 2024-01-10 UNOFFICIAL
 
+- Fix "&path=" Quilt+ URIs
 - Re-enable crash on failure
 
 ## [0.7.5] 2023-10-17
