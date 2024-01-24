@@ -3,7 +3,7 @@ PROJECT ?= nf-quilt
 WRITE_BUCKET ?= quilt-example
 FRAGMENT ?= &path=.
 NF_DIR ?= ../nextflow
-NF_BIN ?= ./nextflow
+NF_BIN ?= ./launch.sh
 PID ?= $$$$
 PIPELINE ?= sarek
 QUERY ?= ?Name=$(USER)&Owner=Kevin+Moore&Date=2023-03-07&Type=CRISPR&Notebook+URL=http%3A%2F%2Fexample.com
@@ -69,7 +69,7 @@ pkg-fail: compile
 	echo "$(TEST_URI)"
 	$(NF_BIN) run ./fail.nf -profile standard -plugins $(PROJECT) --outdir "$(TEST_URI)"
 
-path-input: compile
+path-input: compile-all
 	echo "$(TEST_URI)"
 	$(NF_BIN) run ./main.path.nf -profile standard -plugins $(PROJECT) --outdir "./results"
 
