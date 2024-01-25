@@ -33,6 +33,7 @@ import java.nio.file.LinkOption
 import java.nio.file.NoSuchFileException
 import java.nio.file.OpenOption
 import java.nio.file.Path
+import java.nio.file.Paths
 import java.nio.file.StandardOpenOption
 import java.nio.file.attribute.BasicFileAttributeView
 import java.nio.file.attribute.BasicFileAttributes
@@ -47,6 +48,7 @@ import groovy.util.logging.Slf4j
 import nextflow.Global
 import nextflow.Session
 import nextflow.quilt.jep.QuiltParser
+import nextflow.quilt.jep.QuiltPackage
 import nextflow.file.FileSystemTransferAware
 import nextflow.file.CopyOptions
 import nextflow.file.FileHelper
@@ -94,32 +96,42 @@ class QuiltFileSystemProvider extends FileSystemProvider implements FileSystemTr
      */
 
     boolean canUpload(Path source, Path target) {
+        log.debug "QuiltFileSystemProvider.canUpload: ${source} -> ${target}"
         return FileSystems.getDefault().equals(source.getFileSystem()) && target instanceof QuiltPath
     }
 
     boolean canDownload(Path source, Path target) {
+        log.debug "QuiltFileSystemProvider.canDownload: ${source} -> ${target}"
         return source instanceof QuiltPath && FileSystems.getDefault().equals(target.getFileSystem())
     }
 
     void download(Path remoteFile, Path localDestination, CopyOption... options) throws IOException {
+        log.debug "QuiltFileSystemProvider.download: ${remoteFile} -> ${localDestination}"
+        QuiltPath qPath = asQuiltPath(remoteFile)
+        Path proxy = qPath.localPath()
+        QuiltPackage pkg = qPath.pkg()
+        String pathName = pkg.parsed.getPath()
+        Path localFolder = localDestination.getParent()
+        Path actualDestination = Paths.get(localFolder.toUriString(), pathName)
+        log.debug "QuiltFileSystemProvider.download: ${proxy} -> ${actualDestination}"
+
         final CopyOptions opts = CopyOptions.parse(options)
         // delete target if it exists and REPLACE_EXISTING is specified
         if (opts.replaceExisting()) {
-            FileHelper.deletePath(localDestination)
+            FileHelper.deletePath(actualDestination)
         }
-        else if (Files.exists(localDestination)) {
-            throw new FileAlreadyExistsException(localDestination.toString())
+        else if (Files.exists(actualDestination)) {
+            throw new FileAlreadyExistsException(actualDestination.toString())
         }
 
-        QuiltPath qPath = asQuiltPath(remoteFile)
-        Path proxy = qPath.localPath()
         if (!Files.exists(proxy)) {
             throw new NoSuchFileException(remoteFile.toString())
         }
-        Files.copy(proxy, localDestination, options)
+        Files.copy(proxy, actualDestination, options)
     }
 
     void upload(Path localFile, Path remoteDestination, CopyOption... options) throws IOException {
+        log.debug "QuiltFileSystemProvider.upload: ${localFile} -> ${remoteDestination}"
         final CopyOptions opts = CopyOptions.parse(options)
         // delete target if it exists and REPLACE_EXISTING is specified
         if (opts.replaceExisting()) {

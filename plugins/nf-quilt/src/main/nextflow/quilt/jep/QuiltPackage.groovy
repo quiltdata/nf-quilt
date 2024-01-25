@@ -190,13 +190,11 @@ class QuiltPackage {
             String resolvedHash = (hash == 'latest' || hash == null || hash == 'null')
               ? namespace.getHash('latest')
               : hash
-            log.info("hash: $hash -> $resolvedHash")
+            log.debug("hash: $hash -> $resolvedHash")
             Manifest manifest = namespace.getManifest(resolvedHash)
 
             manifest.install(dest)
-            log.info("done: installed into $dest)")
-            List<String> children = relativeChildren('')
-            log.info("Children: $children")
+            log.debug("done: installed into $dest)")
         } catch (IOException e) {
             log.error("failed to install $packageName")
             // this is non-fatal error, so we don't want to stop the pipeline
