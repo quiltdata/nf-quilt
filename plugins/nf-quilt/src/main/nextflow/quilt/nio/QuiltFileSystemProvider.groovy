@@ -1,3 +1,4 @@
+/* groovylint-disable ExplicitCallToEqualsMethod, Instanceof */
 /*
  * Copyright 2022, Quilt Data Inc
  *
@@ -38,12 +39,17 @@ import java.nio.file.attribute.BasicFileAttributes
 import java.nio.file.attribute.FileAttribute
 import java.nio.file.attribute.FileAttributeView
 import java.nio.file.spi.FileSystemProvider
+import java.nio.file.FileSystems
+import java.nio.file.FileAlreadyExistsException
 
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import nextflow.Global
 import nextflow.Session
 import nextflow.quilt.jep.QuiltParser
+import nextflow.file.FileSystemTransferAware
+import nextflow.file.CopyOptions
+import nextflow.file.FileHelper
 
 /**
  * Implements NIO File system provider for Quilt Blob Storage
@@ -53,7 +59,7 @@ import nextflow.quilt.jep.QuiltParser
 
 @Slf4j
 @CompileStatic
-class QuiltFileSystemProvider extends FileSystemProvider {
+class QuiltFileSystemProvider extends FileSystemProvider implements FileSystemTransferAware {
 
     private final Map<String,String> myEnv = new HashMap<>(System.getenv())
     private final Map<String,QuiltFileSystem> fileSystems = [:]
@@ -81,6 +87,55 @@ class QuiltFileSystemProvider extends FileSystemProvider {
 
     static FileSystemProvider provider(Path path) {
         return path.getFileSystem().provider()
+    }
+
+    /**
+     * QuiltFileSystemProvider
+     */
+
+    boolean canUpload(Path source, Path target) {
+        return FileSystems.getDefault().equals(source.getFileSystem()) && target instanceof QuiltPath
+    }
+
+    boolean canDownload(Path source, Path target) {
+        return source instanceof QuiltPath && FileSystems.getDefault().equals(target.getFileSystem())
+    }
+
+    void download(Path remoteFile, Path localDestination, CopyOption... options) throws IOException {
+        final CopyOptions opts = CopyOptions.parse(options)
+        // delete target if it exists and REPLACE_EXISTING is specified
+        if (opts.replaceExisting()) {
+            FileHelper.deletePath(localDestination)
+        }
+        else if (Files.exists(localDestination)) {
+            throw new FileAlreadyExistsException(localDestination.toString())
+        }
+
+        QuiltPath qPath = asQuiltPath(remoteFile)
+        Path proxy = qPath.localPath()
+        if (!Files.exists(proxy)) {
+            throw new NoSuchFileException(remoteFile.toString())
+        }
+        Files.copy(proxy, localDestination, options)
+    }
+
+    void upload(Path localFile, Path remoteDestination, CopyOption... options) throws IOException {
+        final CopyOptions opts = CopyOptions.parse(options)
+        // delete target if it exists and REPLACE_EXISTING is specified
+        if (opts.replaceExisting()) {
+            QuiltPath qPath = asQuiltPath(remoteDestination)
+            qPath.deinstall()
+        }
+        else if (Files.exists(remoteDestination)) {
+            throw new FileAlreadyExistsException(remoteDestination.toString())
+        }
+
+        QuiltPath qPath = asQuiltPath(remoteDestination)
+        Path proxy = qPath.localPath()
+        if (Files.exists(proxy)) {
+            throw new FileAlreadyExistsException(remoteDestination.toString())
+        }
+        Files.copy(localFile, proxy, options)
     }
 
     /**
