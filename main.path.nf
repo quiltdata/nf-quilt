@@ -20,10 +20,8 @@ process CHECK_INPUT {
     script:
     """
     ls -l
-    echo "first"
-    cp -f $input ../../tmp/
+    echo $input
     cp -f $input README.md
-    cp -f $input ../../tmp/README.md
     """
 }
 
