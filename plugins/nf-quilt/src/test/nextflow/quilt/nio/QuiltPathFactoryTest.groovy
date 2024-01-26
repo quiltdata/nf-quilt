@@ -53,8 +53,9 @@ class QuiltPathFactoryTest extends QuiltSpecification {
         QuiltPathFactory.parse(PATH).toString() == STR
 
         where:
-        _ | PATH                                        | STR
-        _ | 'quilt+s3://reg#package=user/pkg'           | 'reg#package=user%2fpkg'
+        _ | PATH                                          | STR
+        _ | 'quilt+s3://reg#package=user/pkg'             | 'reg#package=user%2fpkg'
+        _ | 'quilt+s3:/reg#package=user/pkg&path=test.md' | 'reg#package=user%2fpkg&path=test.md'
     }
 
     void 'should create Channel from URL'() {

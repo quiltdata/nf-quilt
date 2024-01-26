@@ -4,6 +4,8 @@ package nextflow.quilt.nio
 import nextflow.quilt.QuiltSpecification
 import groovy.transform.CompileDynamic
 import java.nio.file.Path
+import java.nio.file.Paths
+import java.nio.file.Files
 
 /**
  *

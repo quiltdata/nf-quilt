@@ -68,13 +68,21 @@ class QuiltFileSystemProvider extends FileSystemProvider implements FileSystemTr
     private Map<Path,BasicFileAttributes> attributesCache = [:]
 
     static QuiltPath asQuiltPath(Path path) {
-        if (path !in QuiltPath) {
-            String pathClassName = path?.class?.name ?: '-'
-            throw new IllegalArgumentException(
-                "Not a valid Quilt blob storage path object: `${path}` [${pathClassName}]"
-            )
+        println("asQuiltPath.path: ${path}")
+        if (path in QuiltPath) {
+            return (QuiltPath)path
         }
-        return (QuiltPath)path
+        String pathString = path?.toString() ?: '-'
+        println("asQuiltPath.pathString: ${pathString}")
+        if (pathString.startsWith(QuiltParser.SCHEME + ':/')) {
+            QuiltPath qPath = QuiltPathFactory.parse(pathString)
+            println("asQuiltPath.qPath: ${qPath}")
+            return qPath
+        }
+        String pathClassName = path?.class?.name ?: '-'
+        throw new IllegalArgumentException(
+            "Not a valid Quilt blob storage path object: `${path}` [${pathClassName}]"
+        )
     }
 
     static QuiltFileSystem getQuiltFilesystem(Path path) {
@@ -108,6 +116,7 @@ class QuiltFileSystemProvider extends FileSystemProvider implements FileSystemTr
     void download(Path remoteFile, Path localDestination, CopyOption... options) throws IOException {
         log.debug "QuiltFileSystemProvider.download: ${remoteFile} -> ${localDestination}"
         QuiltPath qPath = asQuiltPath(remoteFile)
+        println("QuiltFileSystemProvider.download: ${qPath}")
         Path proxy = qPath.localPath()
         QuiltPackage pkg = qPath.pkg()
         String pathName = pkg.parsed.getPath()
