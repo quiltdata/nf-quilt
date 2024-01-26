@@ -68,11 +68,11 @@ dependencies {
     compileOnly 'org.pf4j:pf4j:3.10.0'
     // add here plugins depepencies
     compileOnly 'org.slf4j:slf4j-simple:2.0.11'
-    compileOnly 'black.ninia:jep:4.1.1'
-    runtime 'black.ninia:jep:4.1.1'
+    compileOnly 'black.ninia:jep:4.2.0'
+    runtime 'black.ninia:jep:4.2.0'
     runtimeOnly 'org.junit.platform:junit-platform-launcher:1.10.0'
-    implementation 'black.ninia:jep:4.1.1'
-    testImplementation 'black.ninia:jep:4.1.1'
+    implementation 'black.ninia:jep:4.2.0'
+    testImplementation 'black.ninia:jep:4.2.0'
     //testImplementation(testFixtures('black.ninia:jep:4.0.3'))
 
     // test configuration
