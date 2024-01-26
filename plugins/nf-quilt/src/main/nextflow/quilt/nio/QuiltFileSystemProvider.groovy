@@ -33,7 +33,6 @@ import java.nio.file.LinkOption
 import java.nio.file.NoSuchFileException
 import java.nio.file.OpenOption
 import java.nio.file.Path
-import java.nio.file.Paths
 import java.nio.file.StandardOpenOption
 import java.nio.file.attribute.BasicFileAttributeView
 import java.nio.file.attribute.BasicFileAttributes
@@ -48,7 +47,6 @@ import groovy.util.logging.Slf4j
 import nextflow.Global
 import nextflow.Session
 import nextflow.quilt.jep.QuiltParser
-import nextflow.quilt.jep.QuiltPackage
 import nextflow.file.FileSystemTransferAware
 import nextflow.file.CopyOptions
 import nextflow.file.FileHelper
@@ -68,15 +66,12 @@ class QuiltFileSystemProvider extends FileSystemProvider implements FileSystemTr
     private Map<Path,BasicFileAttributes> attributesCache = [:]
 
     static QuiltPath asQuiltPath(Path path) {
-        println("asQuiltPath.path: ${path}")
         if (path in QuiltPath) {
             return (QuiltPath)path
         }
         String pathString = path?.toString() ?: '-'
-        println("asQuiltPath.pathString: ${pathString}")
         if (pathString.startsWith(QuiltParser.SCHEME + ':/')) {
             QuiltPath qPath = QuiltPathFactory.parse(pathString)
-            println("asQuiltPath.qPath: ${qPath}")
             return qPath
         }
         String pathClassName = path?.class?.name ?: '-'
@@ -116,16 +111,7 @@ class QuiltFileSystemProvider extends FileSystemProvider implements FileSystemTr
     void download(Path remoteFile, Path localDestination, CopyOption... options) throws IOException {
         log.debug "QuiltFileSystemProvider.download: ${remoteFile} -> ${localDestination}"
         QuiltPath qPath = asQuiltPath(remoteFile)
-        println("QuiltFileSystemProvider.qPath: ${qPath}")
         Path proxy = qPath.localPath()
-        println("QuiltFileSystemProvider.proxy: ${proxy}")
-        QuiltPackage pkg = qPath.pkg()
-        println("QuiltFileSystemProvider.pkg[installed=${pkg.installed}]: ${pkg}")
-        /*QuiltPackage pkg = qPath.pkg()
-        String pathName = pkg.parsed.getPath()
-        Path localFolder = localDestination.getParent()
-        Path actualDestination = Paths.get(localFolder.toUriString(), pathName)
-        log.debug "QuiltFileSystemProvider.actualDestination: ${actualDestination}"*/
 
         final CopyOptions opts = CopyOptions.parse(options)
         // delete target if it exists and REPLACE_EXISTING is specified

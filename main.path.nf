@@ -4,8 +4,8 @@
 nextflow.enable.dsl=2
 
 test_file_local = 'README.md'
-test_file_s3 = 's3://quilt-example/examples/protein-paint/README.md'
-test_file_quilt = 'quilt+s3://quilt-example#package=examples/protein-paint&path=README.md'
+test_file_s3 = 's3://quilt-example/examples/hurdat2/README.md'
+test_file_quilt = 'quilt+s3://quilt-example#package=examples/hurdat2&path=README.md'
 
 myFileChannel = Channel.fromList([file(test_file_local), file(test_file_s3), file(test_file_quilt)])
 

@@ -40,16 +40,12 @@ class QuiltPathFactory extends FileSystemPathFactory {
 
     @Override
     protected Path parseUri(String uriString) {
-        println('parseUri.uriString: ' + uriString)
         if (!uriString.startsWith(QuiltParser.SCHEME)) {
             return null
         }
         String[] split = uriString.split('/')
-        println('parseUri.split: ' + split)
         String newString = (split[1] == '') ? uriString : uriString.replaceFirst(/\/+/, '//')
-        println('parseUri.newString: ' + newString)
         final uri = new URI(newString)
-        println('parseUri.uri: ' + uri)
         return FileHelper.getOrCreateFileSystemFor(uri).provider().getPath(uri)
     }
 
