@@ -35,7 +35,7 @@ jobs:
     - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v4
       with:
-        role-to-assume: arn:aws:iam::712023778557:role/GitHub-Testing-NF-Quilt
+        role-to-assume: arn:aws:iam::712023778557:role/github/GitHub-Testing-NF-Quilt
         aws-region: us-east-1
 
     - name: Setup Java ${{matrix.java_version}}
