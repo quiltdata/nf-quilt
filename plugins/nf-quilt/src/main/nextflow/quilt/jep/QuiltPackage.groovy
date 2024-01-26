@@ -195,6 +195,7 @@ class QuiltPackage {
 
             manifest.install(dest)
             log.debug("done: installed into $dest)")
+            println("Children: ${relativeChildren('')}")
         } catch (IOException e) {
             log.error("failed to install $packageName")
             // this is non-fatal error, so we don't want to stop the pipeline

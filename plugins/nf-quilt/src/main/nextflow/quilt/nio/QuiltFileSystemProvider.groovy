@@ -116,27 +116,30 @@ class QuiltFileSystemProvider extends FileSystemProvider implements FileSystemTr
     void download(Path remoteFile, Path localDestination, CopyOption... options) throws IOException {
         log.debug "QuiltFileSystemProvider.download: ${remoteFile} -> ${localDestination}"
         QuiltPath qPath = asQuiltPath(remoteFile)
-        println("QuiltFileSystemProvider.download: ${qPath}")
+        println("QuiltFileSystemProvider.qPath: ${qPath}")
         Path proxy = qPath.localPath()
+        println("QuiltFileSystemProvider.proxy: ${proxy}")
         QuiltPackage pkg = qPath.pkg()
+        println("QuiltFileSystemProvider.pkg[installed=${pkg.installed}]: ${pkg}")
+        /*QuiltPackage pkg = qPath.pkg()
         String pathName = pkg.parsed.getPath()
         Path localFolder = localDestination.getParent()
         Path actualDestination = Paths.get(localFolder.toUriString(), pathName)
-        log.debug "QuiltFileSystemProvider.download: ${proxy} -> ${actualDestination}"
+        log.debug "QuiltFileSystemProvider.actualDestination: ${actualDestination}"*/
 
         final CopyOptions opts = CopyOptions.parse(options)
         // delete target if it exists and REPLACE_EXISTING is specified
         if (opts.replaceExisting()) {
-            FileHelper.deletePath(actualDestination)
+            FileHelper.deletePath(localDestination)
         }
-        else if (Files.exists(actualDestination)) {
-            throw new FileAlreadyExistsException(actualDestination.toString())
+        else if (Files.exists(localDestination)) {
+            throw new FileAlreadyExistsException(localDestination.toString())
         }
 
         if (!Files.exists(proxy)) {
             throw new NoSuchFileException(remoteFile.toString())
         }
-        Files.copy(proxy, actualDestination, options)
+        Files.copy(proxy, localDestination, options)
     }
 
     void upload(Path localFile, Path remoteDestination, CopyOption... options) throws IOException {

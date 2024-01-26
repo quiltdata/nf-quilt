@@ -29,7 +29,7 @@ class QuiltFileSystemProviderTest extends QuiltSpecification {
         given:
         QuiltFileSystemProvider provider = new QuiltFileSystemProvider()
         String filename = 'README.md'
-        Path remoteFile = Paths.get('quilt+s3://quilt-example#package=examples%2fhurdat&path=' + filename)
+        Path remoteFile = Paths.get('quilt+s3://quilt-example#package=examples%2fhurdat2&path=' + filename)
         Path tempFolder = Files.createTempDirectory('quilt')
         Path tempFile = tempFolder.resolve(filename)
 
