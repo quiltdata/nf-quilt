@@ -113,28 +113,31 @@ class QuiltFileSystemProvider extends FileSystemProvider implements FileSystemTr
     void download(Path remoteFile, Path localDestination, CopyOption... options) throws IOException {
         log.debug "QuiltFileSystemProvider.download: ${remoteFile} -> ${localDestination}"
         QuiltPath qPath = asQuiltPath(remoteFile)
-        Path proxy = qPath.localPath()
-        println "download.proxy: ${proxy} [${qPath}]"
+        Path cachedFile = qPath.localPath()
+        log.debug "download.cachedFile: ${cachedFile} [${qPath}]"
 
         QuiltPackage pkg = qPath.pkg()
         String pathName = pkg.parsed.getPath()
-        Path localFolder = localDestination.getParent()
-        Path actualDestination = Paths.get(localFolder.toUriString(), pathName)
-        log.debug "download.actualDestination: ${actualDestination}"
+
+        Path localRoot = localDestination.getParent().getParent().getParent().getParent()
+        Path finalDestination = Paths.get(localRoot.toUriString(), 'tmp', pathName)
+        log.debug "download.finalDestination: ${finalDestination} [${localRoot}]"
+        FileHelper.deletePath(finalDestination) // FIXME: be more intelligent about this
 
         final CopyOptions opts = CopyOptions.parse(options)
         // delete target if it exists and REPLACE_EXISTING is specified
         if (opts.replaceExisting()) {
-            FileHelper.deletePath(actualDestination)
+            FileHelper.deletePath(localDestination)
         }
-        else if (Files.exists(actualDestination)) {
-            throw new FileAlreadyExistsException(actualDestination.toString())
+        else if (Files.exists(localDestination)) {
+            throw new FileAlreadyExistsException(localDestination.toString())
         }
 
-        if (!Files.exists(proxy)) {
-            throw new NoSuchFileException(remoteFile.toString())
-        }
-        Files.copy(proxy, actualDestination, options)
+        log.info "download.Files.copy -> ${localDestination}"
+        Files.copy(cachedFile, localDestination, options)
+        log.info "download.Files.copy -> ${finalDestination}"
+        Files.copy(localDestination, finalDestination, options)
+        log.info 'download.Files copied'
     }
 
     void upload(Path localFile, Path remoteDestination, CopyOption... options) throws IOException {
@@ -150,11 +153,11 @@ class QuiltFileSystemProvider extends FileSystemProvider implements FileSystemTr
         }
 
         QuiltPath qPath = asQuiltPath(remoteDestination)
-        Path proxy = qPath.localPath()
-        if (Files.exists(proxy)) {
+        Path cachedFile = qPath.localPath()
+        if (Files.exists(cachedFile)) {
             throw new FileAlreadyExistsException(remoteDestination.toString())
         }
-        Files.copy(localFile, proxy, options)
+        Files.copy(localFile, cachedFile, options)
     }
 
     /**
