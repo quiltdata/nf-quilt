@@ -135,8 +135,8 @@ class QuiltFileSystemProvider extends FileSystemProvider implements FileSystemTr
 
         log.info "download.Files.copy -> ${localDestination}"
         Files.copy(cachedFile, localDestination, options)
-        log.info "download.Files.copy -> ${finalDestination}"
-        Files.copy(localDestination, finalDestination, options)
+        // log.info "download.Files.copy -> ${finalDestination}"
+        // Files.copy(localDestination, finalDestination, options)
         log.info 'download.Files copied'
     }
 
