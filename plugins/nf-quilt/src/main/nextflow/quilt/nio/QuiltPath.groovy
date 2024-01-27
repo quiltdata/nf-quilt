@@ -219,11 +219,8 @@ final class QuiltPath implements Path, Comparable {
 
     @Override
     String toString() {
-        println("toString.parsed[isFileName=$isFileName]: $parsed")
-        String filename = paths.size() > 0 ? paths[-1] : ''
-        println("toString:filename: ${filename}")
         if (isFileName) {
-            return filename
+            return paths.size() > 0 ? paths[-1] : ''
         }
         return parsed.toString()
     }

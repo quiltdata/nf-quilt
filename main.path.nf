@@ -20,9 +20,7 @@ process CHECK_INPUT {
     """
     ls -l
     echo $input
-    if [ "$input" != "README.md" ]; then
-        cp -f $input README.md
-    fi
+    cp -f $input ../../tmp
     """
 }
 

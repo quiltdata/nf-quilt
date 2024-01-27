@@ -2,8 +2,9 @@
 
 ## [0.7.7] 2024-01-24
 
+- Properly implement and test getFilename()
 - Pre-install package if "&path" present
-- Add `path-input` integration test
+- Add and pass `path-input` integration test
 - Add unit test for "&path=" Quilt+ URIs
 
 ## [0.7.6] 2024-01-10 UNOFFICIAL
