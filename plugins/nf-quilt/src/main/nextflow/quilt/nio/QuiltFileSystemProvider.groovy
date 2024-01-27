@@ -47,6 +47,7 @@ import groovy.util.logging.Slf4j
 import nextflow.Global
 import nextflow.Session
 import nextflow.quilt.jep.QuiltParser
+import nextflow.quilt.jep.QuiltPackage
 import nextflow.file.FileSystemTransferAware
 import nextflow.file.CopyOptions
 import nextflow.file.FileHelper
@@ -112,6 +113,11 @@ class QuiltFileSystemProvider extends FileSystemProvider implements FileSystemTr
         // log.debug "QuiltFileSystemProvider.download: ${remoteFile} -> ${localDestination}"
         QuiltPath qPath = asQuiltPath(remoteFile)
         Path cachedFile = qPath.localPath()
+        QuiltPackage pkg = qPath.pkg()
+        if (!pkg.installed) {
+            pkg.install()
+        }
+
         if (!Files.exists(cachedFile)) {
             throw new NoSuchFileException(remoteFile.toString())
         }

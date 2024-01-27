@@ -162,9 +162,6 @@ class QuiltPackage {
     void setup() {
         Files.createDirectories(this.folder)
         this.installed = false
-        if (this.parsed.hasPath()) {
-            install()
-        }
     }
 
     boolean is_force() {
