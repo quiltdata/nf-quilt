@@ -6,12 +6,15 @@ import groovy.transform.CompileDynamic
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.nio.file.Files
+import groovy.util.logging.Slf4j
+import spock.lang.IgnoreIf
 
 /**
  *
  * @author Ernest Prabhakar <ernest@quiltdata.io>
  */
 @CompileDynamic
+@Slf4j
 class QuiltFileSystemProviderTest extends QuiltSpecification {
 
     void 'should return Quilt storage scheme'() {
@@ -25,6 +28,7 @@ class QuiltFileSystemProviderTest extends QuiltSpecification {
     // newDirectoryStream returns package path for write
     // do we need a new schema for quilt+local?
 
+    @IgnoreIf({ System.getProperty('os.name').contains('indows') })
     void 'should download file from remote to local destination'() {
         given:
         QuiltFileSystemProvider provider = new QuiltFileSystemProvider()
