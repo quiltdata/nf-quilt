@@ -115,13 +115,13 @@ class QuiltPathTest extends QuiltSpecification {
         '#path=file-name.txt'              | false     | 'bucket.so.me'
     }
 
-    @Ignore
     void 'should validate getFileName'() {
         expect:
-        pathify(path).getFileName() == pathify(fileName)
+        pathify(path).getFileName().toString() == fileName
 
         where:
         path                                   | fileName
+        'bucket'                               | ''
         'bucket#path=file.txt'                 | 'file.txt'
         'bucket#path=some%2fdata%2ffile.txt'   | 'file.txt'
         '#path=file-name.txt'                  | 'file-name.txt'

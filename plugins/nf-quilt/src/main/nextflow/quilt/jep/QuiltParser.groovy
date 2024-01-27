@@ -1,3 +1,4 @@
+/* groovylint-disable Instanceof */
 /*
  * Copyright 2022, Quilt Data Inc
  *
@@ -75,18 +76,50 @@ class QuiltParser {
         return new QuiltParser(uri.authority, pkg, path, options, metadata)
     }
 
-    static Map<String,Object> parseQuery(String query) {
+    static String decode(String str) {
+        return URLDecoder.decode(str, StandardCharsets.UTF_8)
+    }
+
+    static String encode(String str) {
+        return URLEncoder.encode(str, StandardCharsets.UTF_8)
+    }
+
+    static Map<String, Object> parseQuery(String query) {
         if (!query) { return [:] } // skip for urls without query params
-        final queryParams = query.split('&')
-        return queryParams.collectEntries { params -> params.split('=').collect { param -> URLDecoder.decode(param) } }
+        def params = query.split('&')
+        def result = [:]
+        params.each { param ->
+            def keyValue = param.split('=')
+            if (keyValue.size() == 2) {
+                String key = decode(keyValue[0])
+                String value = decode(keyValue[1])
+                if (result.containsKey(key)) {
+                    if (result[key] instanceof List) {
+                        result[key].add(value)
+                    } else {
+                        result[key] = [result[key], value]
+                    }
+                } else {
+                    result[key] = value
+                }
+            }
+
+        }
+        return result
+    }
+
+    static String encodePair(String key, String value) {
+        return "${QuiltParser.encode(key)}=${QuiltParser.encode(value)}"
     }
 
     static String unparseQuery(Map<String,Object> query) {
         if (!query) { return '' } // skip for urls without query params
-        List<String> params = query.collect {  key, val ->
-            String k = URLEncoder.encode(key, StandardCharsets.UTF_8)
-            String v = URLEncoder.encode(val.toString(), StandardCharsets.UTF_8)
-            "${k}=${v}".toString()
+        List<String> params = query.collect {  key, value ->
+            if (value instanceof List) {
+                value.collect { QuiltParser.encodePair(key, it.toString()) }.join('&')
+            } else {
+                QuiltParser.encodePair(key, value.toString())
+            }
         }
         return params.join('&')
     }

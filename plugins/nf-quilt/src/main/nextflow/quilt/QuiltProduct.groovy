@@ -145,6 +145,7 @@ ${nextflow}
             log.error("Exception: ${e}")
             print("FAILED: $pkg\n")
             e.printStackTrace()
+            /* groovylint-disable-next-line ThrowRuntimeException */
             throw new RuntimeException(e)
         }
         print("SUCCESS: $pkg\n")

@@ -75,8 +75,8 @@ From the command-line, do, e.g.:
 
 ```bash
 # export NXF_VER=23.04.3
-export NXF_PLUGINS_TEST_REPOSITORY=https://github.com/quiltdata/nf-quilt/releases/download/0.7.6/nf-quilt-0.7.6-meta.json
-nextflow run main.nf -plugins nf-quilt@0.7.6
+export NXF_PLUGINS_TEST_REPOSITORY=https://github.com/quiltdata/nf-quilt/releases/download/0.7.7/nf-quilt-0.7.7-meta.json
+nextflow run main.nf -plugins nf-quilt@0.7.7
 ```
 
 For Tower, you can use the "Pre-run script" to set the environment variables.

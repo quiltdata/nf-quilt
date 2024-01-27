@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.7] 2024-01-24
+
+- Properly implement and test getFilename()
+- Install package just before download
+- Add and pass `path-input` integration test
+- Add unit test for "&path=" Quilt+ URIs
+
 ## [0.7.6] 2024-01-10 UNOFFICIAL
 
 - Re-enable crash on failure

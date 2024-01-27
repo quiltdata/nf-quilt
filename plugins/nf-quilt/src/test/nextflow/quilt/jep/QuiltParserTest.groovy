@@ -123,4 +123,17 @@ class QuiltParserTest extends QuiltSpecification {
         unparsed.replace('%2f', '/') == fullURL
     }
 
+    void 'should collect array parameters from query string'() {
+        when:
+        String query = 'key=val1,val2&quay=vale1&quay=vale2'
+        Map<String,Object> result = QuiltParser.parseQuery(query)
+        println "QuiltParserTest[$query] -> ${result}"
+        String unparsed = QuiltParser.unparseQuery(result)
+
+        then:
+        result['key'] == 'val1,val2'
+        result['quay'] == ['vale1', 'vale2']
+        unparsed == query.replace(',', '%2C')
+    }
+
 }

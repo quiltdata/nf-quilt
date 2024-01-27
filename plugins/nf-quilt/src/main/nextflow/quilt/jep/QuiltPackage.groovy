@@ -121,7 +121,7 @@ class QuiltPackage {
         this.hash = parsed.getHash()
         this.meta = parsed.getMetadata()
         this.folder = Paths.get(INSTALL_ROOT.toString(), this.toString())
-        //log.debug("QuiltParser.folder[${this.folder}]")
+        log.debug("QuiltPackage.folder[${this.folder}]")
         this.setup()
     }
 
@@ -187,11 +187,12 @@ class QuiltPackage {
             String resolvedHash = (hash == 'latest' || hash == null || hash == 'null')
               ? namespace.getHash('latest')
               : hash
-            log.info("hash: $hash -> $resolvedHash")
+            log.debug("hash: $hash -> $resolvedHash")
             Manifest manifest = namespace.getManifest(resolvedHash)
 
             manifest.install(dest)
-            log.info('done')
+            log.debug("done: installed into $dest)")
+            println("Children: ${relativeChildren('')}")
         } catch (IOException e) {
             log.error("failed to install $packageName")
             // this is non-fatal error, so we don't want to stop the pipeline

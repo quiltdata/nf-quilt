@@ -107,6 +107,30 @@ class QuiltPackageTest extends QuiltSpecification {
         Files.readAttributes(qpath, BasicFileAttributes)
     }
 
+    @IgnoreIf({ System.getProperty('os.name').contains('indows') })
+    void 'should download the specified path'() {
+        given:
+        def qpath = factory.parseUri(TEST_URL)
+        def qpkg = qpath.pkg()
+        Path outputFolder = pkg.packageDest()
+        Path readmeFile = outputFolder.resolve('README.md')
+        println("qpkg: ${qpkg} -> ${qpath.localPath()} == ${readmeFile}")
+
+        expect:
+        !qpath.isJustPackage()
+        Files.isDirectory(outputFolder)
+        //!Files.exists(readmeFile)
+
+        qpkg.install()
+        Files.exists(qpath.localPath())
+        Files.isRegularFile(qpath.localPath())
+
+        Files.exists(readmeFile)
+        Files.isRegularFile(readmeFile)
+        Files.isReadable(readmeFile)
+        readObject(readmeFile).startsWith('# Quilt Smart Reports')
+    }
+
     void 'should return null on failed install'() {
         given:
         def url2 = TEST_URL.replace('quilt-', 'quilted-')

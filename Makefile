@@ -3,7 +3,7 @@ PROJECT ?= nf-quilt
 WRITE_BUCKET ?= quilt-example
 FRAGMENT ?= &path=.
 NF_DIR ?= ../nextflow
-NF_BIN ?= ./nextflow
+NF_BIN ?= ./launch.sh
 PID ?= $$$$
 PIPELINE ?= sarek
 QUERY ?= ?Name=$(USER)&Owner=Kevin+Moore&Date=2023-03-07&Type=CRISPR&Notebook+URL=http%3A%2F%2Fexample.com
@@ -36,10 +36,6 @@ compile:
 	./gradlew compileGroovy exportClasspath
 	@echo "DONE `date`"
 
-$(NF_BIN):
-	curl -s https://get.nextflow.io | bash
-	chmod +x $(NF_BIN)
-
 nextflow-git:
 	if [ ! -d "$(NF_DIR)" ]; then git clone https://github.com/nextflow-io/nextflow.git  "$(NF_DIR)"; fi
 	cd "$(NF_DIR)"; git checkout && make compile && git restore .; cd ..
@@ -61,13 +57,17 @@ test-all: clean compile-all check #coverage
 # Create packages
 #
 
-pkg-test: compile-all
+pkg-test: compile #-all
 	echo "$(TEST_URI)"
 	$(NF_BIN) run ./main.nf -profile standard -plugins $(PROJECT) --outdir "$(TEST_URI)"
 
 pkg-fail: compile
 	echo "$(TEST_URI)"
 	$(NF_BIN) run ./fail.nf -profile standard -plugins $(PROJECT) --outdir "$(TEST_URI)"
+
+path-input: clean compile #-all
+	echo "$(TEST_URI)"
+	$(NF_BIN) run ./main.path.nf -profile standard -plugins $(PROJECT) --outdir "./results"
 
 tower-test: $(NF_BIN)
 	$(NF_BIN) run "https://github.com/quiltdata/nf-quilt" -name local_einstein  -with-tower -r main -latest --pub "$(TEST_URI)"

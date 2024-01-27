@@ -43,12 +43,14 @@ final class QuiltPath implements Path, Comparable {
     private final QuiltFileSystem filesystem
     private final QuiltParser parsed
     private final String[] paths
+    private final boolean isFileName
 
-    QuiltPath(QuiltFileSystem filesystem, QuiltParser parsed) {
+    QuiltPath(QuiltFileSystem filesystem, QuiltParser parsed, boolean isFileName = false) {
         this.filesystem = filesystem
         this.parsed = parsed
         this.paths = parsed.getPaths()
-        //log.debug("Creating QuiltPath: $parsed")
+        this.isFileName = isFileName
+        log.debug("Creating QuiltPath: $parsed")
     }
 
     String getBucket() {
@@ -110,8 +112,10 @@ final class QuiltPath implements Path, Comparable {
 
     @Override
     Path getFileName() {
-        //log.debug("getFileName`[${this}]: paths=$paths")
-        return isJustPackage() ? this : new QuiltPath(filesystem, parsed.lastPath()) // IF DIRECTORY
+        log.debug("getFileName[${this}]: paths=$paths")
+        // if (isJustPackage()) { return this } // IF DIRECTORY
+        QuiltPath filePath = new QuiltPath(filesystem, parsed.lastPath(), true)
+        return filePath
     }
 
     @Override
@@ -215,6 +219,9 @@ final class QuiltPath implements Path, Comparable {
 
     @Override
     String toString() {
+        if (isFileName) {
+            return paths.size() > 0 ? paths[-1] : ''
+        }
         return parsed.toString()
     }
 
