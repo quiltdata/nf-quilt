@@ -7,8 +7,7 @@ test_file_local = 'README.md'
 test_file_s3 = 's3://quilt-example/examples/hurdat2/README.md'
 test_file_quilt = 'quilt+s3://quilt-example#package=examples/hurdat2&path=README.md'
 
-// file(test_file_local), file(test_file_s3), 
-myFileChannel = Channel.fromList([file(test_file_quilt)])
+myFileChannel = Channel.fromList([file(test_file_local), file(test_file_s3), file(test_file_quilt)])
 
 process CHECK_INPUT {
     input:
@@ -21,7 +20,9 @@ process CHECK_INPUT {
     """
     ls -l
     echo $input
-    cp -f $input README.md
+    if [ "$input" != "README.md" ]; then
+        cp -f $input README.md
+    fi
     """
 }
 
