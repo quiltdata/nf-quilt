@@ -57,7 +57,7 @@ test-all: clean compile-all check #coverage
 # Create packages
 #
 
-pkg-test: compile-all
+pkg-test: compile #-all
 	echo "$(TEST_URI)"
 	$(NF_BIN) run ./main.nf -profile standard -plugins $(PROJECT) --outdir "$(TEST_URI)"
 
@@ -65,7 +65,7 @@ pkg-fail: compile
 	echo "$(TEST_URI)"
 	$(NF_BIN) run ./fail.nf -profile standard -plugins $(PROJECT) --outdir "$(TEST_URI)"
 
-path-input: clean compile-all
+path-input: clean compile #-all
 	echo "$(TEST_URI)"
 	$(NF_BIN) run ./main.path.nf -profile standard -plugins $(PROJECT) --outdir "./results"
 
