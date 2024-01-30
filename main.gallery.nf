@@ -10,6 +10,7 @@ test_file_quilt = 'quilt+s3://nf-core-gallery#package=nf-core/hlatyping&path=REA
 myFileChannel = Channel.fromList([file(test_file_s3), file(test_file_quilt)])
 
 process CHECK_INPUT {
+    container = 'quay.io/nextflow/bash'
     input:
         path input
 
