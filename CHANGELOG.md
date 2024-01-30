@@ -1,6 +1,10 @@
 # Changelog
 
-## [0.7.8] 2024-01-24 UNOFFICIAL
+## [0.7.9] 2024-01-30
+
+- Auto-install (needed for < 23.12?)
+
+## [0.7.8] 2024-01-30 UNOFFICIAL
 
 - Add debugging for installs
 

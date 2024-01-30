@@ -162,6 +162,7 @@ class QuiltPackage {
     void setup() {
         Files.createDirectories(this.folder)
         this.installed = false
+        install() // FIXME: only needed for nextflow < 23.12?
     }
 
     boolean is_force() {
