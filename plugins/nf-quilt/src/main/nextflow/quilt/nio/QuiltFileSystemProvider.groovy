@@ -110,15 +110,22 @@ class QuiltFileSystemProvider extends FileSystemProvider implements FileSystemTr
     }
 
     void download(Path remoteFile, Path localDestination, CopyOption... options) throws IOException {
-        // log.debug "QuiltFileSystemProvider.download: ${remoteFile} -> ${localDestination}"
+        log.debug "QuiltFileSystemProvider.download: ${remoteFile} -> ${localDestination}"
         QuiltPath qPath = asQuiltPath(remoteFile)
         Path cachedFile = qPath.localPath()
         QuiltPackage pkg = qPath.pkg()
         if (!pkg.installed) {
-            pkg.install()
+            log.info "download.install Quilt package: ${pkg}"
+            Path dest = pkg.install()
+            if (!dest) {
+                log.error "download.install failed: ${pkg}"
+                throw new IOException("Failed to install Quilt package: ${pkg}")
+            }
+            log.info "download.installed Quilt package to: $dest"
         }
 
         if (!Files.exists(cachedFile)) {
+            log.error "download: File ${cachedFile} not found"
             throw new NoSuchFileException(remoteFile.toString())
         }
 
@@ -128,6 +135,7 @@ class QuiltFileSystemProvider extends FileSystemProvider implements FileSystemTr
             FileHelper.deletePath(localDestination)
         }
         else if (Files.exists(localDestination)) {
+            log.error "download: File ${localDestination} already exists"
             throw new FileAlreadyExistsException(localDestination.toString())
         }
 

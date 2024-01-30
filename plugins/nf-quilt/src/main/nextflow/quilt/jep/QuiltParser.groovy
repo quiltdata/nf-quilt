@@ -103,7 +103,6 @@ class QuiltParser {
                     result[key] = value
                 }
             }
-
         }
         return result
     }

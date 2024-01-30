@@ -197,7 +197,7 @@ class QuiltPackage {
             log.error("failed to install $packageName")
             // this is non-fatal error, so we don't want to stop the pipeline
             /* groovylint-disable-next-line ReturnNullFromCatchBlock */
-            return
+            return null
         }
 
         installed = true
