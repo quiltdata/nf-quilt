@@ -4,6 +4,7 @@ WRITE_BUCKET ?= quilt-example
 FRAGMENT ?= &path=.
 NF_DIR ?= ../nextflow
 NF_BIN ?= ./launch.sh
+PATH_NF ?= ./main.path.nf
 PID ?= $$$$
 PIPELINE ?= sarek
 QUERY ?= ?Name=$(USER)&Owner=Kevin+Moore&Date=2023-03-07&Type=CRISPR&Notebook+URL=http%3A%2F%2Fexample.com
@@ -67,7 +68,7 @@ pkg-fail: compile
 
 path-input: clean compile #-all
 	echo "$(TEST_URI)"
-	$(NF_BIN) run ./main.path.nf -profile standard -plugins $(PROJECT) --outdir "./results"
+	$(NF_BIN) run $(PATH_NF) -profile standard -plugins $(PROJECT) --outdir "./results"
 
 tower-test: $(NF_BIN)
 	$(NF_BIN) run "https://github.com/quiltdata/nf-quilt" -name local_einstein  -with-tower -r main -latest --pub "$(TEST_URI)"
