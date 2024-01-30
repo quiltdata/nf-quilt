@@ -1,6 +1,10 @@
 # Changelog
 
-## [0.7.7] 2024-01-24
+## [0.7.8] 2024-01-24 UNOFFICIAL
+
+- Add debugging for installs
+
+## [0.7.7] 2024-01-24 UNOFFICIAL
 
 - Properly implement and test getFilename()
 - Install package just before download
