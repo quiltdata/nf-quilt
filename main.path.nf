@@ -10,6 +10,7 @@ test_file_quilt = 'quilt+s3://quilt-example#package=examples/hurdat2&path=README
 myFileChannel = Channel.fromList([file(test_file_local), file(test_file_s3), file(test_file_quilt)])
 
 process CHECK_INPUT {
+    container 'ubuntu:20.04'
     input:
         path input
 

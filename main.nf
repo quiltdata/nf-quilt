@@ -10,7 +10,6 @@ packageFiles = Channel.fromPath(params.input)
 
 process transfer {
     publishDir params.outdir, mode: 'copy', overwrite: true
-
     container 'ubuntu:20.04'
 
     input:
