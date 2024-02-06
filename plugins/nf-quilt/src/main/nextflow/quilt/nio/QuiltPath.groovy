@@ -73,6 +73,7 @@ final class QuiltPath implements Path, Comparable {
         return sub_paths()
     }
 
+    // auto-install before using
     Path localPath() {
         Path pkgPath = pkg().packageDest()
         assert pkgPath
@@ -112,7 +113,7 @@ final class QuiltPath implements Path, Comparable {
 
     @Override
     Path getFileName() {
-        log.debug("getFileName[${this}]: paths=$paths")
+        log.debug('QuiltPath.getFileName')
         // if (isJustPackage()) { return this } // IF DIRECTORY
         QuiltPath filePath = new QuiltPath(filesystem, parsed.lastPath(), true)
         return filePath
@@ -120,7 +121,7 @@ final class QuiltPath implements Path, Comparable {
 
     @Override
     Path getParent() {
-        //log.debug("${this}.getParent: ${paths}`")
+        //log.debug("QuiltPath.getParent: ${paths}`")
         return new QuiltPath(filesystem, parsed.dropPath())
     }
 

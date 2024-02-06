@@ -29,6 +29,7 @@ import java.nio.file.attribute.BasicFileAttributes
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import nextflow.quilt.jep.QuiltParser
+import nextflow.quilt.jep.QuiltPackage
 
 /**
  * Implements FileSystem interface for Quilt registries
@@ -63,7 +64,7 @@ final class QuiltFileSystem extends FileSystem implements Closeable {
     }
 
     void delete(QuiltPath path) {
-        //log.debug("QuiltFileSystem.delete: $path")
+        log.debug("QuiltFileSystem.delete: $path")
         path.deinstall()
     //throw new UnsupportedOperationException("Operation 'delete' is not supported by QuiltFileSystem")
     }
@@ -109,6 +110,11 @@ final class QuiltFileSystem extends FileSystem implements Closeable {
         log.debug("QuiltFileAttributes QuiltFileSystem.readAttributes($path)")
         Path installedPath = path.localPath()
         try {
+            QuiltPackage _pkg = path.pkg()
+            if (!_pkg.installed) {
+                log.debug("QuiltFileSystem.readAttributes: installing $_pkg")
+                _pkg.install()
+            }
             BasicFileAttributes attrs = Files.readAttributes(installedPath, BasicFileAttributes)
             return new QuiltFileAttributes(path, path.toString(), attrs)
         }
