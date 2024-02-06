@@ -81,11 +81,15 @@ class QuiltPackage {
     }
 
     static QuiltPackage forParsed(QuiltParser parsed) {
+        log.debug("QuiltPackage.forParsed: $parsed")
         def pkgKey = parsed.toPackageString()
         def pkg = PKGS.get(pkgKey)
+        log.debug("QuiltPackage.forParsed: $pkgKey -> $pkg")
         if (pkg) { return pkg }
 
+        log.debug('QuiltPackage.forParsed: new')
         pkg = new QuiltPackage(parsed)
+        log.debug("QuiltPackage.forParsed: -> $pkg")
         PKGS[pkgKey] = pkg
         return pkg
     }
@@ -95,6 +99,7 @@ class QuiltPackage {
     }
 
     static boolean deleteDirectory(Path rootPath) {
+        log.debug 'deleteDirectory'
         try {
             if (!Files.exists(rootPath)) { return false }
         }
@@ -162,7 +167,7 @@ class QuiltPackage {
     void setup() {
         Files.createDirectories(this.folder)
         this.installed = false
-        install() // FIXME: only needed for nextflow < 23.12?
+        //install() // FIXME: only needed for nextflow < 23.12?
     }
 
     boolean is_force() {
@@ -211,6 +216,7 @@ class QuiltPackage {
     // /does-files-createtempdirectory-remove-the-directory-after-jvm-exits-normally
     void recursiveDeleteOnExit() throws IOException {
         Path path = packageDest()
+        log.debug("recursiveDeleteOnExit: ${path}")
         Files.walkFileTree(path, new SimpleFileVisitor<Path>() {
 
             @Override
@@ -233,10 +239,11 @@ class QuiltPackage {
         Namespace namespace = registry.getNamespace(packageName)
 
         Manifest.Builder builder = Manifest.builder()
+        Path dest = packageDest()
 
-        Files.walk(packageDest()).filter(f -> Files.isRegularFile(f)).forEach(f -> {
-            log.debug("push: ${f} -> ${packageDest()}")
-            String logicalKey = packageDest().relativize(f)
+        Files.walk(dest).filter(f -> Files.isRegularFile(f)).forEach(f -> {
+            log.debug("push: ${f} -> ${dest}")
+            String logicalKey = dest.relativize(f)
             LocalPhysicalKey physicalKey = new LocalPhysicalKey(f)
             long size = Files.size(f)
             builder.addEntry(logicalKey, new Entry(physicalKey, size, null, null))

@@ -295,6 +295,7 @@ ${nextflow}
         String[] wildcards = summarize.split(',')
         wildcards.each { wildcard ->
             List<Path> paths = match(wildcard)
+            log.debug("setupSummarize: ${paths.size()} matches for ${wildcard}")
             paths.each { path ->
                 String filename = path.getFileName()
                 Map entry = ['path': path.toString(), 'title': filename]
