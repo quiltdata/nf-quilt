@@ -256,7 +256,7 @@ class QuiltPackage {
             log.debug("pushed[${this.parsed}]: ${manifest}")
             return manifest
         } catch (Exception e) {
-            log.error("ERROR: Failed to push manifest", e)
+            log.error('ERROR: Failed to push manifest', e)
             print("FAILED: ${this.parsed}\n")
             e.printStackTrace()
             /* groovylint-disable-next-line ThrowRuntimeException */

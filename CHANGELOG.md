@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.7.10] 2024-05-09 UNOFFICIAL
+
+- Debug build of QuiltCore-Java
+- Fail when pushing to read-only buckets
+
 ## [0.7.9] 2024-01-30
 
 - Auto-install (needed for < 23.12?)
