@@ -173,6 +173,7 @@ class QuiltPackageTest extends QuiltSpecification {
     @IgnoreIf({ System.getProperty('os.name').contains('indows') })
     void 'should fail pushing new files to read-only bucket '() {
         given:
+        println("read-only-bucket:TEST_URL: ${TEST_URL}")
         def qout = factory.parseUri(TEST_URL)
         def opkg = qout.pkg()
         def outPath = Paths.get(opkg.packageDest().toString(), QuiltProduct.README_FILE)
