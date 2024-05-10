@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.7.10] 2024-05-09 UNOFFICIAL
+## [0.7.10] 2024-05-10 UNOFFICIAL
 
 - Debug build of QuiltCore-Java
 - Fail when pushing to read-only buckets
