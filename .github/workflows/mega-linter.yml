@@ -37,7 +37,7 @@ jobs:
         id: ml
         # You can override MegaLinter flavor used to have faster performances
         # More info at https://megalinter.github.io/flavors/
-        uses: oxsecurity/megalinter/flavors/dotnet@v7.8.0
+        uses: oxsecurity/megalinter/flavors/dotnet@v7.11.1
         env:
           # All available variables are described in documentation
           # https://megalinter.github.io/configuration/
