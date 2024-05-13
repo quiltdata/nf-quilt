@@ -82,8 +82,8 @@ dependencies {
     testImplementation ("org.codehaus.groovy:groovy-test:3.0.21") { exclude group: 'org.codehaus.groovy' }
     testImplementation ("cglib:cglib-nodep:3.3.0")
     testImplementation ("org.objenesis:objenesis:3.3")
-    testImplementation ("org.spockframework:spock-core:2.3-groovy-3.0") { exclude group: 'org.codehaus.groovy'; exclude group: 'net.bytebuddy' }
-    testImplementation ('org.spockframework:spock-junit4:2.3-groovy-3.0') { exclude group: 'org.codehaus.groovy'; exclude group: 'net.bytebuddy' }
+    testImplementation ("org.spockframework:spock-core:2.3-groovy-4.0") { exclude group: 'org.codehaus.groovy'; exclude group: 'net.bytebuddy' }
+    testImplementation ('org.spockframework:spock-junit4:2.3-groovy-4.0') { exclude group: 'org.codehaus.groovy'; exclude group: 'net.bytebuddy' }
     testImplementation ('com.google.jimfs:jimfs:1.3.0')
 
     testImplementation(testFixtures("io.nextflow:nextflow:$nextflowVersion"))
