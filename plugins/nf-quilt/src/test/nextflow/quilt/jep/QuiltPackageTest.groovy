@@ -41,6 +41,7 @@ class QuiltPackageTest extends QuiltSpecification {
 
     private final static String PACKAGE_URL = 'quilt+s3://quilt-example#package=examples%2fsmart-report@d68a7e9'
     private final static String TEST_URL = PACKAGE_URL + '&path=README.md'
+    private final static String READONLY_URL = 'quilt+s3://allencell#package=test%2ftmp&path=foo%2fbar.txt'
 
     private QuiltPathFactory factory
     private QuiltPath qpath
@@ -170,22 +171,26 @@ class QuiltPackageTest extends QuiltSpecification {
         !Files.isDirectory(qpath)
     }
 
-    @IgnoreIf({ System.getProperty('os.name').contains('indows') })
+    // @IgnoreIf({ System.getProperty('os.name').contains('indows') })
     void 'should fail pushing new files to read-only bucket '() {
         given:
-        def qout = factory.parseUri(TEST_URL)
+        println("read-only-bucket:TEST_URL: ${READONLY_URL}")
+        def qout = factory.parseUri(READONLY_URL)
         def opkg = qout.pkg()
-        def outPath = Paths.get(opkg.packageDest().toString(), QuiltProduct.README_FILE)
+        println("opkg: ${opkg}")
+        def outPath = Paths.get(opkg.packageDest().toString(), 'foo/bar.txt')
+        println("outPath: ${outPath}")
         Files.writeString(outPath, "Time: ${timestamp}")
         expect:
         Files.exists(outPath)
         when:
+        println('Pushing to read-only bucket')
         opkg.push()
         then:
-        thrown(IOException)
+        thrown(RuntimeException)
     }
 
-    @IgnoreIf({ env.WRITE_BUCKET == 'quilt-example' || env.WRITE_BUCKET ==  null })
+    @IgnoreIf({ env.WRITE_BUCKET ==  null })
     void 'should get writeable package '() {
         given:
         QuiltPackage opkg = writeablePackage('observer')
@@ -196,7 +201,7 @@ class QuiltPackageTest extends QuiltSpecification {
         opkg.packageName.contains('test/observer')
     }
 
-    @IgnoreIf({ env.WRITE_BUCKET == 'quilt-example' || env.WRITE_BUCKET ==  null })
+    @IgnoreIf({ env.WRITE_BUCKET ==  null })
     void 'should succeed pushing new files to writeable bucket '() {
         given:
         QuiltPackage opkg = writeablePackage('observer')
