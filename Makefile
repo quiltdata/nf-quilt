@@ -29,7 +29,7 @@ check-env:
 
 clean:
 	./gradlew clean
-	rm -rf null results
+	rm -rf null results work
 	rm -rf */*/build plugins/nf-quilt/bin
 	rm -f .nextflow.log* .launch*classpath
 
