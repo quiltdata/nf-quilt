@@ -64,10 +64,10 @@ dependencies {
 
     // This dependency is exported to consumers, that is to say found on their compile classpath.
     compileOnly "io.nextflow:nextflow:$nextflowVersion"
-    compileOnly 'org.slf4j:slf4j-api:2.0.11'
+    compileOnly 'org.slf4j:slf4j-api:2.0.13'
     compileOnly 'org.pf4j:pf4j:3.11.0'
     // add here plugins depepencies
-    compileOnly 'org.slf4j:slf4j-simple:2.0.11'
+    compileOnly 'org.slf4j:slf4j-simple:2.0.13'
     compileOnly 'black.ninia:jep:4.2.0'
     runtime 'black.ninia:jep:4.2.0'
     runtimeOnly 'org.junit.platform:junit-platform-launcher:1.10.2'
@@ -81,7 +81,7 @@ dependencies {
     testImplementation "io.nextflow:nextflow:$nextflowVersion"
     testImplementation ("org.codehaus.groovy:groovy-test:3.0.21") { exclude group: 'org.codehaus.groovy' }
     testImplementation ("cglib:cglib-nodep:3.3.0")
-    testImplementation ("org.objenesis:objenesis:3.3")
+    testImplementation ("org.objenesis:objenesis:3.4")
     testImplementation ("org.spockframework:spock-core:2.3-groovy-3.0") { exclude group: 'org.codehaus.groovy'; exclude group: 'net.bytebuddy' }
     testImplementation ('org.spockframework:spock-junit4:2.3-groovy-3.0') { exclude group: 'org.codehaus.groovy'; exclude group: 'net.bytebuddy' }
     testImplementation ('com.google.jimfs:jimfs:1.3.0')
