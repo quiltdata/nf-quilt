@@ -64,10 +64,10 @@ dependencies {
 
     // This dependency is exported to consumers, that is to say found on their compile classpath.
     compileOnly "io.nextflow:nextflow:$nextflowVersion"
-    compileOnly 'org.slf4j:slf4j-api:2.0.11'
+    compileOnly 'org.slf4j:slf4j-api:2.0.13'
     compileOnly 'org.pf4j:pf4j:3.11.0'
     // add here plugins depepencies
-    compileOnly 'org.slf4j:slf4j-simple:2.0.11'
+    compileOnly 'org.slf4j:slf4j-simple:2.0.13'
     compileOnly 'black.ninia:jep:4.2.0'
     runtime 'black.ninia:jep:4.2.0'
     runtimeOnly 'org.junit.platform:junit-platform-launcher:1.10.2'
