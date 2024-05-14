@@ -1,6 +1,10 @@
 # Changelog
 
-## [0.7.10] 2024-05-10 UNOFFICIAL
+## [0.7.11] 2024-05-14 UNOFFICIAL
+
+- Republish correctly
+
+## [0.7.10] 2024-05-10 FAILED TO UPLOAD
 
 - Debug build of QuiltCore-Java
 - Fail when pushing to read-only buckets

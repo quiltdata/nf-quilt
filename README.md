@@ -76,8 +76,8 @@ From the command-line, do, e.g.:
 ```bash
 # export NXF_VER=23.04.3
 export LOG4J_DEBUG=true  # for verbose logging
-export NXF_PLUGINS_TEST_REPOSITORY=https://github.com/quiltdata/nf-quilt/releases/download/0.7.10/nf-quilt-0.7.10-meta.json
-nextflow run main.nf -plugins nf-quilt@0.7.10
+export NXF_PLUGINS_TEST_REPOSITORY=https://github.com/quiltdata/nf-quilt/releases/download/0.7.11/nf-quilt-0.7.11-meta.json
+nextflow run main.nf -plugins nf-quilt@0.7.11
 ```
 
 For Tower, you can use the "Pre-run script" to set the environment variables.
@@ -215,7 +215,9 @@ and replace `outdir` with the appropriate parameter for `publishDir`.
 The project should be hosted in a GitHub repository whose name should match the name of the plugin,
 that is the name of the directory in the `plugins` folder (e.g. `nf-quilt`).
 
-Follow these steps to package, upload and publish the plugin:
+If your system is properly configured, use `make publish` to package, upload, and publish the plugin.
+
+Otherwise, follow these steps:
 
 1. Create a file named `gradle.properties` in the project root containing the following attributes (this file should not be committed to Git):
 
