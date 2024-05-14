@@ -215,7 +215,9 @@ and replace `outdir` with the appropriate parameter for `publishDir`.
 The project should be hosted in a GitHub repository whose name should match the name of the plugin,
 that is the name of the directory in the `plugins` folder (e.g. `nf-quilt`).
 
-Follow these steps to package, upload and publish the plugin:
+If your system is properly configured, use `make publish` to package, upload, and publish the plugin.
+
+Otherwise, follow these steps:
 
 1. Create a file named `gradle.properties` in the project root containing the following attributes (this file should not be committed to Git):
 
