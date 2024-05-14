@@ -233,7 +233,7 @@ class QuiltPackage {
         })
     }
     // https://docs.quiltdata.com/v/version-5.0.x/examples/gitlike#install-a-package
-    void push(String msg = 'update', Map meta = [:]) {
+    Manifest push(String msg = 'update', Map meta = [:]) {
         S3PhysicalKey registryPath = new S3PhysicalKey(bucket, '', null)
         Registry registry = new Registry(registryPath)
         Namespace namespace = registry.getNamespace(packageName)
@@ -257,8 +257,19 @@ class QuiltPackage {
         builder.setMetadata((ObjectNode)mapper.valueToTree(fullMeta))
 
         Manifest m = builder.build()
-        log.debug('QuiltPackage.push', m)
-        m.push(namespace, "nf-quilt:${today()}-${msg}", parsed.workflowName)
+        log.debug("push[${this.parsed}]: ${m}")
+        try {
+            Manifest manifest = m.push(namespace, "nf-quilt:${today()}-${msg}", parsed.workflowName)
+            log.debug("pushed[${this.parsed}]: ${manifest}")
+            return manifest
+        } catch (Exception e) {
+            log.error('ERROR: Failed to push manifest', e)
+            print("FAILED: ${this.parsed}\n")
+            e.printStackTrace()
+            /* groovylint-disable-next-line ThrowRuntimeException */
+            throw new RuntimeException(e)
+        }
+        return m
     }
 
     @Override

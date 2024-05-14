@@ -139,7 +139,9 @@ ${nextflow}
         List<Map> quilt_summarize = setupSummarize()
         log.debug("setupSummarize: $quilt_summarize")
         try {
-            pkg.push(msg, meta)
+            log.info("publish.pushing: ${pkg}")
+            def m = pkg.push(msg, meta)
+            log.info("publish.pushed: ${m}")
         }
         catch (Exception e) {
             log.error("Exception: ${e}")

@@ -27,7 +27,7 @@ jobs:
     steps:
     # Git Checkout
     - name: Checkout Code
-      uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
+      uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         fetch-depth: 0
@@ -47,14 +47,18 @@ jobs:
         cache: gradle
        
     - name: Setup Gradle
-      uses: gradle/gradle-build-action@v2
+      uses: gradle/gradle-build-action@v3
 
     - name: Run Gradle Tests
       run: make test
+      env:
+        LOG4J_DEBUG: true
 
     - name: Archive production artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
+      if: ${{ always() }}
       with:
         name: nf-quilt-test-reports
         path: |
           /home/runner/work/nf-quilt/nf-quilt/plugins/nf-quilt/build/reports/tests/test/
+        overwrite: true
