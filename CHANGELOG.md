@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.7.11] 2024-05-14 UNOFFICIAL
+
+- Republish correctly
+
 ## [0.7.10] 2024-05-10 UNOFFICIAL
 
 - Debug build of QuiltCore-Java
