@@ -114,7 +114,7 @@ final class QuiltPath implements Path, Comparable {
     @Override
     Path getFileName() {
         log.debug('QuiltPath.getFileName')
-        // if (isJustPackage()) { return this } // IF DIRECTORY
+        if (isJustPackage()) { return this } // IF DIRECTORY
         QuiltPath filePath = new QuiltPath(filesystem, parsed.lastPath(), true)
         return filePath
     }

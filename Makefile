@@ -50,6 +50,12 @@ check:
 
 test: clean compile check #coverage
 
+error: compile
+	$(NF_BIN) run ./test.err.nf -profile standard -plugins $(PROJECT) --outdir "./results"
+
+ok: compile
+	$(NF_BIN) run ./test.ok.nf -profile standard -plugins $(PROJECT) --outdir "./results"
+
 test-nextflow: clean nextflow-git compile check #coverage
 
 test-all: clean compile-all check #coverage
