@@ -33,7 +33,7 @@ class QuiltNioTest extends QuiltSpecification {
 
     private static final String NULL_URL = 'quilt+s3://quilt-dev-null#package=test/null'
     //https://open.quiltdata.com/b/quilt-example/tree/examples/hurdat/
-    private static final String PACKAGE_URL = 'quilt+s3://quilt-example#package=examples/hurdat'
+    private static final String PACKAGE_URL = 'quilt+s3://quilt-example#package=examples/hurdat@f8d1478d93'
     private static final String WRITE_URL = packagePath('folder/file-name.txt')
     private static final String READ_URL = packagePath('data/atlantic-storms.csv')
     private static final String TEXT = 'Hello world!'
