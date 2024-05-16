@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.7.12] 2024-05-16
+
+- Fix getFileName()
+- Pin PACKAGE_URL for examples/hurdat
+
 ## [0.7.11] 2024-05-14 UNOFFICIAL
 
 - Republish correctly
