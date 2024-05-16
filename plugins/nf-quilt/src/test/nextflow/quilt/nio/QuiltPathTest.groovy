@@ -121,7 +121,7 @@ class QuiltPathTest extends QuiltSpecification {
 
         where:
         path                                   | fileName
-        'bucket'                               | ''
+        'bucket'                               | 'bucket'
         'bucket#path=file.txt'                 | 'file.txt'
         'bucket#path=some%2fdata%2ffile.txt'   | 'file.txt'
         '#path=file-name.txt'                  | 'file-name.txt'
