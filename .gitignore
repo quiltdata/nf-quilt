@@ -31,4 +31,4 @@ params.yaml
 *.old
 null
 quilt+*
-nextflow
+./nextflow
