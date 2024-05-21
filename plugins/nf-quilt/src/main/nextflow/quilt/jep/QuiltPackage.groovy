@@ -25,6 +25,9 @@ import java.nio.file.Path
 import java.util.stream.Collectors
 import java.time.LocalDate
 import com.quiltdata.quiltcore.Manifest
+import com.quiltdata.quiltcore.Namespace
+import com.quiltdata.quiltcore.Registry
+import com.quiltdata.quiltcore.key.S3PhysicalKey
 
 @Slf4j
 @CompileStatic
@@ -158,6 +161,12 @@ class QuiltPackage {
 
     Path packageDest() {
         return QuiltLocal.DOMAIN.packageDest(this)
+    }
+
+    Namespace getNamespace() {
+        S3PhysicalKey registryPath = new S3PhysicalKey(bucket, '', null)
+        Registry registry = new Registry(registryPath)
+        return registry.getNamespace(packageName)
     }
 
     String workflowName() {

@@ -28,11 +28,9 @@ import java.nio.file.attribute.BasicFileAttributes
 import java.util.stream.Collectors
 
 import com.quiltdata.quiltcore.Entry
-import com.quiltdata.quiltcore.Registry
 import com.quiltdata.quiltcore.Namespace
 import com.quiltdata.quiltcore.Manifest
 import com.quiltdata.quiltcore.key.LocalPhysicalKey
-import com.quiltdata.quiltcore.key.S3PhysicalKey
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.node.ObjectNode
@@ -100,9 +98,7 @@ class QuiltLocal {
 
         try {
             log.info("installing $pkg.packageName from $pkg.bucket...")
-            S3PhysicalKey registryPath = new S3PhysicalKey(pkg.bucket, '', null)
-            Registry registry = new Registry(registryPath)
-            Namespace namespace = registry.getNamespace(pkg.packageName)
+            Namespace namespace = pkg.getNamespace()
             String resolvedHash = (hash == 'latest' || hash == null || hash == 'null')
               ? namespace.getHash('latest')
               : hash
@@ -142,12 +138,6 @@ class QuiltLocal {
         })
     }
 
-    Namespace getNamespace(QuiltPackage pkg) {
-        S3PhysicalKey registryPath = new S3PhysicalKey(pkg.bucket, '', null)
-        Registry registry = new Registry(registryPath)
-        return registry.getNamespace(pkg.packageName)
-    }
-
     // https://docs.quiltdata.com/v/version-5.0.x/examples/gitlike#install-a-package
     Manifest push(QuiltPackage pkg, String msg = 'update', Map meta = [:]) {
         Path dest = packageDest(pkg)
@@ -171,7 +161,7 @@ class QuiltLocal {
 
         Manifest localManifest = builder.build()
         try {
-            Manifest remoteManifest = localManifest.push(getNamespace(pkg), msg, pkg.workflowName())
+            Manifest remoteManifest = localManifest.push(pkg.getNamespace(), msg, pkg.workflowName())
             log.info("pushed manifest: $remoteManifest ($localManifest)")
             return remoteManifest
         } catch (Exception e) {
