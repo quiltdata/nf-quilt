@@ -22,22 +22,9 @@ import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import java.nio.file.Files
 import java.nio.file.Path
-import java.nio.file.Paths
-import java.nio.file.SimpleFileVisitor
-import java.nio.file.FileVisitResult
-import java.nio.file.attribute.BasicFileAttributes
 import java.util.stream.Collectors
 import java.time.LocalDate
-
-import com.quiltdata.quiltcore.Entry
-import com.quiltdata.quiltcore.Registry
-import com.quiltdata.quiltcore.Namespace
 import com.quiltdata.quiltcore.Manifest
-import com.quiltdata.quiltcore.key.LocalPhysicalKey
-import com.quiltdata.quiltcore.key.S3PhysicalKey
-
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.node.ObjectNode
 
 @Slf4j
 @CompileStatic
@@ -47,8 +34,8 @@ class QuiltPackage {
     private static final String INSTALL_PREFIX = 'QuiltPackage'
     static final Path INSTALL_ROOT = Files.createTempDirectory(INSTALL_PREFIX)
 
-    private final String bucket
-    private final String packageName
+    protected final String bucket
+    protected final String packageName
     private final QuiltParser parsed
     private final String hash
     private final Path folder
@@ -120,8 +107,6 @@ class QuiltPackage {
         this.packageName = parsed.getPackageName()
         this.hash = parsed.getHash()
         this.meta = parsed.getMetadata()
-        this.folder = Paths.get(INSTALL_ROOT.toString(), this.toString())
-        log.debug("QuiltPackage.folder[${this.folder}]")
         this.setup()
     }
 
@@ -155,12 +140,10 @@ class QuiltPackage {
     }
 
     void reset() {
-        deleteDirectory(this.folder)
         setup()
     }
 
     void setup() {
-        Files.createDirectories(this.folder)
         this.installed = false
         install() // FIXME: only needed for nextflow < 23.12?
     }
@@ -174,85 +157,29 @@ class QuiltPackage {
     }
 
     Path packageDest() {
-        return folder
+        return QuiltLocal.DEFAULT.packageDest(this)
+    }
+
+    String workflowName() {
+        return parsed.workflowName
     }
 
     Path install() {
-        Path dest = packageDest()
-
         try {
-            log.info("installing $packageName from $bucket...")
-            S3PhysicalKey registryPath = new S3PhysicalKey(bucket, '', null)
-            Registry registry = new Registry(registryPath)
-            Namespace namespace = registry.getNamespace(packageName)
-            String resolvedHash = (hash == 'latest' || hash == null || hash == 'null')
-              ? namespace.getHash('latest')
-              : hash
-            log.debug("hash: $hash -> $resolvedHash")
-            Manifest manifest = namespace.getManifest(resolvedHash)
-
-            manifest.install(dest)
-            log.debug("done: installed into $dest)")
-            println("Children: ${relativeChildren('')}")
+            Path dest = QuiltLocal.DEFAULT.install(this)
+            installed = true
+            return dest
         } catch (IOException e) {
             log.error("failed to install $packageName")
             // this is non-fatal error, so we don't want to stop the pipeline
-            /* groovylint-disable-next-line ReturnNullFromCatchBlock */
-            return null
         }
-
-        installed = true
-        recursiveDeleteOnExit()
-
-        return dest
+        return null
     }
 
-    // https://stackoverflow.com/questions/15022219
-    // /does-files-createtempdirectory-remove-the-directory-after-jvm-exits-normally
-    void recursiveDeleteOnExit() throws IOException {
-        Path path = packageDest()
-        Files.walkFileTree(path, new SimpleFileVisitor<Path>() {
-
-            @Override
-            FileVisitResult visitFile(Path file, @SuppressWarnings('unused') BasicFileAttributes attrs) {
-                file.toFile().deleteOnExit()
-                return FileVisitResult.CONTINUE
-            }
-            @Override
-            FileVisitResult preVisitDirectory(Path dir, @SuppressWarnings('unused') BasicFileAttributes attrs) {
-                dir.toFile().deleteOnExit()
-                return FileVisitResult.CONTINUE
-            }
-
-        })
-    }
     // https://docs.quiltdata.com/v/version-5.0.x/examples/gitlike#install-a-package
     Manifest push(String msg = 'update', Map meta = [:]) {
-        S3PhysicalKey registryPath = new S3PhysicalKey(bucket, '', null)
-        Registry registry = new Registry(registryPath)
-        Namespace namespace = registry.getNamespace(packageName)
-
-        Manifest.Builder builder = Manifest.builder()
-
-        Files.walk(packageDest()).filter(f -> Files.isRegularFile(f)).forEach(f -> {
-            log.debug("push: ${f} -> ${packageDest()}")
-            String logicalKey = packageDest().relativize(f)
-            LocalPhysicalKey physicalKey = new LocalPhysicalKey(f)
-            long size = Files.size(f)
-            builder.addEntry(logicalKey, new Entry(physicalKey, size, null, null))
-        });
-
-        Map<String, Object> fullMeta = [
-            'version': Manifest.VERSION,
-            'user_meta': meta + this.meta,
-        ]
-        ObjectMapper mapper = new ObjectMapper()
-        builder.setMetadata((ObjectNode)mapper.valueToTree(fullMeta))
-
-        Manifest m = builder.build()
-        log.debug("push[${this.parsed}]: ${m}")
         try {
-            Manifest manifest = m.push(namespace, "nf-quilt:${today()}-${msg}", parsed.workflowName)
+            Manifest manifest = QuiltLocal.DEFAULT.push(this, "nf-quilt:${today()}-${msg}", meta)
             log.debug("pushed[${this.parsed}]: ${manifest}")
             return manifest
         } catch (Exception e) {
@@ -262,7 +189,8 @@ class QuiltPackage {
             /* groovylint-disable-next-line ThrowRuntimeException */
             throw new RuntimeException(e)
         }
-        return m
+        /* groovylint-disable-next-line ReturnNullFromCatchBlock */
+        return null
     }
 
     @Override

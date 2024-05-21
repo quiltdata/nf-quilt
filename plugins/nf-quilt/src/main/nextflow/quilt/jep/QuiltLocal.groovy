@@ -21,6 +21,7 @@ import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import java.nio.file.Files
 import java.nio.file.Path
+import java.nio.file.Paths
 import java.nio.file.SimpleFileVisitor
 import java.nio.file.FileVisitResult
 import java.nio.file.attribute.BasicFileAttributes
@@ -40,9 +41,10 @@ import com.fasterxml.jackson.databind.node.ObjectNode
 @CompileStatic
 class QuiltLocal {
 
+    public static final Path INSTALL_ROOT = Files.createTempDirectory(INSTALL_PREFIX)
+    public static final QuiltLocal DEFAULT = new QuiltLocal(INSTALL_ROOT)
     private static final String INSTALL_PREFIX = 'QuiltPackage'
-    static final Path INSTALL_ROOT = Files.createTempDirectory(INSTALL_PREFIX)
-    final Path cachePath
+    final Path localRoot
 
     static List<Path> listDirectory(Path rootPath) {
         return Files.walk(rootPath).sorted(Comparator.reverseOrder()).collect(Collectors.toList())
@@ -67,33 +69,35 @@ class QuiltLocal {
         return true
     }
 
-    QuiltLocal(Path cachePath) {
-        this.cachePath = cachePath
-    }
-
-    QuiltLocal() {
-        this.cachePath = INSTALL_ROOT
+    QuiltLocal(Path localRoot) {
+        this.localRoot = localRoot
+        setup()
     }
 
     void reset() {
-        deleteDirectory(this.folder)
+        deleteDirectory(this.localRoot)
         setup()
     }
 
     void setup() {
-        Files.createDirectories(this.folder)
-        this.installed = false
-        install() // FIXME: only needed for nextflow < 23.12?
+        Files.createDirectories(this.localRoot)
     }
 
-    Path install() {
-        Path dest = packageDest()
+    Path packageDest(QuiltPackage pkg) {
+        Path folder = Paths.get(this.localRoot.toString(), pkg.toString())
+        Files.createDirectories(folder)
+        return folder
+    }
+
+    Path install(QuiltPackage pkg) {
+        Path dest = packageDest(pkg)
+        String hash = pkg.hash
 
         try {
-            log.info("installing $packageName from $bucket...")
-            S3PhysicalKey registryPath = new S3PhysicalKey(bucket, '', null)
+            log.info("installing $pkg.packageName from $pkg.bucket...")
+            S3PhysicalKey registryPath = new S3PhysicalKey(pkg.bucket, '', null)
             Registry registry = new Registry(registryPath)
-            Namespace namespace = registry.getNamespace(packageName)
+            Namespace namespace = registry.getNamespace(pkg.packageName)
             String resolvedHash = (hash == 'latest' || hash == null || hash == 'null')
               ? namespace.getHash('latest')
               : hash
@@ -102,15 +106,13 @@ class QuiltLocal {
 
             manifest.install(dest)
             log.debug("done: installed into $dest)")
-            println("Children: ${relativeChildren('')}")
         } catch (IOException e) {
-            log.error("failed to install $packageName")
+            log.error("failed to install $pkg.packageName")
             // this is non-fatal error, so we don't want to stop the pipeline
             /* groovylint-disable-next-line ReturnNullFromCatchBlock */
             return null
         }
 
-        installed = true
         recursiveDeleteOnExit()
 
         return dest
@@ -119,8 +121,7 @@ class QuiltLocal {
  // https://stackoverflow.com/questions/15022219
     // /does-files-createtempdirectory-remove-the-directory-after-jvm-exits-normally
     void recursiveDeleteOnExit() throws IOException {
-        Path path = cachePath
-        Files.walkFileTree(path, new SimpleFileVisitor<Path>() {
+        Files.walkFileTree(localRoot, new SimpleFileVisitor<Path>() {
 
             @Override
             FileVisitResult visitFile(Path file, @SuppressWarnings('unused') BasicFileAttributes attrs) {
@@ -137,16 +138,17 @@ class QuiltLocal {
     }
 
     // https://docs.quiltdata.com/v/version-5.0.x/examples/gitlike#install-a-package
-    Manifest push(String msg = 'update', Map meta = [:]) {
-        S3PhysicalKey registryPath = new S3PhysicalKey(bucket, '', null)
+    Manifest push(QuiltPackage pkg, String msg = 'update', Map meta = [:]) {
+        Path dest = packageDest(pkg)
+        S3PhysicalKey registryPath = new S3PhysicalKey(pkg.bucket, '', null)
         Registry registry = new Registry(registryPath)
-        Namespace namespace = registry.getNamespace(packageName)
+        Namespace namespace = registry.getNamespace(pkg.packageName)
 
         Manifest.Builder builder = Manifest.builder()
 
-        Files.walk(packageDest()).filter(f -> Files.isRegularFile(f)).forEach(f -> {
-            log.debug("push: ${f} -> ${packageDest()}")
-            String logicalKey = packageDest().relativize(f)
+        Files.walk(dest).filter(f -> Files.isRegularFile(f)).forEach(f -> {
+            log.debug("push: ${f} -> ${dest}")
+            String logicalKey = dest.relativize(f)
             LocalPhysicalKey physicalKey = new LocalPhysicalKey(f)
             long size = Files.size(f)
             builder.addEntry(logicalKey, new Entry(physicalKey, size, null, null))
@@ -154,25 +156,22 @@ class QuiltLocal {
 
         Map<String, Object> fullMeta = [
             'version': Manifest.VERSION,
-            'user_meta': meta + this.meta,
+            'user_meta': meta + pkg.meta,
         ]
         ObjectMapper mapper = new ObjectMapper()
         builder.setMetadata((ObjectNode)mapper.valueToTree(fullMeta))
 
-        Manifest m = builder.build()
-        log.debug("push[${this.parsed}]: ${m}")
+        Manifest localManifest = builder.build()
         try {
-            Manifest manifest = m.push(namespace, "nf-quilt:${today()}-${msg}", parsed.workflowName)
-            log.debug("pushed[${this.parsed}]: ${manifest}")
-            return manifest
+            Manifest remoteManifest = localManifest.push(namespace, msg, pkg.workflowName())
+            return remoteManifest
         } catch (Exception e) {
             log.error('ERROR: Failed to push manifest', e)
-            print("FAILED: ${this.parsed}\n")
             e.printStackTrace()
             /* groovylint-disable-next-line ThrowRuntimeException */
             throw new RuntimeException(e)
         }
-        return m
+        return localManifest
     }
 
 }
