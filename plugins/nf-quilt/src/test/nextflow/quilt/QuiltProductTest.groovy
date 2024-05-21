@@ -91,7 +91,7 @@ class QuiltProductTest extends QuiltSpecification {
         given:
         QuiltProduct skipREADME = makeProduct('readme=SKIP')
         String text = skipREADME.setupReadme()
-        def files = skipREADME.pkg.folder.list().sort()
+        def files = skipREADME.pkg.packageDest().list().sort()
         expect:
         skipREADME.shouldSkip(QuiltProduct.KEY_README)
         !text
@@ -103,7 +103,7 @@ class QuiltProductTest extends QuiltSpecification {
         String readme_text = 'hasREADME'
         QuiltProduct hasREADME = makeProduct("readme=${readme_text}")
         String text = hasREADME.setupReadme()
-        def files = hasREADME.pkg.folder.list().sort()
+        def files = hasREADME.pkg.packageDest().list().sort()
         expect:
         text == readme_text
         !hasREADME.shouldSkip(QuiltProduct.KEY_README)

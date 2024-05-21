@@ -89,6 +89,11 @@ class QuiltLocal {
         return folder
     }
 
+    void resetDest(QuiltPackage pkg) {
+        Path dest = packageDest(pkg)
+        deleteDirectory(dest)
+    }
+
     Path install(QuiltPackage pkg) {
         Path dest = packageDest(pkg)
         String hash = pkg.hash
@@ -137,13 +142,16 @@ class QuiltLocal {
         })
     }
 
+    Namespace getNamespace(QuiltPackage pkg) {
+        S3PhysicalKey registryPath = new S3PhysicalKey(pkg.bucket, '', null)
+        Registry registry = new Registry(registryPath)
+        return registry.getNamespace(pkg.packageName)
+    }
+
     // https://docs.quiltdata.com/v/version-5.0.x/examples/gitlike#install-a-package
     Manifest push(QuiltPackage pkg, String msg = 'update', Map meta = [:]) {
         Path dest = packageDest(pkg)
-        S3PhysicalKey registryPath = new S3PhysicalKey(pkg.bucket, '', null)
-        Registry registry = new Registry(registryPath)
-        Namespace namespace = registry.getNamespace(pkg.packageName)
-
+        log.debug("push: $pkg -> $dest")
         Manifest.Builder builder = Manifest.builder()
 
         Files.walk(dest).filter(f -> Files.isRegularFile(f)).forEach(f -> {
@@ -163,7 +171,8 @@ class QuiltLocal {
 
         Manifest localManifest = builder.build()
         try {
-            Manifest remoteManifest = localManifest.push(namespace, msg, pkg.workflowName())
+            Manifest remoteManifest = localManifest.push(getNamespace(pkg), msg, pkg.workflowName())
+            log.info("pushed manifest: $remoteManifest ($localManifest)")
             return remoteManifest
         } catch (Exception e) {
             log.error('ERROR: Failed to push manifest', e)

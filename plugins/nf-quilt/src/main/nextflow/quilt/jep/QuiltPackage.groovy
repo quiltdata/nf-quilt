@@ -38,7 +38,6 @@ class QuiltPackage {
     protected final String packageName
     private final QuiltParser parsed
     private final String hash
-    private final Path folder
     private final Map meta
     private boolean installed
 
@@ -127,7 +126,7 @@ class QuiltPackage {
      * @return  List of the child object keys, as Strings
      */
     List<String> relativeChildren(String subpath) {
-        Path subfolder = folder.resolve(subpath)
+        Path subfolder = packageDest().resolve(subpath)
         String base = subfolder.toString() + '/'
         List<String> result = []
         final String[] children = subfolder.list().sort()
@@ -140,6 +139,7 @@ class QuiltPackage {
     }
 
     void reset() {
+        QuiltLocal.DEFAULT.resetDest(this)
         setup()
     }
 
