@@ -42,7 +42,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode
 class QuiltLocal {
 
     public static final Path INSTALL_ROOT = Files.createTempDirectory(INSTALL_PREFIX)
-    public static final QuiltLocal DEFAULT = new QuiltLocal(INSTALL_ROOT)
+    public static final QuiltLocal DOMAIN = new QuiltLocal(INSTALL_ROOT)
     private static final String INSTALL_PREFIX = 'QuiltPackage'
     final Path localRoot
 

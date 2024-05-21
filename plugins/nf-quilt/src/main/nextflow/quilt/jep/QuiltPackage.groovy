@@ -139,7 +139,7 @@ class QuiltPackage {
     }
 
     void reset() {
-        QuiltLocal.DEFAULT.resetDest(this)
+        QuiltLocal.DOMAIN.resetDest(this)
         setup()
     }
 
@@ -157,7 +157,7 @@ class QuiltPackage {
     }
 
     Path packageDest() {
-        return QuiltLocal.DEFAULT.packageDest(this)
+        return QuiltLocal.DOMAIN.packageDest(this)
     }
 
     String workflowName() {
@@ -166,7 +166,7 @@ class QuiltPackage {
 
     Path install() {
         try {
-            Path dest = QuiltLocal.DEFAULT.install(this)
+            Path dest = QuiltLocal.DOMAIN.install(this)
             installed = true
             return dest
         } catch (IOException e) {
@@ -179,7 +179,7 @@ class QuiltPackage {
     // https://docs.quiltdata.com/v/version-5.0.x/examples/gitlike#install-a-package
     Manifest push(String msg = 'update', Map meta = [:]) {
         try {
-            Manifest manifest = QuiltLocal.DEFAULT.push(this, "nf-quilt:${today()}-${msg}", meta)
+            Manifest manifest = QuiltLocal.DOMAIN.push(this, "nf-quilt:${today()}-${msg}", meta)
             log.debug("pushed[${this.parsed}]: ${manifest}")
             return manifest
         } catch (Exception e) {
