@@ -26,9 +26,9 @@ import java.nio.file.SimpleFileVisitor
 import java.nio.file.FileVisitResult
 import java.nio.file.attribute.BasicFileAttributes
 import java.util.stream.Collectors
-import quiltcore.Quilt
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.quiltdata.quiltcore.Quilt
 
 @Slf4j
 @CompileStatic
@@ -89,7 +89,7 @@ class QuiltLocal {
 
     Path install(QuiltPackage pkg) {
         String uri = pkg.parsed.toUriString()
-        Path domain_path = packageDest(pkg)
+        String domain_path = packageDest(pkg)
 
         try {
             log.info("installing $pkg.packageName from $pkg.bucket... into $domain_path")
@@ -128,7 +128,7 @@ class QuiltLocal {
 
     // https://docs.quiltdata.com/v/version-5.0.x/examples/gitlike#install-a-package
     String push(QuiltPackage pkg, String msg = 'update', Map meta = [:]) {
-        Path domain_path = packageDest(pkg)
+        String domain_path = packageDest(pkg)
         String pkg_name = pkg.packageName
         String meta_string = new ObjectMapper().writeValueAsString(meta)
         log.debug("push: $pkg from $domain_path with meta $meta_string")
@@ -144,7 +144,8 @@ class QuiltLocal {
             /* groovylint-disable-next-line ThrowRuntimeException */
             throw new RuntimeException(e)
         }
-        return localManifest
+        /* groovylint-disable-next-line ReturnNullFromCatchBlock */
+        return null
     }
 
 }
