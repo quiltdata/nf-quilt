@@ -29,13 +29,7 @@ import java.util.stream.Collectors
 
 import nextflow.quilt.jep.Quilt
 
-import com.quiltdata.quiltcore.Entry
-import com.quiltdata.quiltcore.Namespace
-import com.quiltdata.quiltcore.Manifest
-import com.quiltdata.quiltcore.key.LocalPhysicalKey
-
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.node.ObjectNode
 
 @Slf4j
 @CompileStatic
@@ -107,6 +101,7 @@ class QuiltLocal {
             /* groovylint-disable-next-line ThrowRuntimeException */
             throw new RuntimeException(e)
         }
+        return this.localRoot
     }
 
  // https://stackoverflow.com/questions/15022219
@@ -140,7 +135,8 @@ class QuiltLocal {
             /* groovylint-disable-next-line ThrowRuntimeException */
             throw new RuntimeException(e)
         }
-        return dest_string
+        /* groovylint-disable-next-line ReturnNullFromCatchBlock */
+        return null
     }
 
 }
