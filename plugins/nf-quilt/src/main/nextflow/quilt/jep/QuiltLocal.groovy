@@ -26,14 +26,9 @@ import java.nio.file.SimpleFileVisitor
 import java.nio.file.FileVisitResult
 import java.nio.file.attribute.BasicFileAttributes
 import java.util.stream.Collectors
-
-import com.quiltdata.quiltcore.Entry
-import com.quiltdata.quiltcore.Namespace
-import com.quiltdata.quiltcore.Manifest
-import com.quiltdata.quiltcore.key.LocalPhysicalKey
+import quiltcore.Quilt
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.node.ObjectNode
 
 @Slf4j
 @CompileStatic
@@ -93,20 +88,13 @@ class QuiltLocal {
     }
 
     Path install(QuiltPackage pkg) {
-        Path dest = packageDest(pkg)
-        String hash = pkg.hash
+        String uri = pkg.parsed.toUriString()
+        Path domain_path = packageDest(pkg)
 
         try {
-            log.info("installing $pkg.packageName from $pkg.bucket...")
-            Namespace namespace = pkg.getNamespace()
-            String resolvedHash = (hash == 'latest' || hash == null || hash == 'null')
-              ? namespace.getHash('latest')
-              : hash
-            log.debug("hash: $hash -> $resolvedHash")
-            Manifest manifest = namespace.getManifest(resolvedHash)
-
-            manifest.install(dest)
-            log.debug("done: installed into $dest)")
+            log.info("installing $pkg.packageName from $pkg.bucket... into $domain_path")
+            String installed_package_path = Quilt.install(domain_path, uri)
+            log.info("installed $pkg.packageName into $installed_package_path")
         } catch (IOException e) {
             log.error("failed to install $pkg.packageName")
             // this is non-fatal error, so we don't want to stop the pipeline
@@ -116,7 +104,7 @@ class QuiltLocal {
 
         recursiveDeleteOnExit()
 
-        return dest
+        return domain_path
     }
 
  // https://stackoverflow.com/questions/15022219
@@ -139,31 +127,17 @@ class QuiltLocal {
     }
 
     // https://docs.quiltdata.com/v/version-5.0.x/examples/gitlike#install-a-package
-    Manifest push(QuiltPackage pkg, String msg = 'update', Map meta = [:]) {
-        Path dest = packageDest(pkg)
-        log.debug("push: $pkg -> $dest")
-        Manifest.Builder builder = Manifest.builder()
-
-        Files.walk(dest).filter(f -> Files.isRegularFile(f)).forEach(f -> {
-            log.debug("push: ${f} -> ${dest}")
-            String logicalKey = dest.relativize(f)
-            LocalPhysicalKey physicalKey = new LocalPhysicalKey(f)
-            long size = Files.size(f)
-            builder.addEntry(logicalKey, new Entry(physicalKey, size, null, null))
-        });
-
-        Map<String, Object> fullMeta = [
-            'version': Manifest.VERSION,
-            'user_meta': meta + pkg.meta,
-        ]
-        ObjectMapper mapper = new ObjectMapper()
-        builder.setMetadata((ObjectNode)mapper.valueToTree(fullMeta))
-
-        Manifest localManifest = builder.build()
+    String push(QuiltPackage pkg, String msg = 'update', Map meta = [:]) {
+        Path domain_path = packageDest(pkg)
+        String pkg_name = pkg.packageName
+        String meta_string = new ObjectMapper().writeValueAsString(meta)
+        log.debug("push: $pkg from $domain_path with meta $meta_string")
         try {
-            Manifest remoteManifest = localManifest.push(pkg.getNamespace(), msg, pkg.workflowName())
-            log.info("pushed manifest: $remoteManifest ($localManifest)")
-            return remoteManifest
+            String top_hash = Quilt.commit(domain_path, pkg_name, msg)
+            log.info("commmited $pkg_name to Quilt with top hash $top_hash")
+            String manifest_uri = Quilt.push(domain_path, pkg_name)
+            log.info("pushed $pkg_name to Quilt with manifest uri $manifest_uri")
+            return manifest_uri
         } catch (Exception e) {
             log.error('ERROR: Failed to push manifest', e)
             e.printStackTrace()

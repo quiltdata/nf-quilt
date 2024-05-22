@@ -24,10 +24,6 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.util.stream.Collectors
 import java.time.LocalDate
-import com.quiltdata.quiltcore.Manifest
-import com.quiltdata.quiltcore.Namespace
-import com.quiltdata.quiltcore.Registry
-import com.quiltdata.quiltcore.key.S3PhysicalKey
 
 @Slf4j
 @CompileStatic
@@ -163,12 +159,6 @@ class QuiltPackage {
         return QuiltLocal.DOMAIN.packageDest(this)
     }
 
-    Namespace getNamespace() {
-        S3PhysicalKey registryPath = new S3PhysicalKey(bucket, '', null)
-        Registry registry = new Registry(registryPath)
-        return registry.getNamespace(packageName)
-    }
-
     String workflowName() {
         return parsed.workflowName
     }
@@ -186,9 +176,9 @@ class QuiltPackage {
     }
 
     // https://docs.quiltdata.com/v/version-5.0.x/examples/gitlike#install-a-package
-    Manifest push(String msg = 'update', Map meta = [:]) {
+    String push(String msg = 'update', Map meta = [:]) {
         try {
-            Manifest manifest = QuiltLocal.DOMAIN.push(this, "nf-quilt:${today()}-${msg}", meta)
+            String manifest = QuiltLocal.DOMAIN.push(this, "nf-quilt:${today()}-${msg}", meta)
             log.debug("pushed[${this.parsed}]: ${manifest}")
             return manifest
         } catch (Exception e) {
