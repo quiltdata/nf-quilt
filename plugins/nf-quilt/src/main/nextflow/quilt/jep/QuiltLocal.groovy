@@ -27,6 +27,8 @@ import java.nio.file.FileVisitResult
 import java.nio.file.attribute.BasicFileAttributes
 import java.util.stream.Collectors
 
+import nextflow.quilt.jep.Quilt
+
 import com.quiltdata.quiltcore.Entry
 import com.quiltdata.quiltcore.Namespace
 import com.quiltdata.quiltcore.Manifest
@@ -82,7 +84,7 @@ class QuiltLocal {
     }
 
     Path packageDest(QuiltPackage pkg) {
-        Path folder = Paths.get(this.localRoot.toString(), pkg.toString())
+        Path folder = Paths.get(this.localRoot.toString(), ".quilt", "installed", pkg.packageName)
         Files.createDirectories(folder)
         return folder
     }
@@ -93,30 +95,18 @@ class QuiltLocal {
     }
 
     Path install(QuiltPackage pkg) {
-        Path dest = packageDest(pkg)
-        String hash = pkg.hash
-
+        String uri = String.format("quilt+s3://%s#package=%s", pkg.bucket, pkg.packageName)
+        String domain_path = this.localRoot.toString();
         try {
-            log.info("installing $pkg.packageName from $pkg.bucket...")
-            Namespace namespace = pkg.getNamespace()
-            String resolvedHash = (hash == 'latest' || hash == null || hash == 'null')
-              ? namespace.getHash('latest')
-              : hash
-            log.debug("hash: $hash -> $resolvedHash")
-            Manifest manifest = namespace.getManifest(resolvedHash)
-
-            manifest.install(dest)
-            log.debug("done: installed into $dest)")
-        } catch (IOException e) {
-            log.error("failed to install $pkg.packageName")
-            // this is non-fatal error, so we don't want to stop the pipeline
-            /* groovylint-disable-next-line ReturnNullFromCatchBlock */
-            return null
+            String dest_string =  Quilt.install(domain_path, uri)
+            log.debug("Package installed to $dest_string")
+            return Paths.get(dest_string)
+        } catch (Exception e) {
+            log.error('ERROR: failed to install package', e)
+            e.printStackTrace()
+            /* groovylint-disable-next-line ThrowRuntimeException */
+            throw new RuntimeException(e)
         }
-
-        recursiveDeleteOnExit()
-
-        return dest
     }
 
  // https://stackoverflow.com/questions/15022219
@@ -139,38 +129,18 @@ class QuiltLocal {
     }
 
     // https://docs.quiltdata.com/v/version-5.0.x/examples/gitlike#install-a-package
-    Manifest push(QuiltPackage pkg, String msg = 'update', Map meta = [:]) {
-        Path dest = packageDest(pkg)
-        log.debug("push: $pkg -> $dest")
-        Manifest.Builder builder = Manifest.builder()
-
-        Files.walk(dest).filter(f -> Files.isRegularFile(f)).forEach(f -> {
-            log.debug("push: ${f} -> ${dest}")
-            String logicalKey = dest.relativize(f)
-            LocalPhysicalKey physicalKey = new LocalPhysicalKey(f)
-            long size = Files.size(f)
-            builder.addEntry(logicalKey, new Entry(physicalKey, size, null, null))
-        });
-
-        Map<String, Object> fullMeta = [
-            'version': Manifest.VERSION,
-            'user_meta': meta + pkg.meta,
-        ]
-        ObjectMapper mapper = new ObjectMapper()
-        builder.setMetadata((ObjectNode)mapper.valueToTree(fullMeta))
-
-        Manifest localManifest = builder.build()
+    String push(QuiltPackage pkg, String msg = 'update', Map meta = [:]) {
+        String domain_path = this.localRoot.toString();
+        String dest_string = Quilt.commit(domain_path, pkg.packageName, msg)
         try {
-            Manifest remoteManifest = localManifest.push(pkg.getNamespace(), msg, pkg.workflowName())
-            log.info("pushed manifest: $remoteManifest ($localManifest)")
-            return remoteManifest
+          return Quilt.push(domain_path, pkg.packageName)
         } catch (Exception e) {
             log.error('ERROR: Failed to push manifest', e)
             e.printStackTrace()
             /* groovylint-disable-next-line ThrowRuntimeException */
             throw new RuntimeException(e)
         }
-        return localManifest
+        return dest_string
     }
 
 }

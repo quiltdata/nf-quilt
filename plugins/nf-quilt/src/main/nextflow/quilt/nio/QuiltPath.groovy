@@ -73,10 +73,13 @@ final class QuiltPath implements Path, Comparable {
         return sub_paths()
     }
 
+    // Path to the installed manifest?
+    // Ex. `.quilt/installed/foo/bar/hash1234`?
     Path localPath() {
-        Path pkgPath = pkg().packageDest()
+        QuiltPackage p = pkg()
+        Path pkgPath = p.packageDest()
         assert pkgPath
-        return Paths.get(pkgPath.toUriString(), sub_paths())
+        return pkgPath.resolve(p.hash)
     }
 
     boolean deinstall() {

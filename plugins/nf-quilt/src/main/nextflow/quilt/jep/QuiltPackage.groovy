@@ -186,9 +186,9 @@ class QuiltPackage {
     }
 
     // https://docs.quiltdata.com/v/version-5.0.x/examples/gitlike#install-a-package
-    Manifest push(String msg = 'update', Map meta = [:]) {
+    String push(String msg = 'update', Map meta = [:]) {
         try {
-            Manifest manifest = QuiltLocal.DOMAIN.push(this, "nf-quilt:${today()}-${msg}", meta)
+            String manifest = QuiltLocal.DOMAIN.push(this, "nf-quilt:${today()}-${msg}", meta)
             log.debug("pushed[${this.parsed}]: ${manifest}")
             return manifest
         } catch (Exception e) {
