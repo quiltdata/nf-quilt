@@ -81,8 +81,13 @@ final class QuiltPath implements Path, Comparable {
 
     boolean deinstall() {
         Path path = localPath()
-        //log.debug("QuiltPath.deinstall: $path")
-        return Files.delete(path)
+        log.debug("QuiltPath.deinstall: $path")
+        try {
+            Files.delete(path)
+        } catch (java.nio.file.NoSuchFileException e) {
+            // Handle the exception here
+            log.error("Failed to delete path: $path", e)
+        }
     }
 
     @Override
