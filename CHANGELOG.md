@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.7.13] 2024-06-13
+
+- catch (java.nio.file.NoSuchFileException e) on deinstall
+
 ## [0.7.12] 2024-05-16
 
 - Fix getFileName()
