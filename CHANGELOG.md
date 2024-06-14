@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.7.14] 2024-06-14
+
+- improve package name debugging
+
 ## [0.7.13] 2024-06-13
 
 - catch (java.nio.file.NoSuchFileException e) on deinstall

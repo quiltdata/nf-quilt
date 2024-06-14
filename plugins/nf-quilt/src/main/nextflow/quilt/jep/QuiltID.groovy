@@ -40,7 +40,7 @@ class QuiltID {
         String pkgName = packageName
         if (!packageName || packageName.size() < QuiltParser.MIN_SIZE) {
             pkgName = DEFAULT_PACKAGE.join(QuiltParser.SEP)
-            log.warn("QuiltID.fetch: setting missing package to $packageName")
+            log.warn("QuiltID.fetch: setting missing package to $pkgName")
         }
         String[] split = pkgName.split(QuiltParser.SEP)
         if (split.size() < QuiltParser.MIN_SIZE || split[1].size() < QuiltParser.MIN_SIZE) {

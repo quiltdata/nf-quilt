@@ -82,6 +82,7 @@ class QuiltPackage {
 
     static QuiltPackage forParsed(QuiltParser parsed) {
         def pkgKey = parsed.toPackageString()
+        log.debug("QuiltPackage.forParsed[${pkgKey}]")
         def pkg = PKGS.get(pkgKey)
         if (pkg) { return pkg }
 
