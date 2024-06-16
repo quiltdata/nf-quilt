@@ -259,4 +259,12 @@ class QuiltPathTest extends QuiltSpecification {
         fullPath.toUriString().contains('?')
     }
 
+    void 'should return a valid package on relative paths'() {
+        when:
+        QuiltPath path = QuiltPathFactory.parse('quilt+s3://./')
+        then:
+        path.toString() == '.'
+        path.pkg() != null
+    }
+
 }
