@@ -28,6 +28,7 @@ class QuiltParser {
     static final String SEP = '/'
     static final String PREFIX = SCHEME + '://'
     static final int MIN_SIZE = 2
+    static final String NULL_BUCKET = 'nf-quilt-dev-null'
 
     static final String P_CAT = 'catalog'
     static final String P_DEST = 'dest'
@@ -56,6 +57,10 @@ class QuiltParser {
 
     static QuiltParser forBarePath(String path) {
         return QuiltParser.forUriString(PREFIX + path)
+    }
+
+    static QuiltParser forNullBucket() {
+        return new QuiltParser(NULL_BUCKET, 'dev/null', '')
     }
 
     static QuiltParser forUriString(String uriString) {
@@ -266,6 +271,10 @@ class QuiltParser {
 
     boolean hasPath() {
         return paths.size() > 0
+    }
+
+    boolean hasNullBucket() {
+        return NULL_BUCKET == getBucket()
     }
 
     String getOptions(String key) {

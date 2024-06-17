@@ -99,6 +99,18 @@ class QuiltPackageTest extends QuiltSpecification {
         Files.readAttributes(qroot, BasicFileAttributes)
     }
 
+    void 'should not raise error on null bucket'() {
+        given:
+        def qpath = factory.parseUri('quilt+s3://./')
+        def pkg = qpath.pkg()
+        expect:
+        pkg.isNull()
+        !pkg.install()
+        !pkg.isInstalled()
+        Files.exists(qpath.localPath())
+        Files.readAttributes(qpath, BasicFileAttributes)
+    }
+
     @IgnoreIf({ System.getProperty('os.name').contains('indows') })
     void 'should successfully install files and get attributes'() {
         expect:

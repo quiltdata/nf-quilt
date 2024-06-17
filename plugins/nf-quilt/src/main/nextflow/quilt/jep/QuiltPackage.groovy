@@ -170,6 +170,10 @@ class QuiltPackage {
         return parsed.options[QuiltParser.P_FORCE]
     }
 
+    boolean isNull() {
+        return parsed.hasNullBucket()
+    }
+
     boolean isInstalled() {
         return installed
     }
@@ -179,6 +183,10 @@ class QuiltPackage {
     }
 
     Path install() {
+        if (isNull()) {
+            log.debug('null bucket: no need to install')
+            return null
+        }
         Path dest = packageDest()
 
         try {
@@ -229,6 +237,11 @@ class QuiltPackage {
     }
     // https://docs.quiltdata.com/v/version-5.0.x/examples/gitlike#install-a-package
     Manifest push(String msg = 'update', Map meta = [:]) {
+        if (isNull()) {
+            log.debug('null bucket: no need to push')
+            return null
+        }
+
         S3PhysicalKey registryPath = new S3PhysicalKey(bucket, '', null)
         Registry registry = new Registry(registryPath)
         Namespace namespace = registry.getNamespace(packageName)
