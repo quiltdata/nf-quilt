@@ -273,6 +273,10 @@ class QuiltParser {
         return paths.size() > 0
     }
 
+    boolean isNullBucket() {
+        return NULL_BUCKET == getBucket()
+    }
+
     String getOptions(String key) {
         return options?.get(key)
     }
