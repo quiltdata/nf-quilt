@@ -170,8 +170,8 @@ class QuiltPackage {
         return parsed.options[QuiltParser.P_FORCE]
     }
 
-    boolean is_null() {
-        return parsed.isNullBucket()
+    boolean isNull() {
+        return parsed.hasNullBucket()
     }
 
     boolean isInstalled() {
@@ -183,8 +183,8 @@ class QuiltPackage {
     }
 
     Path install() {
-        if (is_null()) {
-            log.debug("null bucket: no need to install")
+        if (isNull()) {
+            log.debug('null bucket: no need to install')
             return null
         }
         Path dest = packageDest()
@@ -237,8 +237,8 @@ class QuiltPackage {
     }
     // https://docs.quiltdata.com/v/version-5.0.x/examples/gitlike#install-a-package
     Manifest push(String msg = 'update', Map meta = [:]) {
-        if (is_null()) {
-            log.debug("null bucket: no need to push")
+        if (isNull()) {
+            log.debug('null bucket: no need to push')
             return null
         }
 

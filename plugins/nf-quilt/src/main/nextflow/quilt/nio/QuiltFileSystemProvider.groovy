@@ -473,7 +473,7 @@ class QuiltFileSystemProvider extends FileSystemProvider implements FileSystemTr
     @Override
     def <A extends BasicFileAttributes> A readAttributes(Path path, Class<A> type, LinkOption... options)
          throws IOException {
-        // log.debug '<A>BasicFileAttributes QuiltFileSystemProvider.readAttributes()'
+        log.debug '<A>BasicFileAttributes QuiltFileSystemProvider.readAttributes()'
         def attr = attributesCache.get(path)
         if (attr) {
             return attr
@@ -486,8 +486,11 @@ class QuiltFileSystemProvider extends FileSystemProvider implements FileSystemTr
                 attributesCache[path] = result
                 return result
             }
-            // log.debug("readAttributes: File ${qPath.localPath()} not found")
-            throw new NoSuchFileException(qPath.toUriString())
+            log.debug("readAttributes: File ${qPath.localPath()} not found")
+            if (!qPath.isNull()) {
+                throw new NoSuchFileException(qPath.toUriString())
+            }
+            log.warn("readAttributes: Ignore ${qPath} for null bucket")
         }
         throw new UnsupportedOperationException("Not a valid Quilt Storage file attribute type: $type")
     }

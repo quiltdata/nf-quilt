@@ -104,7 +104,7 @@ class QuiltPackageTest extends QuiltSpecification {
         def qpath = factory.parseUri('quilt+s3://./')
         def pkg = qpath.pkg()
         expect:
-        pkg.is_null()
+        pkg.isNull()
         !pkg.install()
         !pkg.isInstalled()
         Files.exists(qpath.localPath())
