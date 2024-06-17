@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.7.15] 2024-06-17
+
+- use null bucket for relative paths (e.g., nf-schema)
+
 ## [0.7.14] 2024-06-14
 
 - improve package name debugging
