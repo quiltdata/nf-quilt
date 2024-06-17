@@ -66,9 +66,10 @@ final class QuiltPath implements Path, Comparable {
     }
 
     QuiltPackage pkg() {
-        return isAbsolute() ? QuiltPackage.forParsed(parsed) : null
+        QuiltParser source = isAbsolute() ? parsed : QuiltParser.forNullBucket()
+        return QuiltPackage.forParsed(source)
     }
-
+    
     String file_key() {
         return sub_paths()
     }

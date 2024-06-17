@@ -259,7 +259,7 @@ class QuiltPathTest extends QuiltSpecification {
         fullPath.toUriString().contains('?')
     }
 
-    void 'should return a valid package on relative paths'() {
+    void 'should return a special-case null bucket on invalid paths'() {
         when:
         QuiltPath path = QuiltPathFactory.parse('quilt+s3://./')
         then:
