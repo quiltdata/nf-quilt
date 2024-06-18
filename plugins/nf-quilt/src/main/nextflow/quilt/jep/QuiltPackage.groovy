@@ -80,8 +80,17 @@ class QuiltPackage {
         return sanitize("{${entries.join(',')}}".toString())
     }
 
+    static void resetPackageCache() {
+        PKGS.clear()
+    }
+
     static QuiltPackage forParsed(QuiltParser parsed) {
-        def pkgKey = parsed.toPackageString()
+        boolean isNull = parsed.hasNullBucket()
+        if (isNull && !PKGS.isEmpty()) {
+            return PKGS.values().last()
+        }
+
+        String pkgKey = parsed.toPackageString()
         log.debug("QuiltPackage.forParsed[${pkgKey}]")
         def pkg = PKGS.get(pkgKey)
         if (pkg) { return pkg }
