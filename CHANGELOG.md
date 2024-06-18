@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.7.16] 2024-06-178
+
+- use prior package, if any, for relative paths
+
 ## [0.7.15] 2024-06-17
 
 - use null bucket for relative paths (e.g., nf-schema)
