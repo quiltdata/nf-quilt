@@ -3,6 +3,7 @@ package nextflow.quilt.nio
 
 import nextflow.quilt.QuiltSpecification
 import nextflow.quilt.jep.QuiltParser
+import nextflow.quilt.jep.QuiltPackage
 
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -261,10 +262,22 @@ class QuiltPathTest extends QuiltSpecification {
 
     void 'should return a special-case null bucket on invalid paths'() {
         when:
+        QuiltPackage.resetPackageCache()
         QuiltPath path = QuiltPathFactory.parse('quilt+s3://./')
         then:
         path.toString() == '.'
         path.pkg() != null
+    }
+
+    void 'should return prior path on invalid paths'() {
+        when:
+        QuiltPackage.resetPackageCache()
+        QuiltPath pkgPath = QuiltPathFactory.parse(PKG_URL)
+        QuiltPath path = QuiltPathFactory.parse('quilt+s3://./')
+        QuiltPackage prior = pkgPath.pkg()
+        then:
+        prior
+        path.pkg() == prior
     }
 
 }

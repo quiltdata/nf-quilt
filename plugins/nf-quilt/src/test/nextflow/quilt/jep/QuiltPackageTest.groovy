@@ -101,6 +101,7 @@ class QuiltPackageTest extends QuiltSpecification {
 
     void 'should not raise error on null bucket'() {
         given:
+        QuiltPackage.resetPackageCache()
         def qpath = factory.parseUri('quilt+s3://./')
         def pkg = qpath.pkg()
         expect:
