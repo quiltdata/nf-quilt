@@ -248,12 +248,13 @@ class QuiltNioTest extends QuiltSpecification {
         itr.hasNext()
 
         when:
-        String[] ilist = itr*.toString().toArray()
+        String[] ilist = itr*.toString()*.replaceFirst('quilt-example#package=examples%2fhurdat&', '').toArray()
         then:
         ilist.size() > 4
-        ilist[0].contains('path=README')
-        ilist[1].contains('path=data')
-        ilist[2].contains('path=folder')
+        ilist.contains('path=README_NF_QUILT.md')
+        ilist.contains('path=data')
+        ilist.contains('path=folder')
+        ilist.contains('path=scripts')
     }
 
     void 'should create a directory'() {
