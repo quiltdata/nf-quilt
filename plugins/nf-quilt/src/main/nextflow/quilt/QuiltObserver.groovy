@@ -20,11 +20,15 @@ import nextflow.quilt.nio.QuiltPath
 import nextflow.quilt.nio.QuiltPathFactory
 
 import java.nio.file.Path
+import java.util.concurrent.locks.Lock
+import java.util.concurrent.locks.ReentrantLock
 
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import nextflow.Session
+import nextflow.processor.TaskHandler
 import nextflow.trace.TraceObserver
+import nextflow.trace.TraceRecord
 
 /**
  * Plugin observer of workflow events
@@ -38,6 +42,8 @@ class QuiltObserver implements TraceObserver {
     private Session session
     final private Map<String,String> uniqueURIs = [:]
     final private Map<String,String> publishedURIs = [:]
+    final private Map<Path,Path> workflowOutputs = [:]
+    final private Lock lock = new ReentrantLock()
 
     static QuiltPath asQuiltPath(Path path) {
         if (path in QuiltPath) {
@@ -92,15 +98,29 @@ class QuiltObserver implements TraceObserver {
         checkParams(session.getParams())
     }
 
+    @Override
+    void onProcessComplete(TaskHandler handler, TraceRecord trace) {
+        log.debug("`onProcessComplete` ${handler.task}")
+        log.debug("`onProcessComplete.trace` ${trace}")
+    }
+
+    @Override
+    void onProcessCached(TaskHandler handler, TraceRecord trace) {
+        log.debug("`onProcessCached` ${handler.task}")
+    }
+
     // NOTE: TraceFileObserver calls onFilePublish _before_ onFlowCreate
     @Override
-    void onFilePublish(Path path) { //, Path source
-        log.debug("onFilePublish.Path[$path]") //.Source[$source]
-        QuiltPath qPath = asQuiltPath(path)
+    void onFilePublish(Path destination, Path source) {
+        log.debug("onFilePublish.Path[$destination]") //.Source[$source]
+        QuiltPath qPath = asQuiltPath(destination)
         if (qPath) {
             checkPath(qPath, true)
         } else {
-            log.warn("onFilePublish.not.QuiltPath: $path")
+            log.warn("onFilePublish.not.QuiltPath: $destination")
+        }
+        lock.withLock {
+            workflowOutputs[source] = destination
         }
     }
 
