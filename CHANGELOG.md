@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.8.0] TBD
+
+- Piggy-back on existing plugins in the absence of Quilt+ URIs
+
 ## [0.7.16] 2024-06-178
 
 - use prior package, if any, for relative paths
