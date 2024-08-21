@@ -243,7 +243,7 @@ class QuiltNioTest extends QuiltSpecification {
      Test has: [path=data, path=folder, path=notebooks,
                 path=quilt_summarize.json, path=scripts, path=stream.txt]
     */
-    @IgnoreIf({ System.getProperty('os.name').contains('indows') || System.getProperty('os.name').contains('ubunutu') })
+    @IgnoreIf({ System.getProperty('os.name').contains('indows') || System.getProperty('os.name').contains('ux') })
     void 'should iterate over package folders/files'() {
         given:
         Path path = Paths.get(new URI(PACKAGE_URL))
