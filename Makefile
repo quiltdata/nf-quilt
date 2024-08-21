@@ -87,9 +87,10 @@ $(PIPELINE): $(NF_BIN) install
 deps:
 	./gradlew -q ${mm}dependencies
 
-#
-# Refresh SNAPSHOTs dependencies
-#
+update:
+	./gradlew useLatestVersions
+	make check
+
 refresh:
 	./gradlew --refresh-dependencies dependencies
 
