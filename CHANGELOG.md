@@ -1,6 +1,10 @@
 # Changelog
 
-## [0.7.16] 2024-06-178
+## [0.7.17] 2024-08-20
+
+- use prior package, if any, for relative paths
+
+## [0.7.16] 2024-06-17
 
 - use prior package, if any, for relative paths
 

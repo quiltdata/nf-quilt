@@ -18,6 +18,20 @@ plugins {
     // Apply the groovy plugin to add support for Groovy
     id 'groovy'
     id 'idea'
+    id 'se.patrikerdes.use-latest-versions' version '0.2.18'
+    id 'com.github.ben-manes.versions' version '0.51.0'
+}
+
+useLatestVersions {
+   // A blacklist of dependencies to update, in the format of group:name
+   updateBlacklist = [
+        'com.quiltdata:quiltcore',
+        'org.codehaus.groovy:groovy',
+        'org.codehaus.groovy:groovy-nio',
+        'org.codehaus.groovy:groovy-test',
+        'org.spockframework:spock-core',
+        'org.spockframework:spock-junit4',
+    ]
 }
 
 group = 'io.nextflow'
@@ -64,13 +78,13 @@ dependencies {
 
     // This dependency is exported to consumers, that is to say found on their compile classpath.
     compileOnly "io.nextflow:nextflow:$nextflowVersion"
-    compileOnly 'org.slf4j:slf4j-api:2.0.13'
+    compileOnly 'org.slf4j:slf4j-api:2.1.0-alpha1'
     compileOnly 'org.pf4j:pf4j:3.12.0'
     // add here plugins depepencies
-    compileOnly 'org.slf4j:slf4j-simple:2.0.13'
+    compileOnly 'org.slf4j:slf4j-simple:2.1.0-alpha1'
     compileOnly 'black.ninia:jep:4.2.0'
     runtime 'black.ninia:jep:4.2.0'
-    runtimeOnly 'org.junit.platform:junit-platform-launcher:1.10.2'
+    runtimeOnly 'org.junit.platform:junit-platform-launcher:1.11.0'
     implementation 'black.ninia:jep:4.2.0'
     testImplementation 'black.ninia:jep:4.2.0'
     //testImplementation(testFixtures('black.ninia:jep:4.0.3'))
