@@ -9,6 +9,7 @@ PID ?= $$$$
 PIPELINE ?= sarek
 QUERY ?= ?Name=$(USER)&Owner=Kevin+Moore&Date=2023-03-07&Type=CRISPR&Notebook+URL=http%3A%2F%2Fexample.com
 TEST_URI ?= quilt+s3://$(WRITE_BUCKET)$(QUERY)\#package=test/hurdat$(FRAGMENT)
+S3_URI ?= s3://$(WRITE_BUCKET)/test/overlay
 QUILT_URI ?=  quilt+s3://$(WRITE_BUCKET)\#package=$(PROJECT)/$(PIPELINE)
 REPORT ?= ./plugins/$(PROJECT)/build/reports/tests/test/index.html
 VERSION ?= $(shell grep 'Plugin-Version' plugins/$(PROJECT)/src/resources/META-INF/MANIFEST.MF | awk '{ print $$2 }')
@@ -61,6 +62,10 @@ test-all: clean compile-all check #coverage
 pkg-test: compile #-all
 	echo "$(TEST_URI)"
 	$(NF_BIN) run ./main.nf -profile standard -plugins $(PROJECT) --outdir "$(TEST_URI)"
+
+s3-test:
+	echo "$(S3_URI)"
+	$(NF_BIN) run ./main.nf -profile standard -plugins $(PROJECT) --outdir "$(S3_URI)"
 
 pkg-fail: compile
 	echo "$(TEST_URI)"
