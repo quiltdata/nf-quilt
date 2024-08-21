@@ -31,9 +31,6 @@ useLatestVersions {
         'org.codehaus.groovy:groovy-test',
         'org.spockframework:spock-core',
         'org.spockframework:spock-junit4',
-        'cglib:cglib-nodep',
-        'org.objenesis:objenesis',
-        'com.google.jimfs:jimfs'
     ]
 }
 
