@@ -112,21 +112,23 @@ class QuiltObserver implements TraceObserver {
     // NOTE: TraceFileObserver calls onFilePublish _before_ onFlowCreate
     @Override
     void onFilePublish(Path destination, Path source) {
-        log.debug("onFilePublish.Path[$destination]") //.Source[$source]
+        log.debug("onFilePublish.Path[$destination] <- $source")
         QuiltPath qPath = asQuiltPath(destination)
         if (qPath) {
             checkPath(qPath, true)
         } else {
             log.warn("onFilePublish.not.QuiltPath: $destination")
-        }
-        lock.withLock {
-            workflowOutputs[source] = destination
+            lock.withLock {
+                workflowOutputs[source] = destination
+            }
+            // fakePath(destination)
         }
     }
 
     @Override
     void onFlowComplete() {
-        log.debug("`onFlowComplete` ${publishedURIs}")
+        log.debug("onFlowComplete.workflowOutputs[${workflowOutputs.size()}]: $workflowOutputs")
+        log.debug("onFlowComplete.publishedURIs[${publishedURIs.size()}]: $publishedURIs")
         // create QuiltProduct for each unique package URI
         publishedURIs.each { k, uri ->
             QuiltPath path = QuiltPathFactory.parse(uri)
