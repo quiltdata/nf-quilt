@@ -9,7 +9,7 @@ PID ?= $$$$
 PIPELINE ?= sarek
 QUERY ?= ?Name=$(USER)&Owner=Kevin+Moore&Date=2023-03-07&Type=CRISPR&Notebook+URL=http%3A%2F%2Fexample.com
 TEST_URI ?= quilt+s3://$(WRITE_BUCKET)$(QUERY)\#package=test/hurdat$(FRAGMENT)
-S3_INPUT ?= s3://$(WRITE_BUCKET)/test/hurdat
+S3_INPUT ?= s3://$(WRITE_BUCKET)/examples/hurdat
 S3_URI ?= s3://$(WRITE_BUCKET)/test/overlay
 QUILT_URI ?=  quilt+s3://$(WRITE_BUCKET)\#package=$(PROJECT)/$(PIPELINE)
 REPORT ?= ./plugins/$(PROJECT)/build/reports/tests/test/index.html

@@ -78,6 +78,26 @@ class QuiltObserver implements TraceObserver {
         }
         return uniqueURIs[key]
     }
+    String fakePath(Path nonQuiltPath) {
+        /// Extract s3://bucket/prefix/suffix/{body} from nonQuiltPath
+        /// into quilt+s3://bucket#package=prefix%2fsuffix
+        String s3_uri = nonQuiltPath
+        String[] parts = s3_uri.split('/')
+        String bucket = parts[1]
+        String prefix = parts[2]
+        String suffix = parts[3]
+        String uri = "quilt+s3://${bucket}#package=${prefix}%2f${suffix}"
+        if (parts.length > 4) {
+            uri += '&path=' + parts[4..-1].join('/')
+        }
+        log.debug("fakePath[$nonQuiltPath] -> $uri")
+        QuiltPath qPath = QuiltPathFactory.parse(uri)
+        String key = pkgKey(qPath)
+        log.debug("fakePath.qPath: $qPath -> $key")
+        uniqueURIs[key] = uri
+        publishedURIs[key] = uri
+        return uri
+    }
 
     void checkParams(Map params) {
         log.debug("checkParams[$params]")
@@ -112,6 +132,7 @@ class QuiltObserver implements TraceObserver {
     // NOTE: TraceFileObserver calls onFilePublish _before_ onFlowCreate
     @Override
     void onFilePublish(Path destination, Path source) {
+        // Path source may be null, won't work with older versions of Nextflow
         log.debug("onFilePublish.Path[$destination] <- $source")
         QuiltPath qPath = asQuiltPath(destination)
         if (qPath) {
@@ -119,9 +140,10 @@ class QuiltObserver implements TraceObserver {
         } else {
             log.warn("onFilePublish.not.QuiltPath: $destination")
             lock.withLock {
-                workflowOutputs[source] = destination
+                Path sourceKey = source ?: destination
+                workflowOutputs[sourceKey] = destination
             }
-            // fakePath(destination)
+            fakePath(destination)
         }
     }
 
