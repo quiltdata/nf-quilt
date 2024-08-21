@@ -22,6 +22,21 @@ plugins {
     id 'com.github.ben-manes.versions' version '0.51.0'
 }
 
+useLatestVersions {
+   // A blacklist of dependencies to update, in the format of group:name
+   updateBlacklist = [
+        'com.quiltdata:quiltcore',
+        'org.codehaus.groovy:groovy',
+        'org.codehaus.groovy:groovy-nio',
+        'org.codehaus.groovy:groovy-test',
+        'org.spockframework:spock-core',
+        'org.spockframework:spock-junit4',
+        'cglib:cglib-nodep',
+        'org.objenesis:objenesis',
+        'com.google.jimfs:jimfs'
+    ]
+}
+
 group = 'io.nextflow'
 // DO NOT SET THE VERSION HERE
 // THE VERSION FOR PLUGINS IS DEFINED IN THE `/resources/META-INF/MANIFEST.NF` file
