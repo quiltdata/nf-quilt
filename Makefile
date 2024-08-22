@@ -1,6 +1,6 @@
 sinclude .env # create from example.env
 PROJECT ?= nf-quilt
-WRITE_BUCKET ?= quilt-example
+WRITE_BUCKET ?= udp-spec
 FRAGMENT ?= &path=.
 NF_DIR ?= ../nextflow
 NF_BIN ?= ./launch.sh
@@ -8,10 +8,10 @@ PATH_NF ?= ./main.path.nf
 PID ?= $$$$
 PIPELINE ?= sarek
 QUERY ?= ?Name=$(USER)&Owner=Kevin+Moore&Date=2023-03-07&Type=CRISPR&Notebook+URL=http%3A%2F%2Fexample.com
-TEST_URI ?= quilt+s3://$(WRITE_BUCKET)$(QUERY)\#package=test/hurdat$(FRAGMENT)
-QUILT_URI ?=  quilt+s3://$(WRITE_BUCKET)\#package=$(PROJECT)/$(PIPELINE)
-REPORT ?= ./plugins/$(PROJECT)/build/reports/tests/test/index.html
 VERSION ?= $(shell grep 'Plugin-Version' plugins/$(PROJECT)/src/resources/META-INF/MANIFEST.MF | awk '{ print $$2 }')
+TEST_URI ?= quilt+s3://$(WRITE_BUCKET)$(QUERY)\#package=nf-quilt/dest-$(VERSION)$(FRAGMENT)
+PIPE_OUT ?=  quilt+s3://$(WRITE_BUCKET)\#package=$(PROJECT)/$(PIPELINE)
+REPORT ?= ./plugins/$(PROJECT)/build/reports/tests/test/index.html
 
 verify: #compile
 	echo $(WRITE_BUCKET)
@@ -78,7 +78,7 @@ tower-test: $(NF_BIN)
 $(PIPELINE): $(NF_BIN) install
 	echo "Ensure you have docker running"
 	$(NF_BIN) pull nf-core/$(PIPELINE)
-	$(NF_BIN) run nf-core/$(PIPELINE) -profile test,docker -plugins $(PROJECT)@$(VERSION) --outdir "$(QUILT_URI)"
+	$(NF_BIN) run nf-core/$(PIPELINE) -profile test,docker -plugins $(PROJECT)@$(VERSION) --outdir "$(PIPE_OUT)"
 
 #
 # Show dependencies
@@ -100,6 +100,7 @@ install: compile
 	cp -r build/plugins/$(PROJECT)-${VERSION} ${HOME}/.nextflow/plugins/
 #
 # Upload JAR artifacts to Maven Central
+#
 
 publish:
 	echo "Ensure you have set 'github_organization=<owner>' in gradle.properties"
