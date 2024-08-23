@@ -1,8 +1,8 @@
 # Changelog
 
-## [0.7.17] 2024-08-20
+## [0.7.17] UNRELEASED
 
-- use prior package, if any, for relative paths
+- support ChunkedChecksums
 
 ## [0.7.16] 2024-06-17
 
