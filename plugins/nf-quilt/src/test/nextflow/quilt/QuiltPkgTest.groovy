@@ -49,11 +49,10 @@ class QuiltPkgTest extends QuiltSpecification {
         return pkg
     }
 
-    /* static String destURI() {
+    static String destVersion() {
         String manifestVersion = '0.7.17'  // FIXME: Get from manifest
-        return baseURI + 'dest_' + manifestVersion
+        return 'dest_' + manifestVersion
     }
-    */
 
     void 'should return a package for a valid suffix'() {
         when:
@@ -65,8 +64,27 @@ class QuiltPkgTest extends QuiltSpecification {
     void 'should confirm contents of source URI'() {
         when:
         QuiltPackage pkg = GetPackage('source')
-        then:
         Path out = pkg.packageDest()
+        then:
+        pkg.install()
+        then:
+        Files.exists(out.resolve(file))
+        where:
+        file << CONTENTS
+    }
+
+    void 'should find package for dest URI'() {
+        when:
+        QuiltPackage pkg = GetPackage(destVersion())
+        then:
+        pkg != null
+    }
+
+    void 'should confirm contents of dest URI'() {
+        when:
+        QuiltPackage pkg = GetPackage(destVersion())
+        Path out = pkg.packageDest()
+        then:
         pkg.install()
         then:
         Files.exists(out.resolve(file))
