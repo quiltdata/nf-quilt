@@ -3,7 +3,7 @@
 
 nextflow.enable.dsl = 2
 
-params.input = 'quilt+s3://quilt-example#package=examples/hurdat'
+params.input = 'quilt+s3://udp-spec#package=nf-quilt/source'
 params.outdir = '/var/tmp'
 
 packageFiles = Channel.fromPath(params.input)

@@ -66,7 +66,9 @@ pkg-fail: compile
 	echo "$(TEST_URI)"
 	$(NF_BIN) run ./fail.nf -profile standard -plugins $(PROJECT) --outdir "$(TEST_URI)"
 
-path-input: clean compile #-all
+path-input: compile
+	mkdir -p work
+	date > work/COPY_THIS.md
 	echo "$(TEST_URI)"
 	$(NF_BIN) run $(PATH_NF) -profile standard -plugins $(PROJECT) --outdir "./results"
 
