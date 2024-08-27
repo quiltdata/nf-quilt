@@ -18,8 +18,8 @@ import java.nio.file.StandardOpenOption
 import java.nio.file.attribute.BasicFileAttributeView
 import java.nio.file.attribute.BasicFileAttributes
 
-import spock.lang.IgnoreIf
 import spock.lang.Ignore
+import spock.lang.IgnoreIf
 import groovy.util.logging.Slf4j
 import groovy.transform.CompileDynamic
 
@@ -197,7 +197,7 @@ class QuiltNioTest extends QuiltSpecification {
         if (source) { Files.delete(source) }
     }
 
-    @Ignore
+    @IgnoreIf({ env.WRITE_BUCKET ==  null })
     void 'copy a remote file to a bucket'() {
         given:
         Path path = Paths.get(new URI(WRITE_URL))
@@ -212,7 +212,7 @@ class QuiltNioTest extends QuiltSpecification {
         readObject(path).trim() == TEXT
     }
 
-    @Ignore
+    @IgnoreIf({ env.WRITE_BUCKET ==  null })
     void 'move a remote file to a bucket'() {
         given:
         Path path = Paths.get(new URI(WRITE_URL))
@@ -300,10 +300,11 @@ class QuiltNioTest extends QuiltSpecification {
         existsPath(path)
     }
 
-    @Ignore
+    @Ignore('toAbsolutePath not implemented yet')
     void 'should create temp file and directory'() {
         given:
-        Path base = Paths.get(new URI(PACKAGE_URL))
+        Path base = Paths.get(new URI(PACKAGE_URL)).toAbsolutePath()
+        println "BASE: ${base}"
 
         when:
         Path t1 = Files.createTempDirectory(base, 'test')
@@ -476,7 +477,7 @@ class QuiltNioTest extends QuiltSpecification {
         thrown(FileSystemException)
     }
 
-    @Ignore
+    // @Ignore
     void 'should stream directory content'() {
         given:
         makeObject(null_path('foo/file1.txt'), 'A')
@@ -520,7 +521,7 @@ class QuiltNioTest extends QuiltSpecification {
         list  == [ 'file4.txt' ]
     }
 
-    @Ignore
+    // @Ignore
     void 'should check walkTree'() {
         given:
         makeObject(null_path('foo/file1.txt'), 'A')
@@ -594,7 +595,7 @@ class QuiltNioTest extends QuiltSpecification {
         dirs.contains('baz')
     }
 
-    @Ignore
+    @Ignore('Not implemented yet')
     void 'should handle dir and files having the same name'() {
         given:
         makeObject(packagePath('foo'), 'file-1')
