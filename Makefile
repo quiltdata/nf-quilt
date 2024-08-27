@@ -11,6 +11,7 @@ QUERY ?= ?Name=$(USER)&Owner=Kevin+Moore&Date=2023-03-07&Type=CRISPR&Notebook+UR
 VERSION ?= $(shell grep 'Plugin-Version' plugins/$(PROJECT)/src/resources/META-INF/MANIFEST.MF | awk '{ print $$2 }')
 TEST_URI ?= quilt+s3://$(WRITE_BUCKET)$(QUERY)\#package=nf-quilt/dest-$(VERSION)$(FRAGMENT)
 PIPE_OUT ?=  quilt+s3://$(WRITE_BUCKET)\#package=$(PROJECT)/$(PIPELINE)
+S3_BASE = s3://$(WRITE_BUCKET)/$(PROJECT)
 REPORT ?= ./plugins/$(PROJECT)/build/reports/tests/test/index.html
 
 verify: #compile
@@ -61,6 +62,15 @@ test-all: clean compile-all check #coverage
 pkg-test: compile #-all
 	echo "$(TEST_URI)"
 	$(NF_BIN) run ./main.nf -profile standard -plugins $(PROJECT) --outdir "$(TEST_URI)"
+
+s3-test: compile
+	$(NF_BIN) run ./main.nf --outdir "$(S3_BASE)/s3-test" --input "$(S3_BASE)/s3-in"
+
+s3-in: compile
+	$(NF_BIN) run ./main.nf -profile standard -plugins $(PROJECT) --outdir "$(TEST_URI)" --input "$(S3_BASE)/s3-in"
+
+s3-out: compile
+	$(NF_BIN) run ./main.nf -profile standard -plugins $(PROJECT) --outdir "$(S3_BASE)/s3-out"
 
 pkg-fail: compile
 	echo "$(TEST_URI)"

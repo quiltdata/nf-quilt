@@ -16,12 +16,12 @@ process transfer {
     path x
 
     output:
-    path 'output/*'
+    path 'inputs/**'
 
     """
-    mkdir -p output
-    cp -r $x output
-    echo output/$x
+    mkdir -p data
+    cp -r $x inputs/
+    echo inputs/$x
     """
 }
 
