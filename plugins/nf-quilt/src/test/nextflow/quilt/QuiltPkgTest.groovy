@@ -52,7 +52,7 @@ class QuiltPkgTest extends QuiltSpecification {
 
     static String destVersion() {
         String manifestVersion = '0.7.17'  // FIXME: Get from manifest
-        return 'dest_' + manifestVersion
+        return 'dest-' + manifestVersion
     }
 
     void 'should return a package for a valid suffix'() {
@@ -81,11 +81,11 @@ class QuiltPkgTest extends QuiltSpecification {
         pkg != null
     }
 
-    @IgnoreIf({ true })
     void 'should confirm contents of dest URI'() {
         when:
         QuiltPackage pkg = GetPackage(destVersion())
         Path out = pkg.packageDest()
+        then:
         pkg.install()
         then:
         Files.exists(out.resolve("inputs/$file"))
