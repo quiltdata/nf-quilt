@@ -237,13 +237,13 @@ class QuiltNioTest extends QuiltSpecification {
         pkg.relativeChildren('')
     }
 
-    /* FIXME: Test fails on Windows and Ubunut. STDOUT shows:
+    /* FIXME: Test fails on Windows and Ubuntu. STDOUT shows:
      Children: [README_NF_QUILT.md, alpha, bolder, create.txt, data, folder,
                 nf-quilt, notebooks, quilt_summarize.json, scripts, stream.txt]
      Test has: [path=data, path=folder, path=notebooks,
                 path=quilt_summarize.json, path=scripts, path=stream.txt]
     */
-    @IgnoreIf({ System.getProperty('os.name').contains('indows') || System.getProperty('os.name').contains('ux') })
+    // @IgnoreIf({ System.getProperty('os.name').contains('indows') || System.getProperty('os.name').contains('ux') })
     void 'should iterate over package folders/files'() {
         given:
         Path path = Paths.get(new URI(PACKAGE_URL))
@@ -595,7 +595,7 @@ class QuiltNioTest extends QuiltSpecification {
         dirs.contains('baz')
     }
 
-    @Ignore('Not implemented yet')
+    @Ignore('Not implemented yet: dir and files having the same name')
     void 'should handle dir and files having the same name'() {
         given:
         makeObject(packagePath('foo'), 'file-1')

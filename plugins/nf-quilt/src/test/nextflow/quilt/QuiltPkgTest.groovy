@@ -22,7 +22,6 @@ import nextflow.quilt.jep.QuiltPackage
 
 import java.nio.file.Files
 import java.nio.file.Path
-import java.nio.file.Paths
 
 import groovy.transform.CompileDynamic
 
