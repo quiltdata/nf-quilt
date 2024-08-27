@@ -521,7 +521,7 @@ class QuiltNioTest extends QuiltSpecification {
         list  == [ 'file4.txt' ]
     }
 
-    // @Ignore
+    @IgnoreIf({ System.getProperty('os.name').contains('indows') })
     void 'should check walkTree'() {
         given:
         makeObject(null_path('foo/file1.txt'), 'A')
