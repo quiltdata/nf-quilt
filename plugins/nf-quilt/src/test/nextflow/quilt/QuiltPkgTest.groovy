@@ -22,9 +22,9 @@ import nextflow.quilt.jep.QuiltPackage
 
 import java.nio.file.Files
 import java.nio.file.Path
+import java.nio.file.Paths
 
 import groovy.transform.CompileDynamic
-import spock.lang.IgnoreIf
 
 /**
  *
@@ -50,9 +50,17 @@ class QuiltPkgTest extends QuiltSpecification {
         return pkg
     }
 
-    static String destVersion() {
-        String manifestVersion = '0.7.17'  // FIXME: Get from manifest
-        return 'dest-' + manifestVersion
+    static String manifestVersion() {
+        String subPath = 'src/resources/META-INF/MANIFEST.MF'
+        File manifestFile = new File(subPath)
+        def manifest = new java.util.jar.Manifest(new FileInputStream(manifestFile))
+        def attrs = manifest.getMainAttributes()
+        String version = attrs.getValue('Plugin-Version')
+        return version
+    }
+
+    static String destPackage() {
+        return 'dest-' + manifestVersion()
     }
 
     void 'should return a package for a valid suffix'() {
@@ -60,6 +68,14 @@ class QuiltPkgTest extends QuiltSpecification {
         QuiltPackage pkg = GetPackage('source')
         then:
         pkg != null
+    }
+
+    void 'should get a valid version'() {
+        given:
+        String version = manifestVersion()
+        expect:
+        version
+        version != '0.0.0'
     }
 
     void 'should confirm contents of source URI'() {
@@ -74,16 +90,9 @@ class QuiltPkgTest extends QuiltSpecification {
         file << CONTENTS
     }
 
-    void 'should find package for dest URI'() {
-        when:
-        QuiltPackage pkg = GetPackage(destVersion())
-        then:
-        pkg != null
-    }
-
     void 'should confirm contents of dest URI'() {
         when:
-        QuiltPackage pkg = GetPackage(destVersion())
+        QuiltPackage pkg = GetPackage(destPackage())
         Path out = pkg.packageDest()
         then:
         pkg.install()
