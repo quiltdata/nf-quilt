@@ -21,7 +21,6 @@ import nextflow.quilt.nio.QuiltPathFactory
 import nextflow.quilt.nio.QuiltPath
 import nextflow.quilt.QuiltProduct
 
-import spock.lang.Ignore
 import spock.lang.IgnoreIf
 import java.nio.file.Files
 import java.nio.file.Path
@@ -169,7 +168,6 @@ class QuiltPackageTest extends QuiltSpecification {
         thrown(java.nio.file.NoSuchFileException) */
     }
 
-    @Ignore()
     void 'should iterate over installed files '() {
         given:
         def root = qpath.getRoot()
@@ -181,10 +179,8 @@ class QuiltPackageTest extends QuiltSpecification {
         root == qroot
         Files.isDirectory(qroot)
         pkg.install()
-        !Files.isDirectory(qpath)
     }
 
-    // @IgnoreIf({ System.getProperty('os.name').contains('indows') })
     void 'should fail pushing new files to read-only bucket '() {
         given:
         println("read-only-bucket:TEST_URL: ${READONLY_URL}")

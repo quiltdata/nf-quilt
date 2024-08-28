@@ -74,7 +74,7 @@ ext {
 
 dependencies {
     // quiltcore
-    implementation 'com.quiltdata:quiltcore:0.1.2'
+    implementation 'com.quiltdata:quiltcore:0.1.5'
 
     // This dependency is exported to consumers, that is to say found on their compile classpath.
     compileOnly "io.nextflow:nextflow:$nextflowVersion"

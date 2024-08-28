@@ -18,8 +18,8 @@ import java.nio.file.StandardOpenOption
 import java.nio.file.attribute.BasicFileAttributeView
 import java.nio.file.attribute.BasicFileAttributes
 
-import spock.lang.IgnoreIf
 import spock.lang.Ignore
+import spock.lang.IgnoreIf
 import groovy.util.logging.Slf4j
 import groovy.transform.CompileDynamic
 
@@ -33,7 +33,8 @@ class QuiltNioTest extends QuiltSpecification {
 
     private static final String NULL_URL = 'quilt+s3://quilt-dev-null#package=test/null'
     //https://open.quiltdata.com/b/quilt-example/tree/examples/hurdat/
-    private static final String PACKAGE_URL = 'quilt+s3://quilt-example#package=examples/hurdat@f8d1478d93'
+    private static final String HASH = 'f8d1478d9326e1c98ded6e933c1aa19cf8913735bdcf0be6ccf0efd3b02218f4'
+    private static final String PACKAGE_URL = "quilt+s3://quilt-example#package=examples/hurdat@${HASH}"
     private static final String WRITE_URL = packagePath('folder/file-name.txt')
     private static final String READ_URL = packagePath('data/atlantic-storms.csv')
     private static final String TEXT = 'Hello world!'
@@ -197,7 +198,7 @@ class QuiltNioTest extends QuiltSpecification {
         if (source) { Files.delete(source) }
     }
 
-    @Ignore
+    @IgnoreIf({ env.WRITE_BUCKET ==  null })
     void 'copy a remote file to a bucket'() {
         given:
         Path path = Paths.get(new URI(WRITE_URL))
@@ -212,7 +213,7 @@ class QuiltNioTest extends QuiltSpecification {
         readObject(path).trim() == TEXT
     }
 
-    @Ignore
+    @IgnoreIf({ env.WRITE_BUCKET ==  null })
     void 'move a remote file to a bucket'() {
         given:
         Path path = Paths.get(new URI(WRITE_URL))
@@ -237,32 +238,23 @@ class QuiltNioTest extends QuiltSpecification {
         pkg.relativeChildren('')
     }
 
-    /* FIXME: Test fails on Windows and Ubunut. STDOUT shows:
-     Children: [README_NF_QUILT.md, alpha, bolder, create.txt, data, folder,
-                nf-quilt, notebooks, quilt_summarize.json, scripts, stream.txt]
-     Test has: [path=data, path=folder, path=notebooks,
-                path=quilt_summarize.json, path=scripts, path=stream.txt]
-    */
-    @IgnoreIf({ System.getProperty('os.name').contains('indows') || System.getProperty('os.name').contains('ux') })
     void 'should iterate over package folders/files'() {
         given:
         Path path = Paths.get(new URI(PACKAGE_URL))
         when:
         QuiltPathIterator itr = new QuiltPathIterator(path, null)
-        println "ITR: ${itr}"
         then:
         itr != null
         itr.hasNext()
 
         when:
-        String[] ilist = itr*.toString()*.replaceFirst('quilt-example#package=examples%2fhurdat&', '').toArray()
-        println "ILIST: ${ilist}"
+        String[] ilist = itr*.toString()*.replaceFirst('quilt-example#package=examples%2fhurdat&path=', '').toArray()
         then:
         ilist.size() > 4
-        ilist.contains('path=README_NF_QUILT.md')
-        ilist.contains('path=data')
-        ilist.contains('path=folder')
-        ilist.contains('path=scripts')
+        ilist.contains('quilt_summarize.json')
+        ilist.contains('data')
+        ilist.contains('notebooks')
+        ilist.contains('scripts')
     }
 
     void 'should create a directory'() {
@@ -300,10 +292,11 @@ class QuiltNioTest extends QuiltSpecification {
         existsPath(path)
     }
 
-    @Ignore
+    @Ignore('toAbsolutePath not implemented yet')
     void 'should create temp file and directory'() {
         given:
-        Path base = Paths.get(new URI(PACKAGE_URL))
+        Path base = Paths.get(new URI(PACKAGE_URL)).toAbsolutePath()
+        println "BASE: ${base}"
 
         when:
         Path t1 = Files.createTempDirectory(base, 'test')
@@ -476,7 +469,7 @@ class QuiltNioTest extends QuiltSpecification {
         thrown(FileSystemException)
     }
 
-    @Ignore
+    // @Ignore
     void 'should stream directory content'() {
         given:
         makeObject(null_path('foo/file1.txt'), 'A')
@@ -520,7 +513,7 @@ class QuiltNioTest extends QuiltSpecification {
         list  == [ 'file4.txt' ]
     }
 
-    @Ignore
+    @IgnoreIf({ System.getProperty('os.name').contains('indows') })
     void 'should check walkTree'() {
         given:
         makeObject(null_path('foo/file1.txt'), 'A')
@@ -594,7 +587,7 @@ class QuiltNioTest extends QuiltSpecification {
         dirs.contains('baz')
     }
 
-    @Ignore
+    @Ignore('Not implemented yet: dir and files having the same name')
     void 'should handle dir and files having the same name'() {
         given:
         makeObject(packagePath('foo'), 'file-1')
