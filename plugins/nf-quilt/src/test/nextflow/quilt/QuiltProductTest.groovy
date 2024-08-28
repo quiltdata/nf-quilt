@@ -130,7 +130,7 @@ class QuiltProductTest extends QuiltSpecification {
         quilt_summarize.size() == 1
     }
 
-    @Ignore('Not implemented yet')
+    @Ignore('Not implemented yet: pushes previous metadata')
     void 'pushes previous metadata if metadata=SKIP'() {
         given:
         Map meta = [

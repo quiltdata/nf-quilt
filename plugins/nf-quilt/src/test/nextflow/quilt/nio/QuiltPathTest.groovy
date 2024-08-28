@@ -173,7 +173,7 @@ class QuiltPathTest extends QuiltSpecification {
         'bucket'                    | 'some%2ffile-name.txt'      | 'bucket#path=some%2ffile-name.txt'
     }
 
-    @Ignore
+    @Ignore('FIXME: subpath not yet implemented')
     void 'should validate subpath: #expected'() {
         expect:
         pathify(path).subpath(from, to) == pathify(expected)

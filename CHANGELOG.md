@@ -1,12 +1,8 @@
 # Changelog
 
-## [0.8.0] TBD
+## [0.7.17] UNRELEASED
 
-- Piggy-back on existing plugins in the absence of Quilt+ URIs
-
-## [0.7.17] 2024-08-20
-
-- use prior package, if any, for relative paths
+- support ChunkedChecksums
 
 ## [0.7.16] 2024-06-17
 
