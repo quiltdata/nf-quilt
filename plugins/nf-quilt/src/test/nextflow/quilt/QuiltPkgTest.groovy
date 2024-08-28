@@ -94,7 +94,7 @@ class QuiltPkgTest extends QuiltSpecification {
         QuiltPackage pkg = GetPackage(destPackage())
         Path out = pkg.packageDest()
         then:
-        pkg.install()
+        pkg.install(true)
         then:
         Files.exists(out.resolve("inputs/$file"))
         where:

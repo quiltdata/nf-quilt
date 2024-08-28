@@ -100,12 +100,12 @@ class QuiltFileSystemProvider extends FileSystemProvider implements FileSystemTr
      */
 
     boolean canUpload(Path source, Path target) {
-        // log.debug "QuiltFileSystemProvider.canUpload: ${source} -> ${target}"
+        log.debug "QuiltFileSystemProvider.canUpload: ${source} -> ${target}"
         return FileSystems.getDefault().equals(source.getFileSystem()) && target instanceof QuiltPath
     }
 
     boolean canDownload(Path source, Path target) {
-        // log.debug "QuiltFileSystemProvider.canDownload: ${source} -> ${target}"
+        log.debug "QuiltFileSystemProvider.canDownload: ${source} -> ${target}"
         return source instanceof QuiltPath && FileSystems.getDefault().equals(target.getFileSystem())
     }
 
@@ -143,7 +143,7 @@ class QuiltFileSystemProvider extends FileSystemProvider implements FileSystemTr
     }
 
     void upload(Path localFile, Path remoteDestination, CopyOption... options) throws IOException {
-        // log.debug "QuiltFileSystemProvider.upload: ${localFile} -> ${remoteDestination}"
+        log.debug "QuiltFileSystemProvider.upload: ${localFile} -> ${remoteDestination}"
         final CopyOptions opts = CopyOptions.parse(options)
         // delete target if it exists and REPLACE_EXISTING is specified
         if (opts.replaceExisting()) {
