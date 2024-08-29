@@ -60,7 +60,7 @@ jobs:
       with:
         name: nf-quilt-test-reports-${{ matrix.os }}-${{ matrix.java_version }}
         path: |
-            ${{ github.workspace }}\nf-quilt\plugins\nf-quilt\build\reports\tests\test\
+            file:///D:/a/nf-quilt/nf-quilt/plugins/nf-quilt/build/reports/tests/test/
         overwrite: true
     - name: Archive production artifacts (Linux and MacOS)
       uses: actions/upload-artifact@v4

@@ -79,7 +79,7 @@ class QuiltObserverTest extends QuiltSpecification {
         observer.checkPath(newPath) == n_new
     }
 
-    // FIXME: Should infer package name from pubdir/outdir parameters, not just the path
+    // FIXME: Should infer package name from pubdir/outdir parameters, not just each files path
     void 'should extract package URI from S3 Object Paths'() {
         given:
         QuiltObserver observer = new QuiltObserver()
