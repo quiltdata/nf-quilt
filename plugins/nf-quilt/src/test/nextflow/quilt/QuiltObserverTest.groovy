@@ -79,7 +79,8 @@ class QuiltObserverTest extends QuiltSpecification {
         observer.checkPath(newPath) == n_new
     }
 
-    void 'should extract package URI from S3 Paths'() {
+    // FIXME: Should infer package name from pubdir/outdir parameters, not just the path
+    void 'should extract package URI from S3 Object Paths'() {
         given:
         QuiltObserver observer = new QuiltObserver()
         Path path = Paths.get(s3_uri)
@@ -88,7 +89,10 @@ class QuiltObserverTest extends QuiltSpecification {
         uri == quilt_uri
         where:
         s3_uri | quilt_uri
-        's3://bucket/prefix/suffix/folder/body' | 'quilt+s3://bucket#package=prefix%2fsuffix&path=folder/body'
+        's3://bucket/prefix/suffix/folder/file.ext' | 'quilt+s3://bucket#package=prefix%2fsuffix&path=folder/file.ext'
+        's3://bucket/prefix/suffix/file.ext' | 'quilt+s3://bucket#package=prefix%2fsuffix&path=file.ext'
+        's3://bucket/prefix/file.ext' | 'quilt+s3://bucket#package=prefix%2fdefault_suffix&path=file.ext'
+        's3://bucket/file.ext' | 'quilt+s3://bucket#package=default_prefix%2fdefault_suffix&path=file.ext'
     }
 
 }

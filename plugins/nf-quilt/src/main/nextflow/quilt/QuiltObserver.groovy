@@ -76,20 +76,29 @@ class QuiltObserver implements TraceObserver {
         return uniqueURIs[key]
     }
 
-    // FIXME: Only works on S3 paths with at least four parts
     String extractPackageURI(Path nonQuiltPath) {
-        /// Extract s3://bucket/prefix/suffix/{body} from nonQuiltPath
-        /// into quilt+s3://bucket#package=prefix%2fsuffix&path=folder/file.ext
         String s3_uri = nonQuiltPath
-        String[] parts = s3_uri.split('/')
-        String bucket = parts[1]
-        String prefix = parts[2]
-        String suffix = parts[3]
-        String folder_path = parts[4..-2].join('/')
-        String file_path = parts[-1]
+        String[] partsArray = s3_uri.split('/')
+        def parts = new ArrayList(partsArray.toList())
+
+        for (int i = 0; i < parts.size(); i++) {
+            log.debug("extractPackageURI.parts[$i]: ${parts[i]}")
+        }
+        if (parts.size() < 3) {
+            throw new IllegalArgumentException("Invalid S3 URI: $s3_uri")
+        }
+        parts.remove(0) // remove the scheme
+        String bucket = parts.remove(0)
+        String file_path = parts.remove(parts.size() - 1)
+        String prefix = parts.size() > 0 ? parts.remove(0) : 'default_prefix'
+        String suffix = parts.size() > 0 ? parts.remove(0) : 'default_suffix'
+        if (parts.size() > 0) {
+            String folder_path = parts.join('/')
+            file_path = folder_path + '/' + file_path
+        }
 
         String base = "quilt+s3://${bucket}#package=${prefix}%2f${suffix}"
-        String uri = "${base}&path=${folder_path}/${file_path}"
+        String uri = "${base}&path=${file_path}"
         log.debug("extractPackaging[${nonQuiltPath}] -> ${uri}")
 
         String key = pkgKey(QuiltPathFactory.parse(uri))
