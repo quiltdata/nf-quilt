@@ -99,8 +99,8 @@ class QuiltObserver implements TraceObserver {
             file_path = folder_path + '/' + file_path
         }
 
-        // TODO: should overlay packages always be forced versions?
-        String base = "quilt+s3://${bucket}#package=${prefix}%2f${suffix}&force=true"
+        // TODO: should overlay packages always force to new versions?
+        String base = "quilt+s3://${bucket}#package=${prefix}%2f${suffix}"
         String uri = "${base}&path=${file_path}"
         log.debug("extractPackaging[${nonQuiltPath}] -> ${uri}")
 
