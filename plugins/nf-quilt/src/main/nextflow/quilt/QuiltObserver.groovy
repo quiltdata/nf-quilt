@@ -15,18 +15,20 @@
  */
 package nextflow.quilt
 
+import nextflow.Session
+import nextflow.processor.TaskHandler
 import nextflow.quilt.jep.QuiltParser
 import nextflow.quilt.nio.QuiltPath
 import nextflow.quilt.nio.QuiltPathFactory
+import nextflow.trace.TraceObserver
+import nextflow.trace.TraceRecord
 
 import java.nio.file.Path
+import java.util.concurrent.locks.Lock
+import java.util.concurrent.locks.ReentrantLock
 
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
-import nextflow.Session
-import nextflow.processor.TaskHandler
-import nextflow.trace.TraceObserver
-import nextflow.trace.TraceRecord
 
 /**
  * Plugin observer of workflow events
@@ -40,7 +42,10 @@ class QuiltObserver implements TraceObserver {
     private Session session
     final private Map<String,String> uniqueURIs = [:]
     final private Map<String,String> publishedURIs = [:]
+
+    // Is this overkill? Do we only ever have one output package per run?
     final private Map<String, Map<String, Path>> packageOverlays = [:]
+    final private Lock lock = new ReentrantLock() // Need this because of threads
 
     static QuiltPath asQuiltPath(Path path) {
         if (path in QuiltPath) {
@@ -104,7 +109,10 @@ class QuiltObserver implements TraceObserver {
         String key = pkgKey(QuiltPathFactory.parse(uri))
         Map<String, Path> current = packageOverlays.get(key, [:]) as Map<String, Path>
         current[file_path] = nonQuiltPath
-        packageOverlays[key] = current
+        lock.withLock {
+            packageOverlays[key] = current
+        }
+        log.debug("extractPackaging[$key]] -> ${packageOverlays}")
         return uri
     }
 
