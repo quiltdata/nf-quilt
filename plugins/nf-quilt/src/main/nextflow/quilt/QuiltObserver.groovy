@@ -92,6 +92,9 @@ class QuiltObserver implements TraceObserver {
         parts.remove(0)
         parts.remove(0)
         parts.remove(0) // remove 'file:///'
+        if (parts[0][1] == ':') {
+            parts.remove(0) // remove 'C:'
+        }
         String bucket = parts.remove(0)
         String file_path = parts.remove(parts.size() - 1)
         String prefix = parts.size() > 0 ? parts.remove(0) : 'default_prefix'
