@@ -85,13 +85,10 @@ class QuiltObserver implements TraceObserver {
         String s3_uri = nonQuiltPath
         String[] partsArray = s3_uri.split('/')
         def parts = new ArrayList(partsArray.toList())
-
-        for (int i = 0; i < parts.size(); i++) {
-            log.debug("extractPackageURI.parts[$i]: ${parts[i]}")
-        }
         if (parts.size() < 3) {
             throw new IllegalArgumentException("Invalid S3 URI: $s3_uri")
         }
+
         parts.remove(0) // remove the scheme
         String bucket = parts.remove(0)
         String file_path = parts.remove(parts.size() - 1)
@@ -102,7 +99,8 @@ class QuiltObserver implements TraceObserver {
             file_path = folder_path + '/' + file_path
         }
 
-        String base = "quilt+s3://${bucket}#package=${prefix}%2f${suffix}"
+        // TODO: should overlay packages always be forced versions?
+        String base = "quilt+s3://${bucket}#package=${prefix}%2f${suffix}&force=true"
         String uri = "${base}&path=${file_path}"
         log.debug("extractPackaging[${nonQuiltPath}] -> ${uri}")
 
@@ -110,6 +108,8 @@ class QuiltObserver implements TraceObserver {
         Map<String, Path> current = packageOverlays.get(key, [:]) as Map<String, Path>
         current[file_path] = nonQuiltPath
         lock.withLock {
+            uniqueURIs[key] = base
+            publishedURIs[key] = base
             packageOverlays[key] = current
         }
         log.debug("extractPackaging[$key]] -> ${packageOverlays}")
@@ -133,17 +133,6 @@ class QuiltObserver implements TraceObserver {
         log.debug("`onFlowCreate` $this")
         this.session = session
         checkParams(session.getParams())
-    }
-
-    @Override
-    void onProcessComplete(TaskHandler handler, TraceRecord trace) {
-        log.debug("`onProcessComplete` ${handler.task}")
-        log.debug("`onProcessComplete.trace` ${trace}")
-    }
-
-    @Override
-    void onProcessCached(TaskHandler handler, TraceRecord trace) {
-        log.debug("`onProcessCached` ${handler.task}")
     }
 
     // NOTE: TraceFileObserver calls onFilePublish _before_ onFlowCreate
