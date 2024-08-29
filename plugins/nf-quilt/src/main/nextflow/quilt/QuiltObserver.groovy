@@ -83,17 +83,15 @@ class QuiltObserver implements TraceObserver {
         String pathString = nonQuiltPath.toUri()
         println("extractPackageURI.pathString[${nonQuiltPath}] -> $pathString")
         String[] partsArray = pathString.split('/')
-        def parts = new ArrayList(partsArray.toList())
+        List<String> parts = new ArrayList(partsArray.toList())
         parts.eachWithIndex { p, i -> println("extractPackageURI.parts[$i]: $p") }
 
         if (parts.size() < 3) {
             throw new IllegalArgumentException("Invalid pathString: $pathString ($nonQuiltPath)")
         }
-        parts.remove(0)
-        parts.remove(0)
-        parts.remove(0) // remove 'file:///'
-        if (parts[0][1] == ':') {
-            parts.remove(0) // remove 'C:'
+        parts = parts.drop(3)
+        if (parts[0].endsWith(':')) {
+            parts = parts.drop(1)
         }
         String bucket = parts.remove(0)
         String file_path = parts.remove(parts.size() - 1)
