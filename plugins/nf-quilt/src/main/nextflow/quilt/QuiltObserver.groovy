@@ -16,12 +16,10 @@
 package nextflow.quilt
 
 import nextflow.Session
-import nextflow.processor.TaskHandler
 import nextflow.quilt.jep.QuiltParser
 import nextflow.quilt.nio.QuiltPath
 import nextflow.quilt.nio.QuiltPathFactory
 import nextflow.trace.TraceObserver
-import nextflow.trace.TraceRecord
 
 import java.nio.file.Path
 import java.util.concurrent.locks.Lock

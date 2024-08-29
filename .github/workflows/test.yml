@@ -56,7 +56,7 @@ jobs:
 
     - name: Archive production artifacts (Windows only)
       uses: actions/upload-artifact@v4
-      if: ${{ matrix.os }} == 'windows-latest'
+      if: ${{ always() && matrix.os  == 'windows-latest' }}
       with:
         name: nf-quilt-test-reports-${{ matrix.os }}-${{ matrix.java_version }}
         path: |
@@ -64,7 +64,7 @@ jobs:
         overwrite: true
     - name: Archive production artifacts (Linux and MacOS)
       uses: actions/upload-artifact@v4
-      if: ${{ matrix.os }} != 'windows-latest'
+      if: ${{ always() && matrix.os != 'windows-latest' }} 
       with:
         name: nf-quilt-test-reports-${{ matrix.os }}-${{ matrix.java_version }}
         path: |
