@@ -80,19 +80,19 @@ class QuiltObserverTest extends QuiltSpecification {
     }
 
     // FIXME: Should infer package name from pubdir/outdir parameters, not just each file's path
-    void 'should extract package URI from S3 Object Paths'() {
+    void 'should extract package URI from output path'() {
         given:
         QuiltObserver observer = new QuiltObserver()
-        Path path = Paths.get(s3_uri)
+        Path path = Paths.get(filepath)
         String uri = observer.extractPackageURI(path)
         expect:
         uri == quilt_uri
         where:
-        s3_uri | quilt_uri
-        's3://bucket/prefix/suffix/folder/file.ext' | 'quilt+s3://bucket#package=prefix%2fsuffix&path=folder/file.ext'
-        's3://bucket/prefix/suffix/file.ext' | 'quilt+s3://bucket#package=prefix%2fsuffix&path=file.ext'
-        's3://bucket/prefix/file.ext' | 'quilt+s3://bucket#package=prefix%2fdefault_suffix&path=file.ext'
-        's3://bucket/file.ext' | 'quilt+s3://bucket#package=default_prefix%2fdefault_suffix&path=file.ext'
+        filepath | quilt_uri
+        '/bucket/prefix/suffix/folder/file.ext' | 'quilt+s3://bucket#package=prefix%2fsuffix&path=folder/file.ext'
+        '/bucket/prefix/suffix/file.ext' | 'quilt+s3://bucket#package=prefix%2fsuffix&path=file.ext'
+        '/bucket/prefix/file.ext' | 'quilt+s3://bucket#package=prefix%2fdefault_suffix&path=file.ext'
+        '/bucket/file.ext' | 'quilt+s3://bucket#package=default_prefix%2fdefault_suffix&path=file.ext'
     }
 
 }

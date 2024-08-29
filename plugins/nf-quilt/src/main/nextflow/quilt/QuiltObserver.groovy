@@ -83,11 +83,12 @@ class QuiltObserver implements TraceObserver {
         String s3_uri = nonQuiltPath
         String[] partsArray = s3_uri.split('/')
         def parts = new ArrayList(partsArray.toList())
+        // parts.eachWithIndex { p, i -> log.debug("extractPackageURI.parts[$i]: $p") }
+
         if (parts.size() < 3) {
             throw new IllegalArgumentException("Invalid S3 URI: $s3_uri")
         }
-
-        parts.remove(0) // remove the scheme
+        parts.remove(0) // remove the scheme?
         String bucket = parts.remove(0)
         String file_path = parts.remove(parts.size() - 1)
         String prefix = parts.size() > 0 ? parts.remove(0) : 'default_prefix'
