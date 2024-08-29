@@ -179,7 +179,7 @@ class QuiltProductTest extends QuiltSpecification {
         Path outPath = Paths.get(root, filename)
         outPath.getParent().toFile().mkdirs()
         Files.writeString(outPath, "#Time, Filename\n${timestamp},${filename}")
-        println("writeFile: ${filename} -> ${outPath}")
+        // println("writeFile: ${filename} -> ${outPath}")
     }
 
     int writeFiles(dest) {

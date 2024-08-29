@@ -97,10 +97,8 @@ ${nextflow}
     static void writeString(String text, QuiltPackage pkg, String filepath) {
         String dir = pkg.packageDest()
         Path path  = Paths.get(dir, filepath.split('/') as String[])
-        log.debug("writeString: ${text.length()} bytes to ${path} for ${filepath}")
         try {
-            // ensure directories exist first
-            path.getParent().toFile().mkdirs()
+            path.getParent().toFile().mkdirs() // ensure directories exist first
             Files.write(path, text.bytes)
         }
         catch (Exception e) {
@@ -151,9 +149,9 @@ ${nextflow}
         log.debug("publish($msg)")
         meta = setupMeta()
         String text = setupReadme()
-        log.debug("setupReadme: $text")
+        // log.debug("setupReadme: $text")
         List<Map> quilt_summarize = setupSummarize()
-        log.debug("setupSummarize: $quilt_summarize")
+        // log.debug("setupSummarize: $quilt_summarize")
         try {
             log.info("publish.pushing: ${pkg}")
             def m = pkg.push(msg, meta)
@@ -189,7 +187,7 @@ ${nextflow}
 
     String writeNextflowMetadata(Map map, String suffix) {
         String filename = "nf-quilt/${suffix}.json"
-        log.debug("writeNextflowMetadata[$suffix]: ${filename}")
+        // log.debug("writeNextflowMetadata[$suffix]: ${filename}")
         writeString(QuiltPackage.toJson(map), pkg, filename)
         return filename
     }
@@ -271,7 +269,7 @@ ${nextflow}
             now: now(),
             pkg: pkg.packageName,
         ])
-        log.debug("readme.template: ${template}")
+        // log.debug("readme.template: ${template}")
         return template
     }
 

@@ -81,10 +81,10 @@ class QuiltObserver implements TraceObserver {
 
     String extractPackageURI(Path nonQuiltPath) {
         String pathString = nonQuiltPath.toUri()
-        println("extractPackageURI.pathString[${nonQuiltPath}] -> $pathString")
+        // println("extractPackageURI.pathString[${nonQuiltPath}] -> $pathString")
         String[] partsArray = pathString.split('/')
         List<String> parts = new ArrayList(partsArray.toList())
-        parts.eachWithIndex { p, i -> println("extractPackageURI.parts[$i]: $p") }
+        // parts.eachWithIndex { p, i -> println("extractPackageURI.parts[$i]: $p") }
 
         if (parts.size() < 3) {
             throw new IllegalArgumentException("Invalid pathString: $pathString ($nonQuiltPath)")
@@ -105,7 +105,6 @@ class QuiltObserver implements TraceObserver {
         // TODO: should overlay packages always force to new versions?
         String base = "quilt+s3://${bucket}#package=${prefix}%2f${suffix}"
         String uri = "${base}&path=${file_path}"
-        log.debug("extractPackaging[${nonQuiltPath}] -> ${uri}")
 
         String key = pkgKey(QuiltPathFactory.parse(uri))
         Map<String, Path> current = packageOverlays.get(key, [:]) as Map<String, Path>
@@ -115,7 +114,6 @@ class QuiltObserver implements TraceObserver {
             publishedURIs[key] = base
             packageOverlays[key] = current
         }
-        log.debug("extractPackaging[$key]] -> ${packageOverlays}")
         return uri
     }
 
@@ -159,7 +157,7 @@ class QuiltObserver implements TraceObserver {
         publishedURIs.each { key, uri ->
             QuiltPath path = QuiltPathFactory.parse(uri)
             Map<String, Path> overlays = packageOverlays.get(key, [:]) as Map<String, Path>
-            log.debug("onFlowComplete.pkg: $path overlays[${overlays?.size()}]: $overlays")
+            // log.debug("onFlowComplete.pkg: $path overlays[${overlays?.size()}]: $overlays")
             new QuiltProduct(path, session, overlays)
         }
     }
