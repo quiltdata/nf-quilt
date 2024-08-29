@@ -94,9 +94,10 @@ ${nextflow}
         }
     }
 
-    static void writeString(String text, QuiltPackage pkg, String filename) {
+    static void writeString(String text, QuiltPackage pkg, String filepath) {
         String dir = pkg.packageDest()
-        Path path  = Paths.get(dir, filename.split('/') as String[])
+        Path path  = Paths.get(dir, filepath.split('/') as String[])
+        log.debug("writeString: ${text.length()} bytes to ${path} for ${filepath}")
         try {
             // ensure directories exist first
             path.getParent().toFile().mkdirs()
@@ -113,21 +114,36 @@ ${nextflow}
     }
 
     private final QuiltPath path
+    private final List<Path> overlays
     private final QuiltPackage pkg
     private final Session session
     private String msg
     private Map meta
 
-    QuiltProduct(QuiltPath path, Session session) {
+    QuiltProduct(QuiltPath path, Session session, List<Path> overlays = []) {
         this.path = path
         this.pkg = path.pkg()
         this.msg =  pkg.toString()
         this.meta = [pkg: msg, time_start: now()]
         this.session = session
+
         if (session.isSuccess() || pkg.is_force()) {
+            if (overlays) {
+                log.info("publishing overlays: ${overlays.size()}")
+                publishOverlays(overlays)
+            } else {
+                log.info('No overlays to publish.')
+            }
             publish()
         } else {
             log.info("not publishing: ${pkg} [unsuccessful session]")
+        }
+    }
+
+    void publishOverlays(List<Path> overlays) {
+        overlays.each { overlay ->
+            log.info("publishing overlay: ${overlay}")
+            writeString(overlay.text, pkg, overlay.name)
         }
     }
 

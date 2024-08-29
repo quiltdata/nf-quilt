@@ -197,9 +197,10 @@ class QuiltPackage {
             return null
         }
         Path dest = packageDest()
+        String implicitStr = implicit ? 'implicitly ' : ''
 
         try {
-            log.info("installing $packageName from $bucket...")
+            log.info("${implicitStr}installing $packageName from $bucket...")
             S3PhysicalKey registryPath = new S3PhysicalKey(bucket, '', null)
             Registry registry = new Registry(registryPath)
             Namespace namespace = registry.getNamespace(packageName)
@@ -210,7 +211,7 @@ class QuiltPackage {
             Manifest manifest = namespace.getManifest(resolvedHash)
 
             manifest.install(dest)
-            log.debug("done: installed into $dest)")
+            log.debug("done: ${implicitStr}installed into $dest)")
             println("Children: ${relativeChildren('')}")
         } catch (IOException e) {
             if (!implicit) {
@@ -220,7 +221,7 @@ class QuiltPackage {
                 /* groovylint-disable-next-line ThrowRuntimeException */
                 throw new RuntimeException(e)
             }
-            log.warn("failed to install $packageName")
+            log.warn("failed to (implicitly) install $packageName")
             // this is non-fatal error, so we don't want to stop the pipeline
             /* groovylint-disable-next-line ReturnNullFromCatchBlock */
             return null

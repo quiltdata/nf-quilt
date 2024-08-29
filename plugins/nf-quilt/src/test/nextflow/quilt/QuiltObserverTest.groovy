@@ -79,4 +79,16 @@ class QuiltObserverTest extends QuiltSpecification {
         observer.checkPath(newPath) == n_new
     }
 
+    void 'should extract package URI from S3 Paths'() {
+        given:
+        QuiltObserver observer = new QuiltObserver()
+        Path path = Paths.get(s3_uri)
+        String uri = observer.extractPackageURI(path)
+        expect:
+        uri == quilt_uri
+        where:
+        s3_uri | quilt_uri
+        's3://bucket/prefix/suffix/folder/body' | 'quilt+s3://bucket#package=prefix%2fsuffix&path=folder/body'
+    }
+
 }

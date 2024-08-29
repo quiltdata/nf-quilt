@@ -20,8 +20,6 @@ import nextflow.quilt.nio.QuiltPath
 import nextflow.quilt.nio.QuiltPathFactory
 
 import java.nio.file.Path
-import java.util.concurrent.locks.Lock
-import java.util.concurrent.locks.ReentrantLock
 
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
@@ -42,8 +40,7 @@ class QuiltObserver implements TraceObserver {
     private Session session
     final private Map<String,String> uniqueURIs = [:]
     final private Map<String,String> publishedURIs = [:]
-    final private Map<Path,Path> workflowOutputs = [:]
-    final private Lock lock = new ReentrantLock()
+    final private Map<String,List<Path>> packageOverlays = [:]
 
     static QuiltPath asQuiltPath(Path path) {
         if (path in QuiltPath) {
@@ -78,24 +75,27 @@ class QuiltObserver implements TraceObserver {
         }
         return uniqueURIs[key]
     }
-    String fakePath(Path nonQuiltPath) {
+
+    // FIXME: Only works on S3 paths with at least four parts
+    String extractPackageURI(Path nonQuiltPath) {
         /// Extract s3://bucket/prefix/suffix/{body} from nonQuiltPath
-        /// into quilt+s3://bucket#package=prefix%2fsuffix
+        /// into quilt+s3://bucket#package=prefix%2fsuffix&path=folder/file.ext
         String s3_uri = nonQuiltPath
         String[] parts = s3_uri.split('/')
         String bucket = parts[1]
         String prefix = parts[2]
         String suffix = parts[3]
-        String uri = "quilt+s3://${bucket}#package=${prefix}%2f${suffix}"
-        if (parts.length > 4) {
-            uri += '&path=' + parts[4..-1].join('/')
-        }
-        log.debug("fakePath[$nonQuiltPath] -> $uri")
-        QuiltPath qPath = QuiltPathFactory.parse(uri)
-        String key = pkgKey(qPath)
-        log.debug("fakePath.qPath: $qPath -> $key")
-        uniqueURIs[key] = uri
-        publishedURIs[key] = uri
+        String folder_path = parts[4..-2].join('/')
+        String file_path = parts[-1]
+
+        String base = "quilt+s3://${bucket}#package=${prefix}%2f${suffix}"
+        String uri = "${base}&path=${folder_path}/${file_path}"
+        log.debug("extractPackaging[${nonQuiltPath}] -> ${uri}")
+
+        String key = pkgKey(QuiltPathFactory.parse(uri))
+        List<Path> current = packageOverlays.get(key, []) as List<Path>
+        current << nonQuiltPath
+        packageOverlays[key] = current
         return uri
     }
 
@@ -138,23 +138,20 @@ class QuiltObserver implements TraceObserver {
         if (qPath) {
             checkPath(qPath, true)
         } else {
-            log.warn("onFilePublish.not.QuiltPath: $destination")
-            lock.withLock {
-                Path sourceKey = source ?: destination
-                workflowOutputs[sourceKey] = destination
-            }
-            fakePath(destination)
+            String uri = extractPackageURI(destination)
+            log.debug("onFilePublish.NonQuiltPath[$destination]: $uri")
         }
     }
 
     @Override
     void onFlowComplete() {
-        log.debug("onFlowComplete.workflowOutputs[${workflowOutputs.size()}]: $workflowOutputs")
         log.debug("onFlowComplete.publishedURIs[${publishedURIs.size()}]: $publishedURIs")
         // create QuiltProduct for each unique package URI
-        publishedURIs.each { k, uri ->
+        publishedURIs.each { key, uri ->
             QuiltPath path = QuiltPathFactory.parse(uri)
-            new QuiltProduct(path, session)
+            List<Path> overlays = packageOverlays.get(key, []) as List<Path>
+            log.debug("onFlowComplete.pkg: $path overlays[${overlays?.size()}]: $overlays")
+            new QuiltProduct(path, session, overlays)
         }
     }
 
