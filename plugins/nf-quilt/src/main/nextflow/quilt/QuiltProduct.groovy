@@ -148,10 +148,6 @@ ${nextflow}
     void publish() {
         log.debug("publish($msg)")
         meta = setupMeta()
-        String text = setupReadme()
-        // log.debug("setupReadme: $text")
-        List<Map> quilt_summarize = setupSummarize()
-        // log.debug("setupSummarize: $quilt_summarize")
         try {
             log.info("publish.pushing: ${pkg}")
             def m = pkg.push(msg, meta)
