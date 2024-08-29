@@ -94,12 +94,11 @@ ${nextflow}
         }
     }
 
-    static void writeString(String text, QuiltPackage pkg, String filename) {
+    static void writeString(String text, QuiltPackage pkg, String filepath) {
         String dir = pkg.packageDest()
-        Path path  = Paths.get(dir, filename.split('/') as String[])
+        Path path  = Paths.get(dir, filepath.split('/') as String[])
         try {
-            // ensure directories exist first
-            path.getParent().toFile().mkdirs()
+            path.getParent().toFile().mkdirs() // ensure directories exist first
             Files.write(path, text.bytes)
         }
         catch (Exception e) {
@@ -113,31 +112,42 @@ ${nextflow}
     }
 
     private final QuiltPath path
+    private final List<Path> overlays
     private final QuiltPackage pkg
     private final Session session
     private String msg
     private Map meta
 
-    QuiltProduct(QuiltPath path, Session session) {
+    QuiltProduct(QuiltPath path, Session session, Map<String, Path> overlays = [:]) {
         this.path = path
         this.pkg = path.pkg()
         this.msg =  pkg.toString()
         this.meta = [pkg: msg, time_start: now()]
         this.session = session
+
         if (session.isSuccess() || pkg.is_force()) {
+            if (overlays) {
+                log.info("publishing overlays: ${overlays.size()}")
+                publishOverlays(overlays)
+            } else {
+                log.info('No overlays to publish.')
+            }
             publish()
         } else {
             log.info("not publishing: ${pkg} [unsuccessful session]")
         }
     }
 
+    void publishOverlays(Map<String, Path> overlays) {
+        overlays.each { key, overlay ->
+            log.info("publishing overlay[$key]: ${overlay}")
+            writeString(overlay.text, pkg, key)
+        }
+    }
+
     void publish() {
         log.debug("publish($msg)")
         meta = setupMeta()
-        String text = setupReadme()
-        log.debug("setupReadme: $text")
-        List<Map> quilt_summarize = setupSummarize()
-        log.debug("setupSummarize: $quilt_summarize")
         try {
             log.info("publish.pushing: ${pkg}")
             def m = pkg.push(msg, meta)
@@ -173,7 +183,7 @@ ${nextflow}
 
     String writeNextflowMetadata(Map map, String suffix) {
         String filename = "nf-quilt/${suffix}.json"
-        log.debug("writeNextflowMetadata[$suffix]: ${filename}")
+        // log.debug("writeNextflowMetadata[$suffix]: ${filename}")
         writeString(QuiltPackage.toJson(map), pkg, filename)
         return filename
     }
@@ -255,7 +265,7 @@ ${nextflow}
             now: now(),
             pkg: pkg.packageName,
         ])
-        log.debug("readme.template: ${template}")
+        // log.debug("readme.template: ${template}")
         return template
     }
 

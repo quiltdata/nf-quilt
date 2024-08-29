@@ -144,14 +144,27 @@ class QuiltPackageTest extends QuiltSpecification {
         readObject(readmeFile).startsWith('# Quilt Smart Reports')
     }
 
-    void 'should return null on failed install'() {
+    void 'should return null on failed implicit install'() {
         given:
         def url2 = TEST_URL.replace('quilt-', 'quilted-')
         def qpath2 = factory.parseUri(url2)
         def pkg2 = qpath2.pkg()
 
         expect:
-        pkg2.install() == null
+        pkg2.install(true) == null
+    }
+
+    void 'should throw error on explict install'() {
+        given:
+        def url2 = TEST_URL.replace('quilt-', 'quilted-')
+        def qpath2 = factory.parseUri(url2)
+        def pkg2 = qpath2.pkg()
+
+        when:
+        pkg2.install()
+
+        then:
+        thrown(RuntimeException)
     }
 
     @IgnoreIf({ System.getProperty('os.name').contains('indows') })

@@ -143,7 +143,7 @@ class QuiltParser {
         this.catalogName = options.get(P_CAT)
         this.options = options
         this.metadata = metadata
-        log.debug("QuiltParser[${bucket}] for ${packageName} in ${path}")
+        // log.debug("QuiltParser[${bucket}] for ${packageName} in ${path}")
     }
 
     String parsePkg(String pkg) {
@@ -292,7 +292,7 @@ class QuiltParser {
             if (tag) { pkg += ":$tag" }
             str += "#package=${pkg.replace('/', '%2f')}"
         }
-        log.debug("toPackageString: ${str}")
+        // log.debug("toPackageString: ${str}")
         return str
     }
 

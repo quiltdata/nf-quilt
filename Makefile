@@ -63,6 +63,9 @@ pkg-test: compile #-all
 	echo "$(TEST_URI)"
 	$(NF_BIN) run ./main.nf -profile standard -plugins $(PROJECT) --outdir "$(TEST_URI)"
 
+s3-overlay: compile
+	$(NF_BIN) run ./main.nf --plugins $(PROJECT) --outdir "$(S3_BASE)/s3-overlay" --input "$(S3_BASE)/s3-in"  
+
 s3-test: compile
 	$(NF_BIN) run ./main.nf --outdir "$(S3_BASE)/s3-test" --input "$(S3_BASE)/s3-in"
 

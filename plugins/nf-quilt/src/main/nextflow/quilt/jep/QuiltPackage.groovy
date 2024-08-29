@@ -68,7 +68,7 @@ class QuiltPackage {
         List<String> entries = dict.collect { key, value ->
             String prefix = JsonOutput.toJson(key)
             String suffix = "toJson.error: ${value}"
-            log.debug("QuiltPackage.toJson: ${prefix} [${suffix.length()}]")
+            // log.debug("QuiltPackage.toJson: ${prefix} [${suffix.length()}]")
             try {
                 suffix = JsonOutput.toJson(value)
             }
@@ -172,7 +172,10 @@ class QuiltPackage {
     void setup() {
         Files.createDirectories(this.folder)
         this.installed = false
-        install() // FIXME: only needed for nextflow < 23.12?
+        if (!this.is_force()) {
+            log.debug("QuiltPackage.setup.install.options: $parsed.options")
+            install(true) // FIXME: only needed for nextflow < 23.12?
+        }
     }
 
     boolean is_force() {
@@ -191,15 +194,16 @@ class QuiltPackage {
         return folder
     }
 
-    Path install() {
+    Path install(boolean implicit=false) {
         if (isNull()) {
             log.debug('null bucket: no need to install')
             return null
         }
         Path dest = packageDest()
+        String implicitStr = implicit ? 'implicitly ' : ''
 
         try {
-            log.info("installing $packageName from $bucket...")
+            log.info("${implicitStr}installing $packageName from $bucket...")
             S3PhysicalKey registryPath = new S3PhysicalKey(bucket, '', null)
             Registry registry = new Registry(registryPath)
             Namespace namespace = registry.getNamespace(packageName)
@@ -210,10 +214,17 @@ class QuiltPackage {
             Manifest manifest = namespace.getManifest(resolvedHash)
 
             manifest.install(dest)
-            log.debug("done: installed into $dest)")
-            println("Children: ${relativeChildren('')}")
+            log.info("install: ${implicitStr}installed into $dest)")
+            println("QuiltPackage.install.Children: ${relativeChildren('')}")
         } catch (IOException e) {
-            log.error("failed to install $packageName")
+            if (!implicit) {
+                log.error("failed to install $packageName", e)
+                print("INSTALL FAILED: ${this.parsed}\n")
+                e.printStackTrace()
+                /* groovylint-disable-next-line ThrowRuntimeException */
+                throw new RuntimeException(e)
+            }
+            log.warn("failed to (implicitly) install $packageName")
             // this is non-fatal error, so we don't want to stop the pipeline
             /* groovylint-disable-next-line ReturnNullFromCatchBlock */
             return null

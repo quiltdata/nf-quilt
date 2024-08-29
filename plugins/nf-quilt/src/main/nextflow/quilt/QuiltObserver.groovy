@@ -15,16 +15,18 @@
  */
 package nextflow.quilt
 
+import nextflow.Session
 import nextflow.quilt.jep.QuiltParser
 import nextflow.quilt.nio.QuiltPath
 import nextflow.quilt.nio.QuiltPathFactory
+import nextflow.trace.TraceObserver
 
 import java.nio.file.Path
+import java.util.concurrent.locks.Lock
+import java.util.concurrent.locks.ReentrantLock
 
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
-import nextflow.Session
-import nextflow.trace.TraceObserver
 
 /**
  * Plugin observer of workflow events
@@ -38,6 +40,10 @@ class QuiltObserver implements TraceObserver {
     private Session session
     final private Map<String,String> uniqueURIs = [:]
     final private Map<String,String> publishedURIs = [:]
+
+    // Is this overkill? Do we only ever have one output package per run?
+    final private Map<String, Map<String, Path>> packageOverlays = [:]
+    final private Lock lock = new ReentrantLock() // Need this because of threads
 
     static QuiltPath asQuiltPath(Path path) {
         if (path in QuiltPath) {
@@ -73,6 +79,44 @@ class QuiltObserver implements TraceObserver {
         return uniqueURIs[key]
     }
 
+    String extractPackageURI(Path nonQuiltPath) {
+        String pathString = nonQuiltPath.toUri()
+        // println("extractPackageURI.pathString[${nonQuiltPath}] -> $pathString")
+        String[] partsArray = pathString.split('/')
+        List<String> parts = new ArrayList(partsArray.toList())
+        // parts.eachWithIndex { p, i -> println("extractPackageURI.parts[$i]: $p") }
+
+        if (parts.size() < 3) {
+            throw new IllegalArgumentException("Invalid pathString: $pathString ($nonQuiltPath)")
+        }
+        parts = parts.drop(3)
+        if (parts[0].endsWith(':')) {
+            parts = parts.drop(1)
+        }
+        String bucket = parts.remove(0)
+        String file_path = parts.remove(parts.size() - 1)
+        String prefix = parts.size() > 0 ? parts.remove(0) : 'default_prefix'
+        String suffix = parts.size() > 0 ? parts.remove(0) : 'default_suffix'
+        if (parts.size() > 0) {
+            String folder_path = parts.join('/')
+            file_path = folder_path + '/' + file_path
+        }
+
+        // TODO: should overlay packages always force to new versions?
+        String base = "quilt+s3://${bucket}#package=${prefix}%2f${suffix}"
+        String uri = "${base}&path=${file_path}"
+
+        String key = pkgKey(QuiltPathFactory.parse(uri))
+        Map<String, Path> current = packageOverlays.get(key, [:]) as Map<String, Path>
+        current[file_path] = nonQuiltPath
+        lock.withLock {
+            uniqueURIs[key] = base
+            publishedURIs[key] = base
+            packageOverlays[key] = current
+        }
+        return uri
+    }
+
     void checkParams(Map params) {
         log.debug("checkParams[$params]")
         params.each { k, value ->
@@ -94,23 +138,27 @@ class QuiltObserver implements TraceObserver {
 
     // NOTE: TraceFileObserver calls onFilePublish _before_ onFlowCreate
     @Override
-    void onFilePublish(Path path) { //, Path source
-        log.debug("onFilePublish.Path[$path]") //.Source[$source]
-        QuiltPath qPath = asQuiltPath(path)
+    void onFilePublish(Path destination, Path source) {
+        // Path source may be null, won't work with older versions of Nextflow
+        log.debug("onFilePublish.Path[$destination] <- $source")
+        QuiltPath qPath = asQuiltPath(destination)
         if (qPath) {
             checkPath(qPath, true)
         } else {
-            log.warn("onFilePublish.not.QuiltPath: $path")
+            String uri = extractPackageURI(destination)
+            log.debug("onFilePublish.NonQuiltPath[$destination]: $uri")
         }
     }
 
     @Override
     void onFlowComplete() {
-        log.debug("`onFlowComplete` ${publishedURIs}")
+        log.debug("onFlowComplete.publishedURIs[${publishedURIs.size()}]: $publishedURIs")
         // create QuiltProduct for each unique package URI
-        publishedURIs.each { k, uri ->
+        publishedURIs.each { key, uri ->
             QuiltPath path = QuiltPathFactory.parse(uri)
-            new QuiltProduct(path, session)
+            Map<String, Path> overlays = packageOverlays.get(key, [:]) as Map<String, Path>
+            // log.debug("onFlowComplete.pkg: $path overlays[${overlays?.size()}]: $overlays")
+            new QuiltProduct(path, session, overlays)
         }
     }
 

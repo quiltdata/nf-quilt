@@ -6,6 +6,8 @@ Nextflow plugin for reading and writing Quilt packages as a FileSystem
 developed by [Quilt Data](https://quiltdata.com/) that enables you read and write directly
 to Quilt packages using `quilt+s3` URIs wherever your Nextflow pipeline currently use `s3` URIs.
 
+In v0.8.0, the plugin can even be used with "native" URIs, and it will automatically register a Quilt package at the root of the bucket.
+
 Inspired by the original [`nf-quilt`](https://github.com/nextflow-io/nf-quilt) plugin (v0.2.0) developed by Seqera labs.
 
 ## I. Using the nf-quilt plugin in Production
@@ -34,6 +36,8 @@ You can alternatively specify the plugin as part of the command-line, .e.g.:
 ```bash
 nextflow run ./main.nf -profile standard -plugins nf-quilt --outdir 'quilt+s3://bucket#package=prefix/suffix'
 ```
+
+## II. Working With Quilt+ URIs (optional for output)
 
 1. Obtain a Quilt+ URI for each package
 
@@ -82,7 +86,7 @@ nextflow run main.nf -plugins nf-quilt@0.7.16
 
 For Tower, you can use the "Pre-run script" to set the environment variables.
 
-## II. Advanced URI Options
+## III. Advanced URI Options
 
 There are a number of additional parameters you can add to Quilt+ URIs,
 in order to customize the behavior of the plugin:
@@ -148,7 +152,7 @@ To quickly run `nf-quilt` from this GitHub repository:
 ```bash
 git clone https://github.com/quiltdata/nf-quilt.git
 cd nf-quilt
-make test-all # runs unit tests and installs depdencies
+make test-all # runs unit tests and installs dependencies
 export WRITE_BUCKET=bucket-with-write-access
 make pkg-test  # create "test/hurdat" package on s3://$WRITE_BUCKET
 ./launch.sh run nf-core/sarek -profile test,docker -plugins nf-quilt \
@@ -195,9 +199,9 @@ type:
    ./launch.sh run ./main.nf -profile standard -plugins $(PROJECT) --pub "quilt+s3://bucket#package=test/hurdat"
 ```
 
-Replace "bucket" with an S3 bucket those credentials can write to.
+Replace "bucket" with an S3 bucket that those credentials can write to.
 
-### Running a Pipeine Locally
+### Running a Pipeline Locally
 
 From inside the `nf-quilt` directory, call `./launch.sh` with a path to your pipeline.
 

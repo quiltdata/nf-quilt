@@ -54,11 +54,20 @@ jobs:
       env:
         LOG4J_DEBUG: true
 
-    - name: Archive production artifacts
+    - name: Archive production artifacts (Windows only)
       uses: actions/upload-artifact@v4
-      if: ${{ always() }}
+      if: ${{ always() && matrix.os  == 'windows-latest' }}
       with:
         name: nf-quilt-test-reports-${{ matrix.os }}-${{ matrix.java_version }}
         path: |
-            ./nf-quilt/plugins/nf-quilt/build/reports/tests/test/
+            D:\a\nf-quilt\nf-quilt\plugins\nf-quilt\build\reports\tests\test\
         overwrite: true
+    - name: Archive production artifacts (Linux and MacOS)
+      uses: actions/upload-artifact@v4
+      if: ${{ always() && matrix.os != 'windows-latest' }} 
+      with:
+        name: nf-quilt-test-reports-${{ matrix.os }}-${{ matrix.java_version }}
+        path: |
+            ${{ github.workspace }}/nf-quilt/plugins/nf-quilt/build/reports/tests/test/
+        overwrite: true
+
