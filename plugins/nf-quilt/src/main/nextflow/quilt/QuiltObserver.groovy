@@ -40,7 +40,7 @@ class QuiltObserver implements TraceObserver {
     private Session session
     final private Map<String,String> uniqueURIs = [:]
     final private Map<String,String> publishedURIs = [:]
-    final private Map<String,List<Path>> packageOverlays = [:]
+    final private Map<String, Map<String, Path>> packageOverlays = [:]
 
     static QuiltPath asQuiltPath(Path path) {
         if (path in QuiltPath) {
@@ -102,8 +102,8 @@ class QuiltObserver implements TraceObserver {
         log.debug("extractPackaging[${nonQuiltPath}] -> ${uri}")
 
         String key = pkgKey(QuiltPathFactory.parse(uri))
-        List<Path> current = packageOverlays.get(key, []) as List<Path>
-        current << nonQuiltPath
+        Map<String, Path> current = packageOverlays.get(key, [:]) as Map<String, Path>
+        current[file_path] = nonQuiltPath
         packageOverlays[key] = current
         return uri
     }
@@ -158,7 +158,7 @@ class QuiltObserver implements TraceObserver {
         // create QuiltProduct for each unique package URI
         publishedURIs.each { key, uri ->
             QuiltPath path = QuiltPathFactory.parse(uri)
-            List<Path> overlays = packageOverlays.get(key, []) as List<Path>
+            Map<String, Path> overlays = packageOverlays.get(key, [:]) as Map<String, Path>
             log.debug("onFlowComplete.pkg: $path overlays[${overlays?.size()}]: $overlays")
             new QuiltProduct(path, session, overlays)
         }

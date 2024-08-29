@@ -120,7 +120,7 @@ ${nextflow}
     private String msg
     private Map meta
 
-    QuiltProduct(QuiltPath path, Session session, List<Path> overlays = []) {
+    QuiltProduct(QuiltPath path, Session session, Map<String, Path> overlays = [:]) {
         this.path = path
         this.pkg = path.pkg()
         this.msg =  pkg.toString()
@@ -140,10 +140,10 @@ ${nextflow}
         }
     }
 
-    void publishOverlays(List<Path> overlays) {
-        overlays.each { overlay ->
-            log.info("publishing overlay: ${overlay}")
-            writeString(overlay.text, pkg, overlay.name)
+    void publishOverlays(Map<String, Path> overlays) {
+        overlays.each { key, overlay ->
+            log.info("publishing overlay[$key]: ${overlay}")
+            writeString(overlay.text, pkg, key)
         }
     }
 
