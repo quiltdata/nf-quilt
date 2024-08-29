@@ -60,5 +60,5 @@ jobs:
       with:
         name: nf-quilt-test-reports-${{ matrix.os }}-${{ matrix.java_version }}
         path: |
-            ./nf-quilt/plugins/nf-quilt/build/reports/tests/test/
+            ${{ github.workspace }}/nf-quilt/nf-quilt/plugins/nf-quilt/build/reports/tests/test/
         overwrite: true
