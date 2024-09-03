@@ -4,10 +4,10 @@ package nextflow.quilt.nio
 import nextflow.quilt.QuiltSpecification
 import groovy.transform.CompileDynamic
 import java.nio.file.Path
-import java.nio.file.Paths
 import java.nio.file.Files
+import java.nio.file.CopyOption
+import java.nio.file.StandardCopyOption
 import groovy.util.logging.Slf4j
-import spock.lang.IgnoreIf
 
 /**
  *
@@ -28,12 +28,11 @@ class QuiltFileSystemProviderTest extends QuiltSpecification {
     // newDirectoryStream returns package path for write
     // do we need a new schema for quilt+local?
 
-    @IgnoreIf({ System.getProperty('os.name').contains('indows') })
     void 'should download file from remote to local destination'() {
         given:
         QuiltFileSystemProvider provider = new QuiltFileSystemProvider()
         String filename = 'README.md'
-        Path remoteFile = Paths.get('quilt+s3://quilt-example#package=examples%2fhurdat2&path=' + filename)
+        Path remoteFile = QuiltPathFactory.parse('quilt+s3://quilt-example#package=examples%2fhurdat2&path=' + filename)
         Path tempFolder = Files.createTempDirectory('quilt')
         Path tempFile = tempFolder.resolve(filename)
 
@@ -43,6 +42,20 @@ class QuiltFileSystemProviderTest extends QuiltSpecification {
         then:
         Files.exists(tempFile)
         Files.size(tempFile) > 0
+    }
+
+    void 'should download folders from remote to local destination'() {
+        given:
+        QuiltFileSystemProvider provider = new QuiltFileSystemProvider()
+        Path remoteFolder = QuiltPathFactory.parse('quilt+s3://quilt-example#package=examples%2fhurdat2')
+        Path tempFolder = Files.createTempDirectory('quilt')
+        CopyOption opt = StandardCopyOption.REPLACE_EXISTING
+        when:
+        provider.download(remoteFolder, tempFolder, opt)
+
+        then:
+        Files.exists(tempFolder)
+        Files.list(tempFolder).count() > 0
     }
 
 }

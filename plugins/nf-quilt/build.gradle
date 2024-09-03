@@ -85,6 +85,7 @@ dependencies {
     compileOnly 'black.ninia:jep:4.2.0'
     runtime 'black.ninia:jep:4.2.0'
     runtimeOnly 'org.junit.platform:junit-platform-launcher:1.11.0'
+    implementation 'commons-io:commons-io:2.11.0'
     implementation 'black.ninia:jep:4.2.0'
     testImplementation 'black.ninia:jep:4.2.0'
     //testImplementation(testFixtures('black.ninia:jep:4.0.3'))

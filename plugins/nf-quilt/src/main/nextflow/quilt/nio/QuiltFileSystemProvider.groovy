@@ -42,6 +42,7 @@ import java.nio.file.spi.FileSystemProvider
 import java.nio.file.FileSystems
 import java.nio.file.FileAlreadyExistsException
 
+import org.apache.commons.io.FileUtils
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import nextflow.Global
@@ -139,7 +140,11 @@ class QuiltFileSystemProvider extends FileSystemProvider implements FileSystemTr
             throw new FileAlreadyExistsException(localDestination.toString())
         }
 
-        Files.copy(cachedFile, localDestination, options)
+        if (Files.isDirectory(cachedFile)) {
+            FileUtils.copyDirectory(cachedFile.toFile(), localDestination.toFile())
+        } else {
+            Files.copy(cachedFile, localDestination, options)
+        }
     }
 
     void upload(Path localFile, Path remoteDestination, CopyOption... options) throws IOException {
