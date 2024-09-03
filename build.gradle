@@ -21,6 +21,7 @@ plugins {
     id 'idea'
     id 'se.patrikerdes.use-latest-versions' version '0.2.18'
     id 'com.github.ben-manes.versions' version '0.51.0'
+    id 'jacoco'
 }
 
 // Add ability to test with upcoming versions of Groovy
@@ -62,6 +63,7 @@ allprojects {
     apply plugin: 'idea'
     apply plugin: 'groovy'
     apply plugin: 'java-library'
+    apply plugin: 'jacoco'
 
     java {
         toolchain {
@@ -87,6 +89,48 @@ allprojects {
         maven { url 'https://repo.eclipse.org/content/groups/releases' }
         maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
     }
+
+    test {
+        useJUnitPlatform()
+        finalizedBy jacocoTestReport // report is always generated after tests run
+    }
+
+    jacoco {
+        toolVersion = "0.8.12"
+        reportsDirectory = layout.buildDirectory.dir('reports/jacoco')
+    }
+
+    jacocoTestReport {
+        dependsOn test // tests are required to run before generating the report
+        reports {
+            xml.required = false
+            csv.required = false
+            html.outputLocation = layout.buildDirectory.dir('jacocoHtml')
+        }
+    }
+
+    jacocoTestCoverageVerification {
+        violationRules {
+            rule {
+                limit {
+                    minimum = 0.5
+                }
+            }
+
+            rule {
+                enabled = false
+                element = 'CLASS'
+                includes = ['org.gradle.*']
+
+                limit {
+                    counter = 'LINE'
+                    value = 'TOTALCOUNT'
+                    maximum = 0.3
+                }
+            }
+        }
+    }
+
 
     configurations {
         // see https://docs.gradle.org/4.1/userguide/dependency_management.html#sub:exclude_transitive_dependencies

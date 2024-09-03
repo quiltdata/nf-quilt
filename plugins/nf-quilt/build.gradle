@@ -20,10 +20,11 @@ plugins {
     id 'idea'
     id 'se.patrikerdes.use-latest-versions' version '0.2.18'
     id 'com.github.ben-manes.versions' version '0.51.0'
+    id 'jacoco'
 }
 
 useLatestVersions {
-   // A blacklist of dependencies to update, in the format of group:name
+   // A blacklist of dependencies to not update, in the format of group:name
    updateBlacklist = [
         'com.quiltdata:quiltcore',
         'org.codehaus.groovy:groovy',
@@ -113,5 +114,41 @@ dependencies {
 // use JUnit 5 platform
 test {
     useJUnitPlatform()
+    finalizedBy jacocoTestReport // report is always generated after tests run
 }
 
+jacoco {
+    toolVersion = "0.8.12"
+    reportsDirectory = layout.buildDirectory.dir('reports/jacoco')
+}
+
+jacocoTestReport {
+    dependsOn test // tests are required to run before generating the report
+    reports {
+        xml.required = false
+        csv.required = false
+        html.outputLocation = layout.buildDirectory.dir('jacocoHtml')
+    }
+}
+
+jacocoTestCoverageVerification {
+    violationRules {
+        rule {
+            limit {
+                minimum = 0.5
+            }
+        }
+
+        rule {
+            enabled = false
+            element = 'CLASS'
+            includes = ['org.gradle.*']
+
+            limit {
+                counter = 'LINE'
+                value = 'TOTALCOUNT'
+                maximum = 0.3
+            }
+        }
+    }
+}
