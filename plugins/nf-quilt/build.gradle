@@ -20,6 +20,7 @@ plugins {
     id 'idea'
     id 'se.patrikerdes.use-latest-versions' version '0.2.18'
     id 'com.github.ben-manes.versions' version '0.51.0'
+    id 'jacoco'
 }
 
 useLatestVersions {
@@ -113,5 +114,13 @@ dependencies {
 // use JUnit 5 platform
 test {
     useJUnitPlatform()
+}
+
+jacocoTestReport {
+    reports {
+        xml.required = true
+        csv.required = true
+        html.required = true
+    }
 }
 

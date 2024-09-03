@@ -55,6 +55,10 @@ test-nextflow: clean nextflow-git compile check #coverage
 
 test-all: clean compile-all check #coverage
 
+coverage:
+	./gradlew jacocoTestReport
+	open plugins/nf-quilt/build/reports/jacoco/test/html/index.html
+
 #
 # Create packages
 #

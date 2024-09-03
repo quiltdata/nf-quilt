@@ -21,6 +21,7 @@ plugins {
     id 'idea'
     id 'se.patrikerdes.use-latest-versions' version '0.2.18'
     id 'com.github.ben-manes.versions' version '0.51.0'
+    id 'jacoco'
 }
 
 // Add ability to test with upcoming versions of Groovy
@@ -62,6 +63,7 @@ allprojects {
     apply plugin: 'idea'
     apply plugin: 'groovy'
     apply plugin: 'java-library'
+    apply plugin: 'jacoco'
 
     java {
         toolchain {
@@ -114,6 +116,19 @@ allprojects {
 
     test {
         useJUnitPlatform()
+    }
+
+    jacoco {
+        toolVersion = '0.8.12'
+        reportsDirectory = layout.buildDirectory.dir('reports/jacoco')
+    }
+
+    jacocoTestReport {
+        reports {
+            xml.required = true
+            csv.required = true
+            html.required = true
+        }
     }
 
     // this is required due to this IDEA bug
