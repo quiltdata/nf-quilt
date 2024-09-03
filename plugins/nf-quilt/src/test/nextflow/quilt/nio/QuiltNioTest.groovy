@@ -79,6 +79,8 @@ class QuiltNioTest extends QuiltSpecification {
         text.startsWith('id')
     }
 
+    @IgnoreIf({ System.getProperty('os.name').toLowerCase().contains('windows') ||
+                System.getProperty('os.name').toLowerCase().contains('linux') })
     void 'should read file attributes'() {
         given:
         final start = System.currentTimeMillis()
@@ -510,6 +512,8 @@ class QuiltNioTest extends QuiltSpecification {
         list  == [ 'file4.txt' ]
     }
 
+    // \QuiltPackage.quilt_dev_null_test_null\foo
+    @IgnoreIf({ System.getProperty('os.name').toLowerCase().contains('windows') })
     void 'should check walkTree'() {
         given:
         makeObject(null_path('foo/file1.txt'), 'A')

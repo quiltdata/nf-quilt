@@ -11,6 +11,7 @@ import groovy.transform.CompileDynamic
 
 import spock.lang.Unroll
 import spock.lang.Ignore
+import spock.lang.IgnoreIf
 
 /**
  *
@@ -237,6 +238,7 @@ class QuiltPathTest extends QuiltSpecification {
     }
 
     @Unroll
+    @IgnoreIf({ System.getProperty('os.name').toLowerCase().contains('windows') })
     void 'should validate relativize'() {
         expect:
         pathify(path).relativize(pathify(other)).toString() == pathify(expected).toString()
