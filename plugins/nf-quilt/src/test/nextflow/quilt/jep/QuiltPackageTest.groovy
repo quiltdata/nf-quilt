@@ -111,7 +111,6 @@ class QuiltPackageTest extends QuiltSpecification {
         Files.readAttributes(qpath, BasicFileAttributes)
     }
 
-    @IgnoreIf({ System.getProperty('os.name').contains('indows') })
     void 'should successfully install files and get attributes'() {
         expect:
         pkg.install()
@@ -120,7 +119,6 @@ class QuiltPackageTest extends QuiltSpecification {
         Files.readAttributes(qpath, BasicFileAttributes)
     }
 
-    @IgnoreIf({ System.getProperty('os.name').contains('indows') })
     void 'should download the specified path'() {
         given:
         def qpath = factory.parseUri(TEST_URL)
@@ -167,7 +165,6 @@ class QuiltPackageTest extends QuiltSpecification {
         thrown(RuntimeException)
     }
 
-    @IgnoreIf({ System.getProperty('os.name').contains('indows') })
     void 'should deinstall files'() {
         expect:
         Files.exists(qpath.localPath())
