@@ -155,6 +155,19 @@ allprojects {
         }
     }
 
+    jacoco {
+        toolVersion = '0.8.12'
+        reportsDirectory = layout.buildDirectory.dir('reports/jacoco')
+    }
+
+    jacocoTestReport {
+        reports {
+            xml.required = true
+            csv.required = true
+            html.required = true
+        }
+    }
+
     // this is required due to this IDEA bug
     // https://youtrack.jetbrains.com/issue/IDEA-129282
     sourceSets {

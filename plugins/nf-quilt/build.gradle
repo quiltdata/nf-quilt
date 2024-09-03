@@ -24,7 +24,7 @@ plugins {
 }
 
 useLatestVersions {
-   // A blacklist of dependencies to not update, in the format of group:name
+   // A blacklist of dependencies to update, in the format of group:name
    updateBlacklist = [
         'com.quiltdata:quiltcore',
         'org.codehaus.groovy:groovy',
@@ -115,3 +115,12 @@ dependencies {
 test {
     useJUnitPlatform()
 }
+
+jacocoTestReport {
+    reports {
+        xml.required = true
+        csv.required = true
+        html.required = true
+    }
+}
+
