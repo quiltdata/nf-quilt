@@ -6,7 +6,7 @@ Nextflow plugin for reading and writing Quilt packages as a FileSystem
 developed by [Quilt Data](https://quiltdata.com/) that enables you read and write directly
 to Quilt packages using `quilt+s3` URIs wherever your Nextflow pipeline currently use `s3` URIs.
 
-In v0.8.0, the plugin can even be used with "native" URIs, and it will automatically register a Quilt package at the root of the bucket.
+In v0.8+, the plugin can even be used with "native" URIs, and it will automatically register a Quilt package at the root of the bucket.
 
 Inspired by the original [`nf-quilt`](https://github.com/nextflow-io/nf-quilt) plugin (v0.2.0) developed by Seqera labs.
 
@@ -80,8 +80,8 @@ From the command-line, do, e.g.:
 ```bash
 # export NXF_VER=23.04.3
 export LOG4J_DEBUG=true  # for verbose logging
-export NXF_PLUGINS_TEST_REPOSITORY=https://github.com/quiltdata/nf-quilt/releases/download/0.7.16/nf-quilt-0.7.16-meta.json
-nextflow run main.nf -plugins nf-quilt@0.7.16
+export NXF_PLUGINS_TEST_REPOSITORY=https://github.com/quiltdata/nf-quilt/releases/download/0.8.0/nf-quilt-0.8.0-meta.json
+nextflow run main.nf -plugins nf-quilt@0.8.0
 ```
 
 For Tower, you can use the "Pre-run script" to set the environment variables.
