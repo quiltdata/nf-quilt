@@ -66,10 +66,9 @@ class QuiltNioTest extends QuiltSpecification {
         readObject(path).trim() == TEXT
     }
 
-    @IgnoreIf({ System.getProperty('os.name').contains('indows') })
     void 'should read from a path'() {
         given:
-        QuiltPath path = Paths.get(new URI(READ_URL)) as QuiltPath
+        QuiltPath path = QuiltPathFactory.parse(READ_URL)
         path.pkg().install()
 
         when:
@@ -80,15 +79,13 @@ class QuiltNioTest extends QuiltSpecification {
         text.startsWith('id')
     }
 
-    @IgnoreIf({ System.getProperty('os.name').contains('ux') })
-    @IgnoreIf({ System.getProperty('os.name').contains('indows') })
     void 'should read file attributes'() {
         given:
         final start = System.currentTimeMillis()
         final root = 'folder'
         final start_path = "${root}/${start}.txt"
         final start_url = packagePath(start_path)
-        Path path = Paths.get(new URI(start_url))
+        Path path = QuiltPathFactory.parse(start_url)
 
         when:
         makeObject(path, TEXT)
@@ -513,7 +510,6 @@ class QuiltNioTest extends QuiltSpecification {
         list  == [ 'file4.txt' ]
     }
 
-    @IgnoreIf({ System.getProperty('os.name').contains('indows') })
     void 'should check walkTree'() {
         given:
         makeObject(null_path('foo/file1.txt'), 'A')
@@ -526,7 +522,7 @@ class QuiltNioTest extends QuiltSpecification {
         when:
         List<String> dirs = []
         Map<String,BasicFileAttributes> files = [:]
-        Path base = Paths.get(new URI(NULL_URL))
+        Path base = QuiltPathFactory.parse(NULL_URL)
         Files.walkFileTree(base, new SimpleFileVisitor<Path>() {
 
             @Override

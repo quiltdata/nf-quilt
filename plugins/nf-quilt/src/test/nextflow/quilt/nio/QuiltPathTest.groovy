@@ -6,13 +6,11 @@ import nextflow.quilt.jep.QuiltParser
 import nextflow.quilt.jep.QuiltPackage
 
 import java.nio.file.Path
-import java.nio.file.Paths
 import groovy.util.logging.Slf4j
 import groovy.transform.CompileDynamic
 
 import spock.lang.Unroll
 import spock.lang.Ignore
-import spock.lang.IgnoreIf
 
 /**
  *
@@ -28,13 +26,12 @@ class QuiltPathTest extends QuiltSpecification {
 
     QuiltPath pathify(String path) {
         if (!path.contains(BKT)) {
-            URI uri = new URI(PKG_URL)
-            QuiltPath pkgPath = Paths.get(uri)
+            QuiltPath pkgPath = QuiltPathFactory.parse(PKG_URL)
             QuiltFileSystem qfs = pkgPath.getFileSystem()
             return qfs.getPath(path)
         }
         String url = QuiltParser.PREFIX + path
-        return Paths.get(new URI(url))
+        return QuiltPathFactory.parse(url)
     }
 
     @Unroll
@@ -240,7 +237,6 @@ class QuiltPathTest extends QuiltSpecification {
     }
 
     @Unroll
-    @IgnoreIf({ System.getProperty('os.name').contains('indows') })
     void 'should validate relativize'() {
         expect:
         pathify(path).relativize(pathify(other)).toString() == pathify(expected).toString()

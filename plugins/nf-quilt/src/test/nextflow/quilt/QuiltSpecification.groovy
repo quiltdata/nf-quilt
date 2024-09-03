@@ -109,7 +109,7 @@ class QuiltSpecification extends Specification {
 
     Path makeObject(String url, String text) {
         assert url
-        Path path  = Paths.get(new URI(url))
+        Path path  = QuiltPathFactory.parse(url)
         return makeObject(path, text)
     }
 
