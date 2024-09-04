@@ -39,13 +39,15 @@ import spock.lang.Unroll
 @CompileDynamic
 class QuiltProductTest extends QuiltSpecification {
 
-    QuiltProduct makeProduct(String query=null) {
+    QuiltProduct makeProduct(String query=null, boolean success = false) {
         String subURL = query ? fullURL.replace('key=val&key2=val2', query) : fullURL
         WorkflowMetadata metadata = GroovyMock(WorkflowMetadata) {
             toMap() >> [start:'2022-01-01', complete:'2022-01-02']
         }
         Session session = GroovyMock(Session) {
             getWorkflowMetadata() >> metadata
+            getParams() >> [outdir: subURL]
+            isSuccess() >> success
         }
         QuiltPath path = QuiltPathFactory.parse(subURL)
         return new QuiltProduct(path, session)
@@ -247,6 +249,34 @@ class QuiltProductTest extends QuiltSpecification {
 
         expect:
         quilt_meta != null
+    }
+
+    void 'should setupMeta from session'() {
+        given:
+        QuiltProduct product = makeProduct()
+        Map quilt_meta = product.setupMeta()
+
+        expect:
+        quilt_meta != null
+    }
+
+    void 'should throw error on publish'() {
+        given:
+        QuiltProduct product = makeProduct()
+
+        when:
+        product.publish()
+
+        then:
+        thrown(RuntimeException)
+    }
+
+    void 'should throw error if session.isSuccess'() {
+        when:
+        makeProduct(query: null, success: true)
+
+        then:
+        thrown(RuntimeException)
     }
 
 }
