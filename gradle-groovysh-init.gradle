@@ -1,0 +1,49 @@
+gradle.projectsLoaded {
+    rootProject {
+        afterEvaluate { project ->
+            if (!project.repositories.any{it.name == 'MavenRepo'}) {
+                project.repositories {
+                    // To be able to load org.codehaus.groovy:groovy-groovysh
+                    mavenCentral()
+                }
+            }
+
+            project.configurations {
+                groovyshdependencies
+            }
+
+            project.dependencies {
+                groovyshdependencies("org.codehaus.groovy:groovy-groovysh:${GroovySystem.version}") {
+                    exclude group: 'org.codehaus.groovy'
+                }
+            }
+
+            project.tasks.register('groovysh') {
+                group 'debug'
+                description 'Runs an interactive shell in the context of the project.'
+                doLast {
+                    URLClassLoader groovyObjectClassLoader = GroovyObject.class.classLoader
+                    def groovyshClass
+                    def groovyShell
+
+                    // Add dependency jars to classloader
+                    configurations.groovyshdependencies.each {File file ->
+                        groovyObjectClassLoader.addURL(file.toURL())
+                    }
+                    Class.forName('jline.console.history.FileHistory', true, groovyObjectClassLoader)
+                    groovyshClass = Class.forName('org.codehaus.groovy.tools.shell.Groovysh', true, groovyObjectClassLoader)
+
+                    if (groovyshClass) {
+                        groovyShell = groovyshClass.newInstance()
+                    }
+                    if (groovyShell) {
+                        groovyShell.interp.context.variables.put("gradle", gradle)
+                        groovyShell.interp.context.variables.put("settings", gradle.settings)
+                        groovyShell.interp.context.variables.put("project", project)
+                        groovyShell.run('')
+                    }
+                }
+            }
+        }
+    }
+}

@@ -62,6 +62,9 @@ coverage:
 verifyCoverage:
 	./gradlew jacocoTestCoverageVerification
 
+groovysh:
+	./gradlew -q --no-daemon --console=plain --init-script groovysh-task.gradle groovysh
+
 #
 # Create packages
 #
