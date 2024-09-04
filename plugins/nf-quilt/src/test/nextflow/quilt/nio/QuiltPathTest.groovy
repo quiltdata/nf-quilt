@@ -6,8 +6,10 @@ import nextflow.quilt.jep.QuiltParser
 import nextflow.quilt.jep.QuiltPackage
 
 import java.nio.file.Path
+import java.nio.file.Paths
 import groovy.util.logging.Slf4j
 import groovy.transform.CompileDynamic
+import java.nio.file.ProviderMismatchException
 
 import spock.lang.Unroll
 import spock.lang.Ignore
@@ -161,7 +163,6 @@ class QuiltPathTest extends QuiltSpecification {
     void 'should validate resolve: base:=#base; path=#path'() {
         expect:
         pathify(base).resolve(path) == pathify(expected)
-        //pathify(base).resolve( pathify(path) ) == pathify(expected)
 
         where:
         base                        | path                        | expected
@@ -169,6 +170,26 @@ class QuiltPathTest extends QuiltSpecification {
         'bucket#package=da/ta'      | 'dir%2ffile-name.txt'       | 'bucket#package=da%2fta&path=dir%2ffile-name.txt'
         'bucket#package=da/ta'      | '/dir%2ffile-name.txt'      | 'bucket#package=da%2fta&path=dir%2ffile-name.txt'
         'bucket'                    | 'some%2ffile-name.txt'      | 'bucket#path=some%2ffile-name.txt'
+    }
+
+    void 'should resolve another QuiltPath'() {
+        given:
+        QuiltPath basePath = pathify('bucket#package=so%2fme')
+        QuiltPath otherPath = pathify('bucket#package=da/ta')
+
+        expect:
+        basePath.resolve(otherPath) == otherPath
+    }
+
+    void 'should resolve error for non-QuiltPath'() {
+        given:
+        QuiltPath basePath = pathify('bucket#package=so%2fme')
+        Path nonQuiltPath = Paths.get('file-name.txt')
+        when:
+        basePath.resolve(nonQuiltPath)
+
+        then:
+        thrown ProviderMismatchException
     }
 
     @Ignore('FIXME: subpath not yet implemented')

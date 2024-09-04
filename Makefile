@@ -49,11 +49,21 @@ check:
 
 .PHONY: clean test test-all all pkg-test tower-test
 
-test: clean compile check #coverage
+test: clean compile check verifyCoverage
 
-test-nextflow: clean nextflow-git compile check #coverage
+test-nextflow: clean nextflow-git compile check
 
-test-all: clean compile-all check #coverage
+test-all: clean compile-all check coverage
+
+coverage:
+	./gradlew jacocoTestReport
+	open plugins/nf-quilt/build/reports/jacoco/test/html/index.html
+
+verifyCoverage:
+	./gradlew jacocoTestCoverageVerification
+
+groovysh:
+	./gradlew -q --no-daemon --console=plain --init-script groovysh-task.gradle groovysh
 
 #
 # Create packages

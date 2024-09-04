@@ -23,6 +23,7 @@ import nextflow.Session
 import java.nio.file.Path
 import java.nio.file.Paths
 import groovy.transform.CompileDynamic
+import spock.lang.Ignore
 
 /**
  *
@@ -93,6 +94,57 @@ class QuiltObserverTest extends QuiltSpecification {
         '/bucket/prefix/suffix/file.ext' | 'quilt+s3://bucket#package=prefix%2fsuffix&path=file.ext'
         '/bucket/prefix/file.ext' | 'quilt+s3://bucket#package=prefix%2fdefault_suffix&path=file.ext'
         '/bucket/file.ext' | 'quilt+s3://bucket#package=default_prefix%2fdefault_suffix&path=file.ext'
+    }
+
+    void 'should recover URI from onFilePublish QuiltPath'() {
+        given:
+        QuiltObserver observer = new QuiltObserver()
+        Path path = Paths.get(key)
+        Path quiltPath = QuiltPathFactory.parse(quilt_uri)
+        observer.onFilePublish(quiltPath, path)
+        String pkgKey = observer.pkgKey(quiltPath)
+        expect:
+        pkgKey == key
+        observer.uniqueURIs[key] == quilt_uri
+        observer.publishedURIs[key] == quilt_uri
+        where:
+        key | quilt_uri
+        'bucket/prefix/suffix' | 'quilt+s3://bucket#package=prefix%2fsuffix'
+    }
+
+    @Ignore('FIXME: handle onFilePublish with local Path')
+    void 'should extract URI from onFilePublish local Path'() {
+        given:
+        QuiltObserver observer = new QuiltObserver()
+        Path quiltPath = QuiltPathFactory.parse(quilt_uri)
+        Path path = Paths.get('/'+key)
+        observer.onFilePublish(path, quiltPath)
+        String pkgKey = observer.pkgKey(quiltPath)
+        expect:
+        pkgKey == key
+        observer.uniqueURIs[key] == quilt_uri
+        observer.publishedURIs[key] == quilt_uri
+        where:
+        key | quilt_uri
+        'bucket/prefix/suffix' | 'quilt+s3://bucket#package=prefix%2fsuffix'
+    }
+
+    void 'should not error on onFlowComplete'() {
+        given:
+        String quilt_uri = 'quilt+s3://bucket#package=prefix%2fsuffix'
+        QuiltObserver observer = new QuiltObserver()
+        QuiltPath qPath = QuiltPathFactory.parse(quilt_uri)
+        Session session = GroovyMock(Session) {
+            // getWorkflowMetadata() >> metadata
+            getParams() >> [outdir: quilt_uri]
+            isSuccess() >> false
+        }
+        observer.onFlowCreate(session)
+        observer.onFilePublish(qPath, qPath)
+        when:
+        observer.onFlowComplete()
+        then:
+        true
     }
 
 }

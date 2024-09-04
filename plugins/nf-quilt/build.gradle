@@ -20,6 +20,7 @@ plugins {
     id 'idea'
     id 'se.patrikerdes.use-latest-versions' version '0.2.18'
     id 'com.github.ben-manes.versions' version '0.51.0'
+    id 'jacoco'
 }
 
 useLatestVersions {
@@ -115,3 +116,29 @@ test {
     useJUnitPlatform()
 }
 
+jacocoTestReport {
+    dependsOn test // tests are required to run before generating the report
+}
+
+jacocoTestCoverageVerification {
+    dependsOn jacocoTestReport // tests are required to run before generating the report
+    violationRules {
+        rule {
+            limit {
+                minimum = 0.65
+            }
+        }
+
+        rule {
+            enabled = false
+            element = 'CLASS'
+            includes = ['org.gradle.*']
+
+            limit {
+                counter = 'LINE'
+                value = 'TOTALCOUNT'
+                maximum = 0.3
+            }
+        }
+    }
+}

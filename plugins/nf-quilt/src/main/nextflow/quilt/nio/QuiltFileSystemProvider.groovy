@@ -114,6 +114,9 @@ class QuiltFileSystemProvider extends FileSystemProvider implements FileSystemTr
         log.debug "QuiltFileSystemProvider.download: ${remoteFile} -> ${localDestination}"
         QuiltPath qPath = asQuiltPath(remoteFile)
         Path cachedFile = qPath.localPath()
+        /*
+         * UNUSED: QuiltPackage is always installed
+         *
         QuiltPackage pkg = qPath.pkg()
         if (!pkg.installed) {
             log.info "download.install Quilt package: ${pkg}"
@@ -124,6 +127,7 @@ class QuiltFileSystemProvider extends FileSystemProvider implements FileSystemTr
             }
             log.info "download.installed Quilt package to: $dest"
         }
+        */
 
         if (!Files.exists(cachedFile)) {
             log.error "download: File ${cachedFile} not found"
@@ -163,6 +167,9 @@ class QuiltFileSystemProvider extends FileSystemProvider implements FileSystemTr
         Path cachedFile = qPath.localPath()
         if (Files.exists(cachedFile)) {
             throw new FileAlreadyExistsException(remoteDestination.toString())
+        }
+        if (!Files.exists(localFile)) {
+            throw new NoSuchFileException(localFile.toString())
         }
         Files.copy(localFile, cachedFile, options)
     }
@@ -418,9 +425,9 @@ class QuiltFileSystemProvider extends FileSystemProvider implements FileSystemTr
 
     @Override
     void copy(Path from, Path to, CopyOption... options) throws IOException {
-        // log.debug("Attempting `copy`: ${from} -> ${to}")
+        log.debug("Attempting `copy`: ${from} -> ${to}")
         assert provider(from) == provider(to)
-        if (from == to) {
+        if (from.toString() == to.toString()) {
             return // nothing to do -- just return
         }
 

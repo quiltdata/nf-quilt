@@ -17,6 +17,8 @@
 package nextflow.quilt.nio
 
 import nextflow.Session
+import nextflow.script.WorkflowMetadata
+
 import nextflow.quilt.QuiltSpecification
 import nextflow.quilt.QuiltProduct
 import nextflow.quilt.jep.QuiltParser
@@ -37,9 +39,16 @@ import spock.lang.Unroll
 @CompileDynamic
 class QuiltProductTest extends QuiltSpecification {
 
-    QuiltProduct makeProduct(String query=null) {
+    QuiltProduct makeProduct(String query=null, boolean success = false) {
         String subURL = query ? fullURL.replace('key=val&key2=val2', query) : fullURL
-        Session session = Mock(Session)
+        WorkflowMetadata metadata = GroovyMock(WorkflowMetadata) {
+            toMap() >> [start:'2022-01-01', complete:'2022-01-02']
+        }
+        Session session = GroovyMock(Session) {
+            getWorkflowMetadata() >> metadata
+            getParams() >> [outdir: subURL]
+            isSuccess() >> success
+        }
         QuiltPath path = QuiltPathFactory.parse(subURL)
         return new QuiltProduct(path, session)
     }
@@ -50,12 +59,23 @@ class QuiltProductTest extends QuiltSpecification {
             String query = QuiltParser.unparseQuery(meta)
             subURL = subURL.replace('#', "?${query}#")
         }
-        Session session = Mock(Session)
+        Session session = GroovyMock(Session)
         QuiltPath path = QuiltPathFactory.parse(subURL)
         return new QuiltProduct(path, session)
     }
 
-    void 'now should generate solid string for timestamp'() {
+    void 'should generate mocks from makeProduct'() {
+        given:
+        QuiltProduct product = makeProduct()
+
+        expect:
+        product
+        product.pkg
+        product.session != null
+        product.session.getWorkflowMetadata() != null
+    }
+
+    void 'should generate solid string for timestamp from now'() {
         when:
         def now = QuiltProduct.now()
         then:
@@ -214,6 +234,49 @@ class QuiltProductTest extends QuiltSpecification {
         product.publish()
         sumPkg.install()
         Files.exists(Paths.get(sumPkg.packageDest().toString(), QuiltProduct.SUMMARY_FILE))
+    }
+
+    void 'should getMetadata from Map'() {
+        given:
+        Map meta = [
+            'Name': 'QuiltPackageTest',
+            'Owner': 'Ernest',
+            'Date': '1967-10-08',
+            'Type': 'NGS'
+        ]
+        QuiltProduct product = makeProduct()
+        Map quilt_meta = product.getMetadata(meta)
+
+        expect:
+        quilt_meta != null
+    }
+
+    void 'should setupMeta from session'() {
+        given:
+        QuiltProduct product = makeProduct()
+        Map quilt_meta = product.setupMeta()
+
+        expect:
+        quilt_meta != null
+    }
+
+    void 'should throw error on publish'() {
+        given:
+        QuiltProduct product = makeProduct()
+
+        when:
+        product.publish()
+
+        then:
+        thrown(RuntimeException)
+    }
+
+    void 'should throw error if session.isSuccess'() {
+        when:
+        makeProduct(query: null, success: true)
+
+        then:
+        thrown(RuntimeException)
     }
 
 }
