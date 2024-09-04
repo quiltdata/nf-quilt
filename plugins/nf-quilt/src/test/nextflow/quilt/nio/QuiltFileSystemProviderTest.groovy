@@ -19,7 +19,7 @@ import groovy.util.logging.Slf4j
 class QuiltFileSystemProviderTest extends QuiltSpecification {
 
     static Path parsedURIWithPath(boolean withPath = false) {
-        String packageURI = 'quilt+s3://udp-spec#package=nf-quilt/source'
+        String packageURI = SpecURI()
         if (withPath) {
             packageURI += '&path=COPY_THIS.md'
         }

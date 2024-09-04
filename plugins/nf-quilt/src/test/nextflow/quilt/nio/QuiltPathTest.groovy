@@ -273,7 +273,7 @@ class QuiltPathTest extends QuiltSpecification {
     void 'should reconstruct full URLs'() {
         given:
         QuiltPath pkgPath = QuiltPathFactory.parse(PKG_URL)
-        QuiltPath fullPath = QuiltPathFactory.parse(fullURL)
+        QuiltPath fullPath = QuiltPathFactory.parse(testURI)
         expect:
         !pkgPath.toUriString().contains('?')
         fullPath.toUriString().contains('?')

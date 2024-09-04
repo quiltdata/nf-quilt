@@ -40,7 +40,7 @@ import spock.lang.Unroll
 class QuiltProductTest extends QuiltSpecification {
 
     QuiltProduct makeProduct(String query=null, boolean success = false) {
-        String subURL = query ? fullURL.replace('key=val&key2=val2', query) : fullURL
+        String subURL = query ? testURI.replace('key=val&key2=val2', query) : testURI
         WorkflowMetadata metadata = GroovyMock(WorkflowMetadata) {
             toMap() >> [start:'2022-01-01', complete:'2022-01-02']
         }

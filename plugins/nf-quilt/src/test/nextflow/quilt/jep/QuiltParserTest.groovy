@@ -99,7 +99,7 @@ class QuiltParserTest extends QuiltSpecification {
 
     void 'should extract other parameters from URI'() {
         when:
-        QuiltParser parser = QuiltParser.forUriString(fullURL)
+        QuiltParser parser = QuiltParser.forUriString(testURI)
         Map<String,Object> meta = parser.getMetadata()
 
         then:
@@ -116,11 +116,11 @@ class QuiltParserTest extends QuiltSpecification {
 
     void 'should unparse other parameters back to URI'() {
         when:
-        QuiltParser parser = QuiltParser.forUriString(fullURL)
+        QuiltParser parser = QuiltParser.forUriString(testURI)
         String unparsed = parser.toUriString()
 
         then:
-        unparsed.replace('%2f', '/') == fullURL
+        unparsed.replace('%2f', '/') == testURI
     }
 
     void 'should collect array parameters from query string'() {

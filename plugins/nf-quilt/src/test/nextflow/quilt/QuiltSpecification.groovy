@@ -47,7 +47,11 @@ import spock.lang.Specification
 @CompileDynamic
 class QuiltSpecification extends Specification {
 
-    @Shared String fullURL
+    static String SpecURI() {
+        return 'quilt+s3://udp-spec#package=nf-quilt/source'
+    }
+
+    @Shared String testURI
 
     @Shared String pluginsMode
 
@@ -59,7 +63,7 @@ class QuiltSpecification extends Specification {
         // reset previous instances
         PluginExtensionProvider.reset()
         // this need to be set *before* the plugin manager class is created
-        fullURL = 'quilt+s3://bkt?key=val&key2=val2' +
+        testURI = 'quilt+s3://bkt?key=val&key2=val2' +
                   '#package=pre/suf@abcdef314159265'+
                   '&path=p/t&property=prop&workflow=wf&catalog=quiltdata.com'
         pluginsMode = System.getProperty('pf4j.mode')

@@ -40,9 +40,9 @@ class QuiltPkgTest extends QuiltSpecification {
     ]
 
     private static QuiltPackage GetPackage(String suffix) {
-        String baseURI = 'quilt+s3://udp-spec#package=nf-quilt/'
+        String baseURI = SpecURI().replace('source', suffix)
         QuiltPathFactory factory = new QuiltPathFactory()
-        QuiltPath qpath = factory.parseUri(baseURI + suffix)
+        QuiltPath qpath = factory.parseUri(baseURI)
         println("Parsed: $qpath")
         QuiltPackage pkg = qpath.pkg()
         println("Package: $pkg")
