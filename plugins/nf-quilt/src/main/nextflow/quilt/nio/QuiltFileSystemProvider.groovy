@@ -114,6 +114,9 @@ class QuiltFileSystemProvider extends FileSystemProvider implements FileSystemTr
         log.debug "QuiltFileSystemProvider.download: ${remoteFile} -> ${localDestination}"
         QuiltPath qPath = asQuiltPath(remoteFile)
         Path cachedFile = qPath.localPath()
+        /*
+         * UNUSED: QuiltPackage is always installed
+         *
         QuiltPackage pkg = qPath.pkg()
         if (!pkg.installed) {
             log.info "download.install Quilt package: ${pkg}"
@@ -124,6 +127,7 @@ class QuiltFileSystemProvider extends FileSystemProvider implements FileSystemTr
             }
             log.info "download.installed Quilt package to: $dest"
         }
+        */
 
         if (!Files.exists(cachedFile)) {
             log.error "download: File ${cachedFile} not found"

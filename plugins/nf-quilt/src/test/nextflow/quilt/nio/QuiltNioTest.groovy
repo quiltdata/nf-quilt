@@ -79,8 +79,8 @@ class QuiltNioTest extends QuiltSpecification {
         text.startsWith('id')
     }
 
-    @IgnoreIf({ System.getProperty('os.name').toLowerCase().contains('windows') ||
-                System.getProperty('os.name').toLowerCase().contains('linux') })
+    @IgnoreIf({ System.getProperty('os.name').toLowerCase().contains('windows') })
+    @IgnoreIf({ System.getProperty('os.name').toLowerCase().contains('linux') })
     void 'should read file attributes'() {
         given:
         final start = System.currentTimeMillis()
