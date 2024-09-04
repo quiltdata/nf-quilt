@@ -168,6 +168,9 @@ class QuiltFileSystemProvider extends FileSystemProvider implements FileSystemTr
         if (Files.exists(cachedFile)) {
             throw new FileAlreadyExistsException(remoteDestination.toString())
         }
+        if (!Files.exists(localFile)) {
+            throw new NoSuchFileException(localFile.toString())
+        }
         Files.copy(localFile, cachedFile, options)
     }
 
@@ -422,9 +425,9 @@ class QuiltFileSystemProvider extends FileSystemProvider implements FileSystemTr
 
     @Override
     void copy(Path from, Path to, CopyOption... options) throws IOException {
-        // log.debug("Attempting `copy`: ${from} -> ${to}")
+        log.debug("Attempting `copy`: ${from} -> ${to}")
         assert provider(from) == provider(to)
-        if (from == to) {
+        if (from.toString() == to.toString()) {
             return // nothing to do -- just return
         }
 
