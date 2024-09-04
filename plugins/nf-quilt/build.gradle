@@ -120,8 +120,25 @@ jacocoTestReport {
     dependsOn test // tests are required to run before generating the report
 }
 
-jacoco {
-    toolVersion = "0.8.12"
+jacocoTestCoverageVerification {
+    dependsOn jacocoTestReport // tests are required to run before generating the report
+    violationRules {
+        rule {
+            limit {
+                minimum = 0.5
+            }
+        }
+
+        rule {
+            enabled = false
+            element = 'CLASS'
+            includes = ['org.gradle.*']
+
+            limit {
+                counter = 'LINE'
+                value = 'TOTALCOUNT'
+                maximum = 0.3
+            }
+        }
+    }
 }
-
-
