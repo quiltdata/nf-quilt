@@ -17,6 +17,8 @@
 package nextflow.quilt.nio
 
 import nextflow.Session
+import nextflow.script.WorkflowMetadata
+
 import nextflow.quilt.QuiltSpecification
 import nextflow.quilt.QuiltProduct
 import nextflow.quilt.jep.QuiltParser
@@ -39,7 +41,12 @@ class QuiltProductTest extends QuiltSpecification {
 
     QuiltProduct makeProduct(String query=null) {
         String subURL = query ? fullURL.replace('key=val&key2=val2', query) : fullURL
-        Session session = Mock(Session)
+        WorkflowMetadata metadata = GroovyMock(WorkflowMetadata) {
+            toMap() >> [start:'2022-01-01', complete:'2022-01-02']
+        }
+        Session session = GroovyMock(Session) {
+            getWorkflowMetadata() >> metadata
+        }
         QuiltPath path = QuiltPathFactory.parse(subURL)
         return new QuiltProduct(path, session)
     }
@@ -50,12 +57,23 @@ class QuiltProductTest extends QuiltSpecification {
             String query = QuiltParser.unparseQuery(meta)
             subURL = subURL.replace('#', "?${query}#")
         }
-        Session session = Mock(Session)
+        Session session = GroovyMock(Session)
         QuiltPath path = QuiltPathFactory.parse(subURL)
         return new QuiltProduct(path, session)
     }
 
-    void 'now should generate solid string for timestamp'() {
+    void 'should generate mocks from makeProduct'() {
+        given:
+        QuiltProduct product = makeProduct()
+
+        expect:
+        product
+        product.pkg
+        product.session != null
+        product.session.getWorkflowMetadata() != null
+    }
+
+    void 'should generate solid string for timestamp from now'() {
         when:
         def now = QuiltProduct.now()
         then:
@@ -214,6 +232,21 @@ class QuiltProductTest extends QuiltSpecification {
         product.publish()
         sumPkg.install()
         Files.exists(Paths.get(sumPkg.packageDest().toString(), QuiltProduct.SUMMARY_FILE))
+    }
+
+    void 'should getMetadata from Map'() {
+        given:
+        Map meta = [
+            'Name': 'QuiltPackageTest',
+            'Owner': 'Ernest',
+            'Date': '1967-10-08',
+            'Type': 'NGS'
+        ]
+        QuiltProduct product = makeProduct()
+        Map quilt_meta = product.getMetadata(meta)
+
+        expect:
+        quilt_meta != null
     }
 
 }
