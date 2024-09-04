@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.8.1] 2024-09-04
+
+- Add and improve code coverage using jacoco
+- Fix bug in path extraction from S3 URIs
+
+## [0.8.0] 2024-08-31
+
+- Support S3 URIs as an overlay plugin
+- Fix bug with pathless input URIs
+
 ## [0.7.17] UNRELEASED
 
 - support ChunkedChecksums
