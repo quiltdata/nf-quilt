@@ -2,7 +2,7 @@
 
 ## [0.8.1] UNRELEASED
 
-- Fix bug in path extraction from S3 URIs
+- Get output URI directly from params
 
 ## [0.8.0] 2024-08-31
 
