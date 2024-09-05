@@ -153,7 +153,7 @@ class QuiltPackage {
      */
     List<String> relativeChildren(String subpath) {
         Path subfolder = folder.resolve(subpath)
-        String base = subfolder.toString() + '/'
+        String base = subfolder.toString() + QuiltPath.osSep()
         List<String> result = []
         final String[] children = subfolder.list().sort()
         //log.debug("relativeChildren[${base}] $children")

@@ -46,8 +46,12 @@ final class QuiltPath implements Path, Comparable {
     private final String[] paths
     private final boolean isFileName
 
-    static String joinOs(String... parts) {
-        return parts.join(FileSystems.getDefault().getSeparator())
+    static String osSep() {
+        return FileSystems.getDefault().getSeparator()
+    }
+
+    static String osJoin(String... parts) {
+        return parts.join(osSep())
     }
 
     QuiltPath(QuiltFileSystem filesystem, QuiltParser parsed, boolean isFileName = false) {
@@ -219,7 +223,7 @@ final class QuiltPath implements Path, Comparable {
     Path relativize(Path other) {
         if (this == other) { return null }
         String file = (other in QuiltPath) ? ((QuiltPath)other).localPath() : other.toString()
-        String base = joinOs(pkg().toString(), parsed.getPath())
+        String base = osJoin(pkg().toString(), parsed.getPath())
         println("relativize[$base] in [$file]")
         int i = file.indexOf(base)
         if (i < 1) {
