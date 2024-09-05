@@ -261,13 +261,15 @@ class QuiltPathTest extends QuiltSpecification {
     @Unroll
     // @IgnoreIf({ System.getProperty('os.name').toLowerCase().contains('windows') })
     void 'should validate relativize'() {
+        given:
+        String base = 'bucket#package=so%2fme'
         expect:
         pathify(path).relativize(pathify(other)).toString() == pathify(expected).toString()
         where:
         path                              | other                                      | expected
-        'bucket#package=so%2fme'          | 'bucket#package=so%2fme%2fdata%2ffile.txt' | 'data%2ffile.txt'
-        'bucket#package=so%2fme%2fdata'   | 'bucket#package=so%2fme%2fdata%2ffile.txt' | 'file.txt'
-        'bucket#package=so%2fme&path=foo' | 'bucket#package=so%2fme&path=foo%2fbar'    | 'bar'
+        base               | "${base}%2fdata%2ffile.txt" | QuiltPackage.osJoin('data', 'file.txt')
+        "${base}%2fdata"   | "${base}%2fdata%2ffile.txt" | 'file.txt'
+        "${base}&path=foo" | "${base}&path=foo%2fbar"    | 'bar'
     }
 
     void 'should reconstruct full URLs'() {

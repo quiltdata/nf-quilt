@@ -19,7 +19,6 @@ import nextflow.quilt.jep.QuiltPackage
 import nextflow.quilt.jep.QuiltParser
 import java.nio.file.Files
 import java.nio.file.FileSystem
-import java.nio.file.FileSystems
 import java.nio.file.LinkOption
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -45,14 +44,6 @@ final class QuiltPath implements Path, Comparable {
     private final QuiltParser parsed
     private final String[] paths
     private final boolean isFileName
-
-    static String osSep() {
-        return FileSystems.getDefault().getSeparator()
-    }
-
-    static String osJoin(String... parts) {
-        return parts.join(osSep())
-    }
 
     QuiltPath(QuiltFileSystem filesystem, QuiltParser parsed, boolean isFileName = false) {
         this.filesystem = filesystem
@@ -223,7 +214,7 @@ final class QuiltPath implements Path, Comparable {
     Path relativize(Path other) {
         if (this == other) { return null }
         String file = (other in QuiltPath) ? ((QuiltPath)other).localPath() : other.toString()
-        String base = osJoin(pkg().toString(), parsed.getPath())
+        String base = QuiltPackage.osJoin(pkg().toString(), parsed.getPath())
         println("relativize[$base] in [$file]")
         int i = file.indexOf(base)
         if (i < 1) {

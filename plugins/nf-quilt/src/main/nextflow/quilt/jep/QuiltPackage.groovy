@@ -20,6 +20,7 @@ package nextflow.quilt.jep
 import groovy.json.JsonOutput
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
+import java.nio.file.FileSystems
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -54,6 +55,14 @@ class QuiltPackage {
     private final Path folder
     private final Map meta
     private boolean installed
+
+    static String osSep() {
+        return FileSystems.getDefault().getSeparator()
+    }
+
+    static String osJoin(String... parts) {
+        return parts.join(osSep())
+    }
 
     static String today() {
         LocalDate date = LocalDate.now()
@@ -153,7 +162,7 @@ class QuiltPackage {
      */
     List<String> relativeChildren(String subpath) {
         Path subfolder = folder.resolve(subpath)
-        String base = subfolder.toString() + QuiltPath.osSep()
+        String base = subfolder.toString() + osSep()
         List<String> result = []
         final String[] children = subfolder.list().sort()
         //log.debug("relativeChildren[${base}] $children")
