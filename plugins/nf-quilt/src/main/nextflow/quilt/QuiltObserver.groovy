@@ -61,24 +61,10 @@ class QuiltObserver implements TraceObserver {
         return "${path.getBucket()}/${path.getPackageName()}"
     }
 
-    static String pathless(String uri) {
-        return uri.replaceFirst(/&path=[^&]+/, '')
-    }
-
-    boolean checkPath(QuiltPath path) {
-        log.debug("checkPath[$path]")
-        String key = pkgKey(path)
-        if (!outputURIs.containsKey(key)) {
-            log.warn("Output URI not found for key[$key] from path[$path]")
-            return false
-        }
-        return true
-    }
-
-    String extractPackageURI(String s3uri) {
+    static String quiltURIfromS3(String s3uri) {
         String[] partsArray = s3uri.split('/')
         List<String> parts = new ArrayList(partsArray.toList())
-        parts.eachWithIndex { p, i -> println("extractPackageURI.parts[$i]: $p") }
+        parts.eachWithIndex { p, i -> println("quiltURIfromS3.parts[$i]: $p") }
 
         if (parts.size() < 3) {
             throw new IllegalArgumentException("Invalid s3uri[${parts.size()}]: $parts")
@@ -95,8 +81,8 @@ class QuiltObserver implements TraceObserver {
         return uri
     }
 
-    void checkParams(Map<String, Object> params) {
-        log.debug("checkParams[$params]")
+    void findOutputParams(Map<String, Object> params) {
+        log.debug("findOutputParams[$params]")
         params.each { key, value ->
             String uri = "$value"
             if (outputPrefixes.any { key.startsWith(it) }) {
@@ -107,7 +93,7 @@ class QuiltObserver implements TraceObserver {
                 }
                 String scheme = splits[0]
                 if (scheme == 's3') {
-                    uri = extractPackageURI(uri)
+                    uri = quiltURIfromS3(uri)
                 } else if (scheme != 'quilt+s3') {
                     log.warn("Unrecognized output URI: $uri")
                 }
@@ -123,11 +109,32 @@ class QuiltObserver implements TraceObserver {
         }
     }
 
+    boolean confirmPath(QuiltPath path) {
+        log.debug("checkPath[$path]")
+        String key = pkgKey(path)
+        if (!outputURIs.containsKey(key)) {
+            log.warn("Output URI not found for key[$key] from path[$path]")
+            return false
+        }
+        return true
+    }
+
+    boolean matchPath(String path) {
+        log.debug("matchPath[$path]")
+        Set<String> keys = outputURIs.keySet()
+        if (keys.contains(path)) {
+            log.debug("matchPath: found key for $path")
+            return true
+        }
+        log.warn("matchPath: no key found for $path in $keys")
+        return false
+    }
+
     @Override
     void onFlowCreate(Session session) {
         log.debug("`onFlowCreate` $this")
         this.session = session
-        checkParams(session.getParams())
+        findOutputParams(session.getParams())
         checkConfig(session.config)
     }
 
@@ -137,11 +144,12 @@ class QuiltObserver implements TraceObserver {
         // Path source may be null, won't work with older versions of Nextflow
         log.debug("onFilePublish.Path[$destination] <- $source")
         QuiltPath qPath = asQuiltPath(destination)
-        if (!qPath) {
-            String uri = extractPackageURI(destination.toString())
-            qPath = QuiltPathFactory.parse(uri)
+        if (qPath) {
+            confirmPath(qPath)
+        } else {
+            matchPath(destination.toString())
         }
-        checkPath(qPath)
+        confirmPath(qPath)
     }
 
     @Override
