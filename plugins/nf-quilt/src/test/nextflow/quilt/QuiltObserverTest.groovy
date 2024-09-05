@@ -69,10 +69,10 @@ class QuiltObserverTest extends QuiltSpecification {
         QuiltObserver.quiltURIfromS3(s3_uri) == quilt_uri
         where:
         s3_uri | quilt_uri
-        's3://bucket/prefix/suffix' | 'quilt+s3://bucket#package=prefix%2fsuffix'
-        's3://bucket/prefix'        | 'quilt+s3://bucket#package=prefix%2fdefault_suffix'
-        's3://bucket'               | 'quilt+s3://bucket#package=default_prefix%2fdefault_suffix'
-        // 's3://bucket/folder/prefix/suffix' | 'quilt+s3://bucket#package=prefix%2fsuffix&dest=folder/prefix/suffix'
+        's3://bucket/prefix/suffix' | 'quilt+s3://bucket#package=prefix%2fsuffix&dest=prefix%2fsuffix'
+        's3://bucket/prefix'        | 'quilt+s3://bucket#package=prefix%2fdefault_suffix&dest=prefix'
+        's3://bucket'               | 'quilt+s3://bucket#package=default_prefix%2fdefault_suffix&dest=/'
+        's3://bucket/folder/prefix/suffix' | 'quilt+s3://bucket#package=prefix%2fsuffix&dest=folder%2fprefix%2fsuffix'
     }
 
     void 'should findOutputParams'() {

@@ -62,6 +62,7 @@ class QuiltObserver implements TraceObserver {
     }
 
     static String quiltURIfromS3(String s3uri) {
+        println("quiltURIfromS3: $s3uri")
         String[] partsArray = s3uri.split('/')
         List<String> parts = new ArrayList(partsArray.toList())
         parts.eachWithIndex { p, i -> println("quiltURIfromS3.parts[$i]: $p") }
@@ -74,10 +75,14 @@ class QuiltObserver implements TraceObserver {
             parts = parts.drop(1)
         }
         String bucket = parts.remove(0)
-        String prefix = parts.size() > 0 ? parts.remove(0) : 'default_prefix'
-        String suffix = parts.size() > 0 ? parts.remove(0) : 'default_suffix'
+        String dest = parts.join('%2f')
+        println("quiltURIfromS3.bucket: $bucket dest: $dest from $parts")
+        String suffix = parts.size() > 1 ? parts.removeLast() : 'default_suffix'
+        println("quiltURIfromS3.suffix: $suffix from $parts")
+        String prefix = parts.size() > 0 ? parts.removeLast() : 'default_prefix'
+        println("quiltURIfromS3.prefix: $prefix from $parts")
         String base = "quilt+s3://${bucket}#package=${prefix}%2f${suffix}"
-        String uri = (parts.size() > 0) ? "${base}&path=${parts.join('/')}" : base
+        String uri = base + '&dest=' + ((dest) ?: '/')
         return uri
     }
 
