@@ -33,6 +33,7 @@ import java.nio.file.LinkOption
 import java.nio.file.NoSuchFileException
 import java.nio.file.OpenOption
 import java.nio.file.Path
+import java.nio.file.Paths
 import java.nio.file.StandardOpenOption
 import java.nio.file.attribute.BasicFileAttributeView
 import java.nio.file.attribute.BasicFileAttributes
@@ -309,7 +310,7 @@ class QuiltFileSystemProvider extends FileSystemProvider implements FileSystemTr
     }
 
     void checkRoot(Path path) {
-        if (path.toString() == '/') {
+        if (path == Paths.get('/')) {
             throw new UnsupportedOperationException("Operation 'checkRoot' not supported on root path")
         }
     }

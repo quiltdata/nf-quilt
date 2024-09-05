@@ -10,8 +10,6 @@ import java.nio.file.CopyOption
 import java.nio.file.StandardCopyOption
 import java.nio.file.DirectoryStream
 import groovy.util.logging.Slf4j
-import spock.lang.IgnoreIf
-
 
 /**
  *
@@ -105,7 +103,6 @@ class QuiltFileSystemProviderTest extends QuiltSpecification {
         thrown java.nio.file.FileAlreadyExistsException
     }
 
-    @IgnoreIf({ System.getProperty('os.name').toLowerCase().contains('windows') })
     void 'should throw error when checkRoot is root'() {
         given:
         QuiltFileSystemProvider provider = new QuiltFileSystemProvider()

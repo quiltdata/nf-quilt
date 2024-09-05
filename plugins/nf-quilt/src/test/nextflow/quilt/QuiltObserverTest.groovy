@@ -70,6 +70,9 @@ class QuiltObserverTest extends QuiltSpecification {
         where:
         s3_uri | quilt_uri
         's3://bucket/prefix/suffix' | 'quilt+s3://bucket#package=prefix%2fsuffix'
+        's3://bucket/prefix'        | 'quilt+s3://bucket#package=prefix%2fdefault_suffix'
+        's3://bucket'               | 'quilt+s3://bucket#package=default_prefix%2fdefault_suffix'
+        // 's3://bucket/folder/prefix/suffix' | 'quilt+s3://bucket#package=prefix%2fsuffix&dest=folder/prefix/suffix'
     }
 
     void 'should findOutputParams'() {
