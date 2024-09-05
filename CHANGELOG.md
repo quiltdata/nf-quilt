@@ -3,6 +3,7 @@
 ## [0.8.1] UNRELEASED
 
 - Get output URI directly from params
+- Specify `outputPrefixes` using `quilt` section of `nextflow.config`
 
 ## [0.8.0] 2024-08-31
 
