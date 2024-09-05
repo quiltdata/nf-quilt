@@ -19,6 +19,7 @@ import nextflow.quilt.jep.QuiltPackage
 import nextflow.quilt.jep.QuiltParser
 import java.nio.file.Files
 import java.nio.file.FileSystem
+import java.nio.file.FileSystems
 import java.nio.file.LinkOption
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -214,8 +215,8 @@ final class QuiltPath implements Path, Comparable {
     Path relativize(Path other) {
         if (this == other) { return null }
         String file = (other in QuiltPath) ? ((QuiltPath)other).localPath() : other.toString()
-        String base = [pkg().toString(), parsed.getPath()].join(QuiltParser.SEP)
-        //log.debug("relativize[$base] in [$file]")
+        String base = [pkg().toString(), parsed.getPath()].join(FileSystems.getDefault().getSeparator())
+        log.debug("relativize[$base] in [$file]")
         int i = file.indexOf(base)
         if (i < 1) {
             throw new UnsupportedOperationException("other[$file] does not contain package[$base]")
