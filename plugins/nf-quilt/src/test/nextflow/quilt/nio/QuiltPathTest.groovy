@@ -258,18 +258,19 @@ class QuiltPathTest extends QuiltSpecification {
         'bucket'                    | 'some%2ffile-name.txt'        | 'bucket#path=some%2ffile-name.txt'
     }
 
+    String based(String fragment = '') {
+        return "bucket#package=so%2fme${fragment}"
+    }
     @Unroll
     // @IgnoreIf({ System.getProperty('os.name').toLowerCase().contains('windows') })
     void 'should validate relativize'() {
-        given:
-        String base = 'bucket#package=so%2fme'
         expect:
         pathify(path).relativize(pathify(other)).toString() == pathify(expected).toString()
         where:
-        path                              | other                                      | expected
-        base               | "${base}%2fdata%2ffile.txt" | QuiltPackage.osJoin('data', 'file.txt')
-        "${base}%2fdata"   | "${base}%2fdata%2ffile.txt" | 'file.txt'
-        "${base}&path=foo" | "${base}&path=foo%2fbar"    | 'bar'
+        path               | other                                      | expected
+        based()            | based('%2fdata%2ffile.txt') | QuiltPackage.osJoin('data', 'file.txt')
+        based('%2fdata')   | based('%2fdata%2ffile.txt') | 'file.txt'
+        based('&path=foo') | based('&path=foo%2fbar')    | 'bar'
     }
 
     void 'should reconstruct full URLs'() {
