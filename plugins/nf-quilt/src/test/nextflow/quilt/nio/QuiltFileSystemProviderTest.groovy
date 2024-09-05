@@ -8,6 +8,7 @@ import java.nio.file.Paths
 import java.nio.file.Files
 import java.nio.file.CopyOption
 import java.nio.file.StandardCopyOption
+import java.nio.file.DirectoryStream
 import groovy.util.logging.Slf4j
 
 /**
@@ -102,6 +103,28 @@ class QuiltFileSystemProviderTest extends QuiltSpecification {
         thrown java.nio.file.FileAlreadyExistsException
     }
 
+    void 'should throw error when checkRoot is root'() {
+        given:
+        QuiltFileSystemProvider provider = new QuiltFileSystemProvider()
+        Path remoteFile = Paths.get('/')
+
+        when:
+        provider.checkRoot(remoteFile)
+
+        then:
+        thrown UnsupportedOperationException
+    }
+
+    void 'should return DirectoryStream for emptyStream'() {
+        given:
+        QuiltFileSystemProvider provider = new QuiltFileSystemProvider()
+        DirectoryStream<Path> stream = provider.emptyStream()
+
+        expect:
+        stream != null
+        stream.iterator().hasNext() == false
+    }
+
     void 'should error when copying from remote to local path'() {
         given:
         QuiltFileSystemProvider provider = new QuiltFileSystemProvider()
@@ -127,6 +150,90 @@ class QuiltFileSystemProviderTest extends QuiltSpecification {
 
         then:
         Files.exists(remoteFile.localPath())
+    }
+
+    void 'should error when moving from remote to local path'() {
+        given:
+        QuiltFileSystemProvider provider = new QuiltFileSystemProvider()
+        Path remoteFile = parsedURIWithPath(true)
+        String filename = remoteFile.getFileName()
+        Path tempFolder = Files.createTempDirectory('quilt')
+        Path tempFile = tempFolder.resolve(filename)
+
+        when:
+        provider.move(remoteFile, tempFile)
+
+        then:
+        thrown org.codehaus.groovy.runtime.powerassert.PowerAssertionError
+    }
+
+    void 'should recognize when path isHidden'() {
+        given:
+        QuiltFileSystemProvider provider = new QuiltFileSystemProvider()
+
+        expect:
+        provider.isHidden(Paths.get(remoteFile)) == isHidden
+
+        where:
+        remoteFile | isHidden
+        'foo'  | false
+        '.foo' | true
+    }
+
+    void 'should throw error on getFileStore'() {
+        given:
+        QuiltFileSystemProvider provider = new QuiltFileSystemProvider()
+
+        when:
+        provider.getFileStore(Paths.get('foo'))
+
+        then:
+        thrown UnsupportedOperationException
+    }
+
+    void 'should throw error on getFileAttributeView with unknown type'() {
+        given:
+        QuiltFileSystemProvider provider = new QuiltFileSystemProvider()
+
+        when:
+        provider.getFileAttributeView(Paths.get('foo'), DirectoryStream)
+
+        then:
+        thrown UnsupportedOperationException
+    }
+
+    void 'should throw error on readAttributes with unknown type'() {
+        given:
+        QuiltFileSystemProvider provider = new QuiltFileSystemProvider()
+        QuiltPath qPath = parsedURIWithPath(true)
+
+        when:
+        provider.readAttributes(qPath, DirectoryStream)
+
+        then:
+        thrown UnsupportedOperationException
+    }
+
+    void 'should throw error on readAttributes with String'() {
+        given:
+        QuiltFileSystemProvider provider = new QuiltFileSystemProvider()
+
+        when:
+        provider.readAttributes(Paths.get('foo'), 'basic:isDirectory')
+
+        then:
+        thrown UnsupportedOperationException
+    }
+
+    void 'should throw error on setAttributes'() {
+        given:
+        QuiltFileSystemProvider provider = new QuiltFileSystemProvider()
+
+        when:
+        provider.setAttribute(Paths.get('foo'), 'basic:isDirectory', provider)
+
+        then:
+        thrown UnsupportedOperationException
     }
 
 }
