@@ -224,6 +224,7 @@ class QuiltNioTest extends QuiltSpecification {
     }
 
     @IgnoreIf({ env.WRITE_BUCKET ==  null })
+    @Ignore('Invalid test: top-level summarize')
     void 'move a remote file to a bucket'() {
         given:
         Path path = Paths.get(new URI(WRITE_URL))

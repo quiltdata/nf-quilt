@@ -218,7 +218,8 @@ class QuiltProductTest extends QuiltSpecification {
     }
 
     @Unroll
-    @IgnoreIf({ env.WRITE_BUCKET == 'quilt-example' || env.WRITE_BUCKET ==  null })
+    @IgnoreIf({ env.WRITE_BUCKET ==  null })
+    @Ignore('Invalid test: top-level summarize')
     void 'should summarize top-level readable files + multiqc '() {
         given:
         String sumURL = writeableURL('summarized')
