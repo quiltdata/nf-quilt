@@ -218,7 +218,7 @@ final class QuiltPath implements Path, Comparable {
         println("relativize[$base] in [$file]")
         int i = file.indexOf(base)
         if (i < 1) {
-            throw new UnsupportedOperationException("other[$file] does not contain package[$base]")
+            throw new IllegalArgumentException("other[$file] does not contain package[$base]")
         }
 
         String tail = file.substring(i + base.size())

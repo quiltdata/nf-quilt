@@ -269,7 +269,6 @@ class QuiltPathTest extends QuiltSpecification {
         return parts.join('%5c')
     }
     @Unroll
-    // @IgnoreIf({ System.getProperty('os.name').toLowerCase().contains('windows') })
     void 'should validate relativize'() {
         expect:
         pathify(path).relativize(pathify(other)).toString() == pathify(expected).toString()
@@ -278,6 +277,13 @@ class QuiltPathTest extends QuiltSpecification {
         based()            | based('%2fdata%2ffile.txt') | sepJoin('data', 'file.txt')
         based('%2fdata')   | based('%2fdata%2ffile.txt') | 'file.txt'
         based('&path=foo') | based('&path=foo%2fbar')    | 'bar'
+    }
+
+    void 'should error on relativize if no common path'() {
+        when:
+        pathify('bucket#package=so%2fme&path=bar').relativize(pathify('bucket#package=so%2fme&path=foo'))
+        then:
+        thrown IllegalArgumentException
     }
 
     void 'should reconstruct full URLs'() {
@@ -307,6 +313,89 @@ class QuiltPathTest extends QuiltSpecification {
         then:
         prior
         path.pkg() == prior
+    }
+
+    void 'should getNameCount'() {
+        expect:
+        pathify(path).getNameCount() == expected
+        where:
+        path | expected
+        'bucket#package=so%2fme' | 0
+        'bucket#package=so%2fme&path=file-name.txt' | 1
+        'bucket#package=so%2fme&path=folder/name.txt' | 2
+        'bucket#package=so%2fme&path=folder%2fname.txt' | 2
+    }
+
+    void 'should error on getName'() {
+        when:
+        pathify('bucket#package=so%2fme').getName(-1)
+        then:
+        thrown UnsupportedOperationException
+    }
+
+    void 'should return subPaths'() {
+        given:
+        Path path = pathify('bucket#package=so%2fme&path=folder/name.txt')
+        Path subPath = path.subpath(1, 2)
+        expect:
+        subPath
+        subPath.toString() == 'bucket#package=so%2fme&path=name.txt'
+        }
+
+    void 'should match endsWith'() {
+        given:
+        QuiltPath path = pathify('bucket#package=so%2fme&path=folder/name.txt')
+        expect:
+        path.endsWith('name.txt')
+        !path.endsWith('folder')
+    }
+
+    void 'should error on resolveSibling'() {
+        when:
+        Path path = pathify('bucket#package=so%2fme&path=folder/name.txt')
+        pathify('bucket#package=so%2fme').resolveSibling(path)
+        then:
+        thrown UnsupportedOperationException
+    }
+
+    void 'should error on toAbsolutePath if not absolute'() {
+        when:
+        pathify('bucket').toAbsolutePath()
+        then:
+        thrown UnsupportedOperationException
+    }
+
+    void 'should error on toRealPath'() {
+        when:
+        pathify('bucket#package=so%2fme').toRealPath()
+        then:
+        thrown UnsupportedOperationException
+    }
+
+    void 'should error on toFile'() {
+        when:
+        pathify('bucket#package=so%2fme').toFile()
+        then:
+        thrown UnsupportedOperationException
+    }
+
+    void 'should error on iterator'() {
+        when:
+        pathify('bucket#package=so%2fme').iterator()
+        then:
+        thrown UnsupportedOperationException
+    }
+
+    void 'should error on register'() {
+        when:
+        pathify('bucket#package=so%2fme').register(null)
+        then:
+        thrown UnsupportedOperationException
+
+        when:
+        pathify('bucket#package=so%2fme').register(null, null)
+        then:
+        thrown UnsupportedOperationException
     }
 
 }
