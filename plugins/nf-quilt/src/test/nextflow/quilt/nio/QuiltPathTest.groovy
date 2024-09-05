@@ -261,6 +261,13 @@ class QuiltPathTest extends QuiltSpecification {
     String based(String fragment = '') {
         return "bucket#package=so%2fme${fragment}"
     }
+
+    String sepJoin(String... parts) {
+        if (QuiltPackage.osSep() == '/') {
+            return parts.join('%2f')
+        }
+        return parts.join('%5c')
+    }
     @Unroll
     // @IgnoreIf({ System.getProperty('os.name').toLowerCase().contains('windows') })
     void 'should validate relativize'() {
@@ -268,7 +275,7 @@ class QuiltPathTest extends QuiltSpecification {
         pathify(path).relativize(pathify(other)).toString() == pathify(expected).toString()
         where:
         path               | other                                      | expected
-        based()            | based('%2fdata%2ffile.txt') | QuiltPackage.osJoin('data', 'file.txt')
+        based()            | based('%2fdata%2ffile.txt') | sepJoin('data', 'file.txt')
         based('%2fdata')   | based('%2fdata%2ffile.txt') | 'file.txt'
         based('&path=foo') | based('&path=foo%2fbar')    | 'bar'
     }
