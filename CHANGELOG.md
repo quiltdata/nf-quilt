@@ -4,6 +4,8 @@
 
 - Get output URI directly from params
 - Specify `outputPrefixes` using `quilt` section of `nextflow.config`
+- Stop proactively installing packages
+- Add `dest` parameter to Quilt URIs inferred from S3 URIs
 
 ## [0.8.0] 2024-08-31
 

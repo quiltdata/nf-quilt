@@ -69,6 +69,9 @@ class QuiltFileSystemProviderTest extends QuiltSpecification {
         Path tempFolder = Files.createTempDirectory('quilt')
         Path tempFile = tempFolder.resolve(filename)
 
+        expect:
+        !Files.exists(tempFile)
+
         when:
         provider.download(remoteFile, tempFile)
 
