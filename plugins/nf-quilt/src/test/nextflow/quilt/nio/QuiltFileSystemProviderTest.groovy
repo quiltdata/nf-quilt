@@ -10,6 +10,7 @@ import java.nio.file.CopyOption
 import java.nio.file.StandardCopyOption
 import java.nio.file.DirectoryStream
 import groovy.util.logging.Slf4j
+import spock.lang.IgnoreIf
 
 /**
  *
@@ -92,6 +93,30 @@ class QuiltFileSystemProviderTest extends QuiltSpecification {
         then:
         Files.exists(tempFolder)
         Files.list(tempFolder).count() > 0
+    }
+
+    @IgnoreIf({ env.WRITE_BUCKET ==  null })
+    void 'should upload file to test bucket'() {
+        given:
+        QuiltFileSystemProvider provider = new QuiltFileSystemProvider()
+        String url = writeableURL('upload')
+        String filename = 'UPLOAD_THIS.md'
+        QuiltPath remotePath = QuiltPathFactory.parse(url)
+        QuiltPath remoteFile = remotePath.resolveSibling(filename)
+        Path tempFolder = Files.createTempDirectory('quilt')
+        Path tempFile = tempFolder.resolve(filename)
+        // write test file
+        Files.writeString(tempFile, 'This is a test file')
+
+        expect:
+        !Files.exists(remoteFile.localPath())
+
+        when:
+        provider.upload(tempFile, remoteFile)
+
+        then:
+        Files.exists(remoteFile)
+        Files.size(remoteFile) > 0
     }
 
     void 'should fail to upload a file to itself'() {
