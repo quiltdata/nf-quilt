@@ -259,7 +259,7 @@ class QuiltPathTest extends QuiltSpecification {
     }
 
     @Unroll
-    @IgnoreIf({ System.getProperty('os.name').toLowerCase().contains('windows') })
+    // @IgnoreIf({ System.getProperty('os.name').toLowerCase().contains('windows') })
     void 'should validate relativize'() {
         expect:
         pathify(path).relativize(pathify(other)).toString() == pathify(expected).toString()

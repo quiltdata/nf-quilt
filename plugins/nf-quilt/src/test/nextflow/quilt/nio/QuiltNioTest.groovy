@@ -19,7 +19,7 @@ import java.nio.file.attribute.BasicFileAttributeView
 import java.nio.file.attribute.BasicFileAttributes
 
 import spock.lang.Ignore
-import spock.lang.IgnoreIf
+//import spock.lang.IgnoreIf
 import groovy.util.logging.Slf4j
 import groovy.transform.CompileDynamic
 
@@ -77,6 +77,17 @@ class QuiltNioTest extends QuiltSpecification {
         String text = readObject(path)
         then:
         text.startsWith('id')
+    }
+
+    void 'should pretend to read file attributes'() {
+        given:
+        Path path = Paths.get(new URI(WRITE_URL))
+        makeObject(path, TEXT)
+
+        when:
+        BasicFileAttributes attrs = Files.readAttributes(path, BasicFileAttributes)
+        then:
+        attrs != null
     }
 
     @IgnoreIf({ System.getProperty('os.name').toLowerCase().contains('windows') })
@@ -513,7 +524,7 @@ class QuiltNioTest extends QuiltSpecification {
     }
 
     // \QuiltPackage.quilt_dev_null_test_null\foo
-    @IgnoreIf({ System.getProperty('os.name').toLowerCase().contains('windows') })
+    // @IgnoreIf({ System.getProperty('os.name').toLowerCase().contains('windows') })
     void 'should check walkTree'() {
         given:
         makeObject(null_path('foo/file1.txt'), 'A')
