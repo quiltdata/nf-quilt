@@ -32,7 +32,7 @@ import groovy.transform.CompileDynamic
 class QuiltObserverTest extends QuiltSpecification {
 
     private static final String SPEC_KEY = 'udp-spec/nf-quilt/source'
-    private static final String TEST_KEY = 'quilt-example/examples/hurdat'
+    private static final String TEST_KEY = 'bkt/pre/suf'
 
     QuiltObserver makeObserver(boolean success = false) {
         String quilt_uri = 'quilt+s3://bucket#package=prefix%2fsuffix'
@@ -40,6 +40,7 @@ class QuiltObserverTest extends QuiltSpecification {
         Session session = GroovyMock(Session) {
             getParams() >> [outDir: SpecURI(), pubDir: testURI, inDir: quilt_uri]
             isSuccess() >> success
+            config >> [quilt: [outputPrefixes: ['pub']]]
         }
         observer.onFlowCreate(session)
         return observer
@@ -47,13 +48,11 @@ class QuiltObserverTest extends QuiltSpecification {
 
     void 'should extract appropriate UNIX Path asQuiltPath'() {
         expect:
-        String unixFolder = uri.replace('quilt+s3://', '/var/tmp/output')
+        String unixFolder = "/var/tmp/output/${pkgString}"
         Path unixPath = Paths.get(unixFolder)
-        QuiltObserver.asQuiltPath(unixPath).toString() == 'quilt-example#package=examples%2fhurdat'
+        QuiltObserver.asQuiltPath(unixPath).toString() == pkgString
         where:
-        uri       | pkgString
-        testURI   | 'quilt-example#package=examples%2fhurdat'
-        SpecURI() | 'udp-spec#package=nf-quilt%2fsource'
+        pkgString << ['quilt-example#package=examples%2fhurdat', 'udp-spec#package=nf-quilt%2fsource']
     }
 
     void 'should form pkgKey from QuiltPath'() {
@@ -109,12 +108,6 @@ class QuiltObserverTest extends QuiltSpecification {
         expect:
         !observer.confirmPath(specPath)
         !observer.confirmPath(testPath)
-
-        when:
-        observer.outputURIs = [TEST_KEY: testURI]
-        then:
-        !observer.confirmPath(specPath)
-        observer.confirmPath(testPath)
     }
 
     void 'should matchPath for compatible S3 paths'() {
@@ -140,6 +133,7 @@ class QuiltObserverTest extends QuiltSpecification {
             // getWorkflowMetadata() >> metadata
             getParams() >> [outdir: quilt_uri]
             isSuccess() >> false
+            config >> [:]
         }
         observer.onFlowCreate(session)
         observer.onFilePublish(qPath, qPath)

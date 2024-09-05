@@ -66,10 +66,10 @@ class QuiltObserver implements TraceObserver {
         List<String> parts = new ArrayList(partsArray.toList())
         parts.eachWithIndex { p, i -> println("quiltURIfromS3.parts[$i]: $p") }
 
-        if (parts.size() < 3) {
+        if (parts.size() < 2) {
             throw new IllegalArgumentException("Invalid s3uri[${parts.size()}]: $parts")
         }
-        parts = parts.drop(3)
+        parts = parts.drop(2)
         if (parts[0].endsWith(':')) {
             parts = parts.drop(1)
         }
@@ -85,7 +85,7 @@ class QuiltObserver implements TraceObserver {
         log.debug("findOutputParams[$params]")
         params.each { key, value ->
             String uri = "$value"
-            if (outputPrefixes.any { key.startsWith(it) }) {
+            if (outputPrefixes.any { key.startsWith(it) && !key.contains('-') }) {
                 String[] splits = uri.split(':')
                 if (splits.size() == 0) {
                     log.warn("Output parameter not a URI: $uri")
@@ -97,7 +97,9 @@ class QuiltObserver implements TraceObserver {
                 } else if (scheme != 'quilt+s3') {
                     log.warn("Unrecognized output URI: $uri")
                 }
-                outputURIs[key] = uri
+                QuiltPath path = QuiltPathFactory.parse(uri)
+                String pkgKey = pkgKey(path)
+                outputURIs[pkgKey] = uri
             }
         }
     }
@@ -122,9 +124,11 @@ class QuiltObserver implements TraceObserver {
     boolean matchPath(String path) {
         log.debug("matchPath[$path]")
         Set<String> keys = outputURIs.keySet()
-        if (keys.contains(path)) {
-            log.debug("matchPath: found key for $path")
-            return true
+        for (String key : keys) {
+            if (path.contains(key)) {
+                log.debug("matchPath: matched key[$key] to $path")
+                return true
+            }
         }
         log.warn("matchPath: no key found for $path in $keys")
         return false
