@@ -214,7 +214,7 @@ final class QuiltPath implements Path, Comparable {
     Path relativize(Path other) {
         if (this == other) { return null }
         String file = (other in QuiltPath) ? ((QuiltPath)other).localPath() : other.toString()
-        String base = QuiltPackage.osJoin(pkg().toString(), parsed.getPath())
+        String base = QuiltPackage.osConvert("${pkg()}/${parsed.getPath()}")
         println("relativize[$base] in [$file]")
         int i = file.indexOf(base)
         if (i < 1) {

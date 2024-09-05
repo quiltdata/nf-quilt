@@ -64,6 +64,11 @@ class QuiltPackage {
         return parts.join(osSep())
     }
 
+
+    static String osConvert(String path) {
+        return path.replace('/', FileSystems.getDefault().getSeparator())
+    }
+
     static String today() {
         LocalDate date = LocalDate.now()
         return date.toString()

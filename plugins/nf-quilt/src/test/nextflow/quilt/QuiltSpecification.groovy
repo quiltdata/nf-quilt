@@ -52,10 +52,6 @@ class QuiltSpecification extends Specification {
         return 'quilt+s3://udp-spec#package=nf-quilt/source'
     }
 
-    static String OsConvert(String path) {
-        return path.replace('/', FileSystems.getDefault().getSeparator())
-    }
-
     @Shared String testURI
 
     @Shared String pluginsMode

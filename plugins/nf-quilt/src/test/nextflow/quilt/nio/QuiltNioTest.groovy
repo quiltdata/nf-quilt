@@ -523,9 +523,7 @@ class QuiltNioTest extends QuiltSpecification {
         list  == [ 'file4.txt' ]
     }
 
-    // \QuiltPackage.quilt_dev_null_test_null\foo
-    // @IgnoreIf({ System.getProperty('os.name').toLowerCase().contains('windows') })
-    void 'should check walkTree'() {
+    void 'should check walkTree 1'() {
         given:
         makeObject(null_path('foo/file1.txt'), 'A')
         makeObject(null_path('foo/file2.txt'), 'BB')
@@ -565,8 +563,8 @@ class QuiltNioTest extends QuiltSpecification {
         dirs.size() == 4
         dirs.contains('null')
         dirs.contains('foo')
-        dirs.contains(OsConvert('foo/bar'))
-        dirs.contains(OsConvert('foo/bar/baz'))
+        dirs.contains(QuiltPackage.osConvert('foo/bar'))
+        dirs.contains(QuiltPackage.osConvert('foo/bar/baz'))
 
         when:
         dirs = []
@@ -657,8 +655,8 @@ class QuiltNioTest extends QuiltSpecification {
         dirs.contains('foo')
         files.size() == 3
         files.containsKey('foo')
-        files.containsKey(OsConvert('foo/bar'))
-        files.containsKey(OsConvert('foo/baz'))
+        files.containsKey(QuiltPackage.osConvert('foo/bar'))
+        files.containsKey(QuiltPackage.osConvert('foo/baz'))
     }
 
     void 'should handle file names with same prefix'() {
