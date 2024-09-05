@@ -565,8 +565,8 @@ class QuiltNioTest extends QuiltSpecification {
         dirs.size() == 4
         dirs.contains('null')
         dirs.contains('foo')
-        dirs.contains('foo/bar')
-        dirs.contains('foo/bar/baz')
+        dirs.contains(OsConvert('foo/bar'))
+        dirs.contains(OsConvert('foo/bar/baz'))
 
         when:
         dirs = []
@@ -657,8 +657,8 @@ class QuiltNioTest extends QuiltSpecification {
         dirs.contains('foo')
         files.size() == 3
         files.containsKey('foo')
-        files.containsKey('foo/bar')
-        files.containsKey('foo/baz')
+        files.containsKey(OsConvert('foo/bar'))
+        files.containsKey(OsConvert('foo/baz'))
     }
 
     void 'should handle file names with same prefix'() {

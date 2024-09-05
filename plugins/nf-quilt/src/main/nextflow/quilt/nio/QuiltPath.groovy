@@ -46,6 +46,10 @@ final class QuiltPath implements Path, Comparable {
     private final String[] paths
     private final boolean isFileName
 
+    static String joinOs(String... parts) {
+        return parts.join(FileSystems.getDefault().getSeparator())
+    }
+
     QuiltPath(QuiltFileSystem filesystem, QuiltParser parsed, boolean isFileName = false) {
         this.filesystem = filesystem
         this.parsed = parsed
@@ -215,15 +219,17 @@ final class QuiltPath implements Path, Comparable {
     Path relativize(Path other) {
         if (this == other) { return null }
         String file = (other in QuiltPath) ? ((QuiltPath)other).localPath() : other.toString()
-        String base = [pkg().toString(), parsed.getPath()].join(FileSystems.getDefault().getSeparator())
-        log.debug("relativize[$base] in [$file]")
+        String base = joinOs(pkg().toString(), parsed.getPath())
+        println("relativize[$base] in [$file]")
         int i = file.indexOf(base)
         if (i < 1) {
             throw new UnsupportedOperationException("other[$file] does not contain package[$base]")
         }
 
         String tail = file.substring(i + base.size())
-        if (tail.size() > 0 && tail[0] == '/') { tail = tail.substring(1) } // drop leading "/"
+        if (tail.size() > 0 && (tail[0] == '/' || tail[0] == '\\')) {
+            tail = tail.substring(1)
+        } // drop leading separator
         //log.debug("tail[$i] -> $tail")
         return Paths.get(tail)
     }

@@ -23,6 +23,7 @@ import nextflow.quilt.jep.QuiltPackage
 import java.nio.ByteBuffer
 import java.nio.channels.SeekableByteChannel
 import java.nio.file.FileSystem
+import java.nio.file.FileSystems
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.nio.file.Path
@@ -49,6 +50,10 @@ class QuiltSpecification extends Specification {
 
     static String SpecURI() {
         return 'quilt+s3://udp-spec#package=nf-quilt/source'
+    }
+
+    static String OsConvert(String path) {
+        return path.replace('/', FileSystems.getDefault().getSeparator())
     }
 
     @Shared String testURI
