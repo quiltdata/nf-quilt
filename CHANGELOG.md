@@ -1,11 +1,11 @@
 # Changelog
 
-## [0.8.1] UNRELEASED
+## [0.8.1] 2024-09-05
 
 - Get output URI directly from params
+- Add `dest` parameter to Quilt URIs inferred from S3 URIs
 - Specify `outputPrefixes` using `quilt` section of `nextflow.config`
 - Stop proactively installing packages
-- Add `dest` parameter to Quilt URIs inferred from S3 URIs
 
 ## [0.8.0] 2024-08-31
 
