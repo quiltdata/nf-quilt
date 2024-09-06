@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.8.2] 2024-09-05
+
+- Use copyFile rather than writeString for overlay files
+
 ## [0.8.1] 2024-09-05
 
 - Get output URI directly from params

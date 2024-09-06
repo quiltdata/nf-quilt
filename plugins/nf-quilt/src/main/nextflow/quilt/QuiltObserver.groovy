@@ -117,7 +117,7 @@ class QuiltObserver implements TraceObserver {
     }
 
     boolean confirmPath(QuiltPath path) {
-        log.debug("checkPath[$path]")
+        log.debug("confirmPath[$path]")
         String key = pkgKey(path)
         if (!outputURIs.containsKey(key)) {
             log.warn("Output URI not found for key[$key] from path[$path]")
@@ -153,12 +153,11 @@ class QuiltObserver implements TraceObserver {
         // Path source may be null, won't work with older versions of Nextflow
         log.debug("onFilePublish.Path[$destination] <- $source")
         QuiltPath qPath = asQuiltPath(destination)
-        if (qPath) {
+        if (qPath != null) {
             confirmPath(qPath)
         } else {
             matchPath(destination.toString())
         }
-        confirmPath(qPath)
     }
 
     @Override

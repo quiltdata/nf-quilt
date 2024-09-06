@@ -191,10 +191,10 @@ class QuiltPathTest extends QuiltSpecification {
         thrown ProviderMismatchException
     }
 
-    @Ignore('FIXME: subpath not yet implemented')
+    @Ignore('FIXME: test subpath in QuiltParser first')
     void 'should validate subpath: #expected'() {
         expect:
-        pathify(path).subpath(from, to) == pathify(expected)
+        pathify(path).subpath(from, to).getPath() == expected
         where:
         path                                             | from  | to    | expected
         'bucket#package=some%2fbig%2fdata%2ffile.txt'    | 0     | 1     | 'data'
@@ -209,13 +209,13 @@ class QuiltPathTest extends QuiltSpecification {
         pathify(path).startsWith(pathify(prefix)) == expected
 
         where:
-        path                         | prefix                | expected
+        path                          | prefix                | expected
         'bucket#package=s/d/file.txt' | 'bucket#package=s%2fd' | true
         'bucket#package=s/d/file.txt' | 'bucket#package=s' | true
         'bucket#package=s/d/file.txt' | 'bucket' | true
         'bucket#package=s/d/file.txt' | 'file.txt' | false
-        'data%2ffile.txt'            | 'data'              | true
-        'data%2ffile.txt'            | 'file.txt'          | false
+        'data%2ffile.txt'             | 'data'              | true
+        'data%2ffile.txt'             | 'file.txt'          | false
     }
 
     @Unroll
@@ -225,13 +225,13 @@ class QuiltPathTest extends QuiltSpecification {
         //pathify(path).endsWith(pathify(suffix)) == expected
 
         where:
-        path             | suffix            | expected
-        SUB_PATH         | 'file.txt'        | true
-        SUB_PATH         | 'f%2ffile.txt'    | true
-        SUB_PATH         | '/f%2ffile.txt'   | false
-        SUB_PATH         | 'bucket'          | false
-        'data%2ffile.txt' | 'data' | false
-        'data%2ffile.txt' | 'file.txt' | true
+        path              | suffix            | expected
+        SUB_PATH          | 'file.txt'        | true
+        SUB_PATH          | 'f%2ffile.txt'    | true
+        SUB_PATH          | '/f%2ffile.txt'   | false
+        SUB_PATH          | 'bucket'          | false
+        'data%2ffile.txt' | 'data'            | false
+        'data%2ffile.txt' | 'file.txt'        | true
     }
 
     @Unroll
@@ -239,10 +239,10 @@ class QuiltPathTest extends QuiltSpecification {
         expect:
         pathify(path).normalize() == pathify(expected)
         where:
-        path                              | expected
-        'bucket#path=s/d/file.txt'        | 'bucket#path=s/d/file.txt'
+        path                               | expected
+        'bucket#path=s/d/file.txt'         | 'bucket#path=s/d/file.txt'
         'bucket#path=some%2f..%2ffile.txt' | 'bucket#path=file.txt'
-        'file.txt'                        | 'file.txt'
+        'file.txt'                         | 'file.txt'
     }
 
     @Unroll
@@ -272,7 +272,7 @@ class QuiltPathTest extends QuiltSpecification {
         expect:
         pathify(path).relativize(pathify(other)).toString() == pathify(expected).toString()
         where:
-        path               | other                                      | expected
+        path               | other                       | expected
         based()            | based('%2fdata%2ffile.txt') | sepJoin('data', 'file.txt')
         based('%2fdata')   | based('%2fdata%2ffile.txt') | 'file.txt'
         based('&path=foo') | based('&path=foo%2fbar')    | 'bar'

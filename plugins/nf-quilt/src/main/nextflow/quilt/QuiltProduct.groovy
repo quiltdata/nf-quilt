@@ -106,6 +106,18 @@ ${nextflow}
         }
     }
 
+    static void copyFile(Path source, QuiltPackage pkg, String filepath) {
+        String dir = pkg.packageDest()
+        Path dest  = Paths.get(dir, filepath.split('/') as String[])
+        try {
+            dest.getParent().toFile().mkdirs() // ensure directories exist first
+            Files.copy(source, dest)
+        }
+        catch (Exception e) {
+            log.error("writeString: cannot write `$source` to `$dest` for `${pkg}`")
+        }
+    }
+
     static String now() {
         LocalDateTime time = LocalDateTime.now()
         return time.toString()
@@ -139,9 +151,12 @@ ${nextflow}
     }
 
     void publishOverlays(Map<String, Path> overlays) {
-        overlays.each { key, overlay ->
-            log.info("publishing overlay[$key]: ${overlay}")
-            writeString(overlay.text, pkg, key)
+        /// Copying working files to local package directory
+        /// for (re)upload to the package
+        /// FIXME: Replace this with in-place packaging
+        overlays.each { key, source ->
+            log.info("publishing overlay[$key]: ${source}")
+            copyFile(source, pkg, key)
         }
     }
 
