@@ -224,7 +224,7 @@ class QuiltPackage {
 
             manifest.install(dest)
             log.info("install: ${implicitStr}installed into $dest)")
-            println("QuiltPackage.install.Children: ${relativeChildren('')}")
+            log.debug("QuiltPackage.install.Children: ${relativeChildren('')}")
         } catch (IOException e) {
             if (!implicit) {
                 log.error("failed to install $packageName", e)

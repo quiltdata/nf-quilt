@@ -34,15 +34,18 @@ class QuiltObserverTest extends QuiltSpecification {
     private static final String SPEC_KEY = 'udp-spec/nf-quilt/source'
     private static final String TEST_KEY = 'bkt/pre/suf'
 
-    QuiltObserver makeObserver(boolean success = false) {
+    Session mockSession(boolean success = false) {
         String quilt_uri = 'quilt+s3://bucket#package=prefix%2fsuffix'
-        QuiltObserver observer = new QuiltObserver()
-        Session session = GroovyMock(Session) {
+        return GroovyMock(Session) {
             getParams() >> [outDir: SpecURI(), pubDir: testURI, inDir: quilt_uri]
             isSuccess() >> success
             config >> [quilt: [outputPrefixes: ['pub']]]
+            workDir >> Paths.get('./work')
         }
-        observer.onFlowCreate(session)
+    }
+    QuiltObserver makeObserver(boolean success = false) {
+        QuiltObserver observer = new QuiltObserver()
+        observer.onFlowCreate(mockSession(success))
         return observer
     }
 
@@ -75,6 +78,22 @@ class QuiltObserverTest extends QuiltSpecification {
         's3://bucket/folder/prefix/suffix' | 'quilt+s3://bucket#package=prefix%2fsuffix&dest=folder%2fprefix%2fsuffix'
     }
 
+    void 'should return workRelative path for source'() {
+        given:
+        QuiltObserver observer = makeObserver()
+        Path workDir = observer.session.workDir
+        println("workDir: $workDir")
+        String subPath = 'output/file.txt'
+        String workPath = "job/hash/${subPath}"
+        Path source = Paths.get(workDir.toString(), workPath)
+        println("source: $source")
+        expect:
+        String relPath = observer.workRelative(source)
+        println("relPath: $relPath")
+        relPath == subPath
+        println('done')
+    }
+
     void 'should findOutputParams'() {
         given:
         QuiltObserver observer = makeObserver()
@@ -85,7 +104,7 @@ class QuiltObserverTest extends QuiltSpecification {
 
         observer.outputURIs.containsKey(key)
         observer.outputURIs[key] == uri
-        observer.confirmPath(QuiltPathFactory.parse(uri))
+        observer.confirmQuiltPath(QuiltPathFactory.parse(uri))
         where:
         key | uri
         SPEC_KEY | SpecURI()
@@ -103,43 +122,38 @@ class QuiltObserverTest extends QuiltSpecification {
         observer.outputPrefixes.contains('file')
     }
 
-    void 'should not confirmPath for non-output URIs'() {
+    void 'should not confirmQuiltPath for non-output URIs'() {
         given:
         QuiltObserver observer = new QuiltObserver()
         QuiltPath specPath = QuiltPathFactory.parse(SpecURI())
         QuiltPath testPath = QuiltPathFactory.parse(testURI)
         expect:
-        !observer.confirmPath(specPath)
-        !observer.confirmPath(testPath)
+        !observer.confirmQuiltPath(specPath)
+        !observer.confirmQuiltPath(testPath)
     }
 
-    void 'should matchPath for compatible S3 paths'() {
+    void 'should return: #rc if canOverlayPath with: #path'() {
         given:
         QuiltObserver observer = makeObserver()
         expect:
-        observer.matchPath(key)
-        observer.matchPath("/var/tmp/output/$key")
-        observer.matchPath("/var/tmp/output/$key/folder/file")
-        !observer.matchPath(uri)
+        observer.session.workDir.toString() == './work'
+        rc == observer.canOverlayPath(Paths.get(path), Paths.get(path))
         where:
-        key | uri
-        SPEC_KEY | SpecURI()
-        TEST_KEY | testURI
+        rc    | path
+        true  | SPEC_KEY
+        true  | "./work/${SPEC_KEY}"
+        true  | "/tmp/${SPEC_KEY}"
+        true  | "output/${TEST_KEY}"
+        false | 'output/not/a/key'
     }
 
-    void 'should not error on onFlowComplete'() {
+    void 'should not error on onFlowComplete success'() {
         given:
         String quilt_uri = 'quilt+s3://bucket#package=prefix%2fsuffix'
         QuiltObserver observer = new QuiltObserver()
         QuiltPath qPath = QuiltPathFactory.parse(quilt_uri)
-        Session session = GroovyMock(Session) {
-            // getWorkflowMetadata() >> metadata
-            getParams() >> [outdir: quilt_uri]
-            isSuccess() >> false
-            config >> [:]
-        }
-        observer.onFlowCreate(session)
-        observer.onFilePublish(qPath, qPath)
+        observer.onFlowCreate(mockSession(false))
+        observer.onFilePublish(qPath.localPath())
         when:
         observer.onFlowComplete()
         then:

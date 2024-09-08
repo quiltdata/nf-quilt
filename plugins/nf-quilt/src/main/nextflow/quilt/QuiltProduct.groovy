@@ -106,15 +106,14 @@ ${nextflow}
         }
     }
 
-    static void copyFile(Path source, QuiltPackage pkg, String filepath) {
-        String dir = pkg.packageDest()
-        Path dest  = Paths.get(dir, filepath.split('/') as String[])
+    static void copyFile(Path source, String destRoot, String relpath) {
+        Path dest  = Paths.get(destRoot, relpath.split('/') as String[])
         try {
             dest.getParent().toFile().mkdirs() // ensure directories exist first
             Files.copy(source, dest)
         }
         catch (Exception e) {
-            log.error("writeString: cannot write `$source` to `$dest` for `${pkg}`")
+            log.error("writeString: cannot write `$source` to `$dest` in `${destRoot}`")
         }
     }
 
@@ -151,18 +150,20 @@ ${nextflow}
     }
 
     void publishOverlays(Map<String, Path> overlays) {
-        /// Copying working files to local package directory
+        /// Copying published files to inside package directory
         /// for (re)upload to the package
         /// FIXME: Replace this with in-place packaging
-        overlays.each { key, source ->
-            log.info("publishing overlay[$key]: ${source}")
-            copyFile(source, pkg, key)
+        overlays.each { relpath, source ->
+            log.info("publishing overlay[$relpath]: ${source}")
+            copyFile(source, pkg.packageDest().toString(), relpath)
         }
     }
 
     void publish() {
         log.debug("publish($msg)")
         meta = setupMeta()
+        setupReadme()
+        setupSummarize()
         try {
             log.info("publish.pushing: ${pkg}")
             def m = pkg.push(msg, meta)

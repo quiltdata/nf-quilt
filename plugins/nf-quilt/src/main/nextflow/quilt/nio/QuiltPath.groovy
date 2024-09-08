@@ -215,7 +215,7 @@ final class QuiltPath implements Path, Comparable {
         if (this == other) { return null }
         String file = (other in QuiltPath) ? ((QuiltPath)other).localPath() : other.toString()
         String base = QuiltPackage.osConvert("${pkg()}/${parsed.getPath()}")
-        println("relativize[$base] in [$file]")
+        log.debug("relativize[$base] in [$file]")
         int i = file.indexOf(base)
         if (i < 1) {
             throw new IllegalArgumentException("other[$file] does not contain package[$base]")
