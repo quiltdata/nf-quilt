@@ -1,8 +1,9 @@
 # Changelog
 
-## [0.8.2] 2024-09-05
+## [0.8.2] 2024-09-07
 
 - Use copyFile rather than writeString for overlay files [requires NextFlow 23 or later]
+- Restore README and quilt_summarize to output
 
 ## [0.8.1] 2024-09-05
 
