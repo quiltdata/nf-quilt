@@ -18,6 +18,7 @@ package nextflow.quilt.nio
 
 import nextflow.quilt.QuiltSpecification
 import nextflow.quilt.QuiltObserver
+import nextflow.quilt.jep.QuiltPackage
 import nextflow.Session
 
 import java.nio.file.Path
@@ -90,7 +91,7 @@ class QuiltObserverTest extends QuiltSpecification {
         expect:
         String relPath = observer.workRelative(source)
         println("relPath: $relPath")
-        relPath == subPath
+        relPath == QuiltPackage.osConvert(subPath)
         println('done')
     }
 
@@ -136,7 +137,7 @@ class QuiltObserverTest extends QuiltSpecification {
         given:
         QuiltObserver observer = makeObserver()
         expect:
-        observer.session.workDir.toString() == './work'
+        observer.session.workDir.toString() == QuiltPackage.osConvert('./work')
         rc == observer.canOverlayPath(Paths.get(path), Paths.get(path))
         where:
         rc    | path

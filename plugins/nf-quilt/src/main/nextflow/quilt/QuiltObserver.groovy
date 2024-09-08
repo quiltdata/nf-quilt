@@ -116,15 +116,11 @@ class QuiltObserver implements TraceObserver {
 
     String workRelative(Path src) {
         Path source = src.toAbsolutePath().normalize()
-        log.debug("workRelative.source: $source [type: ${source.getClass()}]")
         Path workDir = session.workDir.toAbsolutePath().normalize()
-        log.debug("workRelative.workDir: $workDir [type: ${workDir.getClass()}]")
         try {
             Path subPath = workDir.relativize(source)
-            log.debug("workRelative.subPath: $subPath]")
             // drop first two components, which are the workDir
             Path relPath = subPath.subpath(2, subPath.getNameCount())
-            log.debug("workRelative.relPath: $relPath]")
             return relPath.toString()
         } catch (IllegalArgumentException e) {
             log.error("workRelative.fallback: $e")
