@@ -100,6 +100,7 @@ class QuiltObserverTest extends QuiltSpecification {
         QuiltObserver observer = makeObserver()
         String targetKey = QuiltPackage.osConvert('bucket/prefix/suffix')
         expect:
+        String key = QuiltPackage.osConvert(unixKey)
         observer.outputURIs
         !observer.outputURIs.containsKey(targetKey)
         observer.outputURIs.size() == 2
@@ -108,7 +109,7 @@ class QuiltObserverTest extends QuiltSpecification {
         observer.outputURIs[key] == uri
         observer.confirmQuiltPath(QuiltPathFactory.parse(uri))
         where:
-        key | uri
+        unixKey | uri
         SPEC_KEY | SpecURI()
         TEST_KEY | testURI
     }
