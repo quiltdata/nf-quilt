@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.8.3] 2024-09-08
+
+- Fix Windows bug with overlay files
+
 ## [0.8.2] 2024-09-07
 
 - Use copyFile rather than writeString for overlay files [requires NextFlow 23 or later]
