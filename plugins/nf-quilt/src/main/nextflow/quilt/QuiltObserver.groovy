@@ -17,6 +17,7 @@ package nextflow.quilt
 
 import nextflow.Session
 import nextflow.quilt.jep.QuiltParser
+import nextflow.quilt.jep.QuiltPackage
 import nextflow.quilt.nio.QuiltPath
 import nextflow.quilt.nio.QuiltPathFactory
 import nextflow.trace.TraceObserver
@@ -81,7 +82,7 @@ class QuiltObserver implements TraceObserver {
     }
 
     static String pkgKey(QuiltPath path) {
-        return "${path.getBucket()}/${path.getPackageName()}"
+        return QuiltPackage.osConvert("${path.getBucket()}/${path.getPackageName()}")
     }
 
     void findOutputParams(Map<String, Object> params) {
