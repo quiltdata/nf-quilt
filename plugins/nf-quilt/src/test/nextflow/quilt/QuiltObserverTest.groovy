@@ -64,8 +64,8 @@ class QuiltObserverTest extends QuiltSpecification {
         Path testPath = QuiltPathFactory.parse(testURI)
         Path specPath = QuiltPathFactory.parse(SpecURI())
         expect:
-        QuiltObserver.pkgKey(testPath) == TEST_KEY
-        QuiltObserver.pkgKey(specPath) == SPEC_KEY
+        QuiltObserver.pkgKey(testPath) == QuiltPackage.osConvert(TEST_KEY)
+        QuiltObserver.pkgKey(specPath) == QuiltPackage.osConvert(SPEC_KEY)
     }
 
     void 'should extract quiltURIfromS3'() {
@@ -98,9 +98,10 @@ class QuiltObserverTest extends QuiltSpecification {
     void 'should findOutputParams'() {
         given:
         QuiltObserver observer = makeObserver()
+        String targetKey = QuiltPackage.osConvert('bucket/prefix/suffix')
         expect:
         observer.outputURIs
-        !observer.outputURIs.containsKey('bucket/prefix/suffix')
+        !observer.outputURIs.containsKey(targetKey)
         observer.outputURIs.size() == 2
 
         observer.outputURIs.containsKey(key)
