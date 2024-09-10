@@ -91,15 +91,15 @@ class QuiltObserver implements TraceObserver {
             String uri = "$value"
             if (outputPrefixes.any { key.startsWith(it) && !key.contains('-') }) {
                 String[] splits = uri.split(':')
-                if (splits.size() == 0) {
-                    log.warn("Output parameter not a URI: $uri")
+                if (splits.size() < 2) {
+                    log.debug("Unrecognized URI[$uri] for key[$key] matching $outputPrefixes")
                     return
                 }
                 String scheme = splits[0]
                 if (scheme == 's3') {
                     uri = quiltURIfromS3(uri)
                 } else if (scheme != 'quilt+s3') {
-                    log.warn("Unrecognized output URI: $uri")
+                    log.warn("Unrecognized scheme:$scheme for output URI[$key]: $uri")
                     return
                 }
                 QuiltPath path = QuiltPathFactory.parse(uri)
@@ -146,6 +146,7 @@ class QuiltObserver implements TraceObserver {
     boolean confirmQuiltPath(QuiltPath qPath) {
         log.debug("confirmQuiltPath[$qPath]")
         String key = pkgKey(qPath)
+        log.debug("confirmQuiltPath: key[$key] in outputURIs[${outputURIs.size()}]: $outputURIs")
         return outputURIs.containsKey(key) ? true : false
     }
 
@@ -174,11 +175,15 @@ class QuiltObserver implements TraceObserver {
         checkConfig(session.config)
     }
 
-    // NOTE: TraceFileObserver calls onFilePublish _before_ onFlowCreate
     @Override
     void onFilePublish(Path destination, Path source) {
         // Path source may be null, won't work with older versions of Nextflow
         log.debug("onFilePublish.Path[$destination] <- $source")
+        if (!outputURIs) {
+            // NOTE: TraceFileObserver calls onFilePublish _before_ onFlowCreate
+            log.debug('onFilePublish: no outputURIs yet')
+            return
+        }
         QuiltPath qPath = asQuiltPath(destination)
         boolean ok = (qPath != null) ? confirmQuiltPath(qPath) : canOverlayPath(destination, source)
         if (!ok) {

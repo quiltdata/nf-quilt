@@ -38,7 +38,7 @@ class QuiltObserverTest extends QuiltSpecification {
     Session mockSession(boolean success = false) {
         String quilt_uri = 'quilt+s3://bucket#package=prefix%2fsuffix'
         return GroovyMock(Session) {
-            getParams() >> [pubNot: 'foo', pubBad: 'foo:bar', outDir: SpecURI(), pubDir: testURI, inDir: quilt_uri]
+            getParams() >> [pubNot: 'foo', pubBad: 'foo:bar', outdir: SpecURI(), pubDir: testURI, inDir: quilt_uri]
             isSuccess() >> success
             config >> [quilt: [outputPrefixes: ['pub']]]
             workDir >> Paths.get('./work')
