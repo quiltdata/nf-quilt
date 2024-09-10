@@ -136,6 +136,7 @@ class QuiltObserver implements TraceObserver {
         try {
             Map<String, Path> overlays = packageOverlays.get(pkgKey, [:]) as Map<String, Path>
             String relPath = workRelative(source)
+            log.debug("addOverlay[$relPath] = $source")
             overlays[relPath] = source
             packageOverlays[pkgKey] = overlays
         } finally {
@@ -157,7 +158,7 @@ class QuiltObserver implements TraceObserver {
         for (String key : keys) {
             log.debug("canOverlayPath: checking key[$key] for $dest")
             if (dest.toString().contains(key)) {
-                log.warn("canOverlayPath: matched key[$key] to $dest")
+                log.debug("canOverlayPath: matched key[$key] to $dest")
                 addOverlay(key, source)
                 return true
             }
@@ -198,7 +199,7 @@ class QuiltObserver implements TraceObserver {
         outputURIs.each { key, uri ->
             QuiltPath path = QuiltPathFactory.parse(uri)
             Map<String, Path> overlays = packageOverlays.get(key, [:]) as Map<String, Path>
-            // log.debug("onFlowComplete.pkg: $path overlays[${overlays?.size()}]: $overlays")
+            log.debug("onFlowComplete.pkg: $path overlays[${overlays?.size()}]: $overlays")
             new QuiltProduct(path, session, overlays)
         }
     }

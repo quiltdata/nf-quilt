@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.8.5] 2024-09-10a
+
+- Error with packaging subfolders on S3 overlay
+- Improved overlay debugging
+
 ## [0.8.4] 2024-09-10
 
 - Fix bug with unrecognized output URIs

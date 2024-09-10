@@ -138,7 +138,7 @@ ${nextflow}
 
         if (session.isSuccess() || pkg.is_force()) {
             if (overlays) {
-                log.info("publishing overlays: ${overlays.size()}")
+                log.debug("publishing overlays: ${overlays.size()}")
                 publishOverlays(overlays)
             } else {
                 log.info('No overlays to publish.')
