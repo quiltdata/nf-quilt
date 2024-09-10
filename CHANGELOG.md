@@ -3,6 +3,7 @@
 ## [0.8.3] 2024-09-08
 
 - Fix Windows bug with overlay files
+- Fix bug with unrecognized output URIs
 
 ## [0.8.2] 2024-09-07
 

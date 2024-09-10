@@ -100,6 +100,7 @@ class QuiltObserver implements TraceObserver {
                     uri = quiltURIfromS3(uri)
                 } else if (scheme != 'quilt+s3') {
                     log.warn("Unrecognized output URI: $uri")
+                    return
                 }
                 QuiltPath path = QuiltPathFactory.parse(uri)
                 String pkgKey = pkgKey(path)
