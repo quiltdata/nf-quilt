@@ -95,6 +95,18 @@ class QuiltFileSystemProviderTest extends QuiltSpecification {
         Files.list(tempFolder).count() > 0
     }
 
+    void 'should fail to download a file if already exists'() {
+        given:
+        QuiltFileSystemProvider provider = new QuiltFileSystemProvider()
+        Path remoteFolder = parsedURIWithPath(false)
+        Path tempFolder = Files.createTempDirectory('quilt')
+        when:
+        provider.download(remoteFolder, tempFolder, null)
+
+        then:
+        thrown java.nio.file.FileAlreadyExistsException
+    }
+
     @IgnoreIf({ env.WRITE_BUCKET ==  null })
     void 'should upload file to test bucket'() {
         given:

@@ -161,13 +161,16 @@ class QuiltObserverTest extends QuiltSpecification {
     void 'should addOverlay logical path with subfolders'() {
         given:
         QuiltObserver observer = makeObserver()
-        String file_path  = 'file.txt'
-        String full_path = "output/${file_path}"
-        Path source = Paths.get(TEST_KEY, file_path)
-        Path dest = Paths.get(TEST_KEY, full_path)
+        String file_path  = 'source'
+        Path source = Paths.get(root, file_path)
+        Path dest = Paths.get(root, path)
         expect:
         String relPath = observer.addOverlay(TEST_KEY, dest, source)
-        relPath == full_path
+        relPath == result
+        where:
+        root     | path     | result
+        TEST_KEY | SPEC_KEY | SPEC_KEY
+        SPEC_KEY | TEST_KEY | null
     }
 
     void 'should not error on onFlowComplete success'() {
