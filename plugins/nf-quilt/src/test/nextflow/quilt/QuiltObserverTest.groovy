@@ -20,7 +20,7 @@ import nextflow.quilt.QuiltSpecification
 import nextflow.quilt.QuiltObserver
 import nextflow.quilt.jep.QuiltPackage
 import nextflow.Session
-import spock.lang.Ignore
+//import spock.lang.Ignore
 
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -84,16 +84,12 @@ class QuiltObserverTest extends QuiltSpecification {
         given:
         QuiltObserver observer = makeObserver()
         Path workDir = observer.session.workDir
-        println("workDir: $workDir")
         String subPath = 'output/file.txt'
         String workPath = "job/hash/${subPath}"
         Path source = Paths.get(workDir.toString(), workPath)
-        println("source: $source")
         expect:
         String relPath = observer.workRelative(source)
-        println("relPath: $relPath")
         relPath == QuiltPackage.osConvert(subPath)
-        println('done')
     }
 
     void 'should return pkgRelative path for dest'() {
@@ -149,34 +145,29 @@ class QuiltObserverTest extends QuiltSpecification {
         !observer.confirmQuiltPath(testPath)
     }
 
-    void 'should return: #rc if canOverlayPath with: #path'() {
+    void 'should return: #rc if canOverlayPath with: #path in: #root'() {
         given:
         QuiltObserver observer = makeObserver()
         expect:
-        observer.session.workDir.toString() == QuiltPackage.osConvert('./work')
-        rc == observer.canOverlayPath(Paths.get(path), Paths.get(path))
+        rc == observer.canOverlayPath(Paths.get(root, path), Paths.get(path))
         where:
-        rc    | path
-        true  | SPEC_KEY
-        true  | "./work/${SPEC_KEY}"
-        true  | "/tmp/${SPEC_KEY}"
-        true  | "output/${TEST_KEY}"
-        false | 'output/not/a/key'
+        rc    | root     | path
+        true  | SPEC_KEY | 'output/file.txt'
+        true  | TEST_KEY | 'output/file.txt'
+        false | '/root'  | 'output/file.txt'
     }
 
     /// source usually lacks subfolder paths
-    @Ignore
-    void 'should addOverlay dest path with subfolders'() {
+    void 'should addOverlay logical path with subfolders'() {
         given:
         QuiltObserver observer = makeObserver()
-        Path dest = Paths.get('output/file.txt')
-        Path source = Paths.get('file.txt')
-        String targetKey = QuiltPackage.osConvert('bucket/prefix/suffix')
+        String file_path  = 'file.txt'
+        String full_path = "output/${file_path}"
+        Path source = Paths.get(TEST_KEY, file_path)
+        Path dest = Paths.get(TEST_KEY, full_path)
         expect:
-        !observer.packageOverlays.containsKey(targetKey)
-        observer.addOverlay(targetKey, dest, source)
-        observer.packageOverlays.containsKey(targetKey)
-        observer.packageOverlays[targetKey].containsKey('output/file.txt')
+        String relPath = observer.addOverlay(TEST_KEY, dest, source)
+        relPath == full_path
     }
 
     void 'should not error on onFlowComplete success'() {
