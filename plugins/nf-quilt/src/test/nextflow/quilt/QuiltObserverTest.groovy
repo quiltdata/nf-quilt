@@ -20,6 +20,7 @@ import nextflow.quilt.QuiltSpecification
 import nextflow.quilt.QuiltObserver
 import nextflow.quilt.jep.QuiltPackage
 import nextflow.Session
+import spock.lang.Ignore
 
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -95,6 +96,19 @@ class QuiltObserverTest extends QuiltSpecification {
         println('done')
     }
 
+    void 'should return pkgRelative path for dest'() {
+        given:
+        QuiltObserver observer = makeObserver()
+        expect:
+        Path dest = Paths.get(TEST_KEY, folderPath)
+        String relPath = observer.pkgRelative(offset, dest)
+        rc == (relPath == folderPath)
+        where:
+        rc    | offset | folderPath
+        true  | TEST_KEY | 'output/file.txt'
+        false | SPEC_KEY | 'output/file.txt'
+    }
+
     void 'should findOutputParams'() {
         given:
         QuiltObserver observer = makeObserver()
@@ -148,6 +162,21 @@ class QuiltObserverTest extends QuiltSpecification {
         true  | "/tmp/${SPEC_KEY}"
         true  | "output/${TEST_KEY}"
         false | 'output/not/a/key'
+    }
+
+    /// source usually lacks subfolder paths
+    @Ignore
+    void 'should addOverlay dest path with subfolders'() {
+        given:
+        QuiltObserver observer = makeObserver()
+        Path dest = Paths.get('output/file.txt')
+        Path source = Paths.get('file.txt')
+        String targetKey = QuiltPackage.osConvert('bucket/prefix/suffix')
+        expect:
+        !observer.packageOverlays.containsKey(targetKey)
+        observer.addOverlay(targetKey, dest, source)
+        observer.packageOverlays.containsKey(targetKey)
+        observer.packageOverlays[targetKey].containsKey('output/file.txt')
     }
 
     void 'should not error on onFlowComplete success'() {

@@ -131,12 +131,23 @@ class QuiltObserver implements TraceObserver {
         }
     }
 
-    void addOverlay(String pkgKey, Path source) {
+    String pkgRelative(String pkgKey, Path dest) {
+        String destString = dest.toAbsolutePath().normalize()
+        // find pkgKey in destination.toString()
+        int index = destString.indexOf(pkgKey)
+        // return the portion after the end of pkgKey
+        if (index >= 0) {
+            return destString.substring(index + pkgKey.length() + 1)
+        }
+        return null
+    }
+
+    void addOverlay(String pkgKey, Path dest, Path source) {
         lock.lock()
         try {
             Map<String, Path> overlays = packageOverlays.get(pkgKey, [:]) as Map<String, Path>
             String relPath = workRelative(source)
-            log.debug("addOverlay[$relPath] = $source")
+            log.debug("addOverlay[$relPath] = dest:$dest <= source:$source")
             overlays[relPath] = source
             packageOverlays[pkgKey] = overlays
         } finally {
@@ -159,7 +170,7 @@ class QuiltObserver implements TraceObserver {
             log.debug("canOverlayPath: checking key[$key] for $dest")
             if (dest.toString().contains(key)) {
                 log.debug("canOverlayPath: matched key[$key] to $dest")
-                addOverlay(key, source)
+                addOverlay(key, dest, source)
                 return true
             }
         }

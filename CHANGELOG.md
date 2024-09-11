@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.8.6] 2024-09-11
+
+- Fix addOverlay bug on subfolders
+- Improve Windows code coverage
+
 ## [0.8.5] 2024-09-10a
 
 - Error with packaging subfolders on S3 overlay
