@@ -131,8 +131,9 @@ class QuiltObserver implements TraceObserver {
         }
     }
 
-    String pkgRelative(String pkgKey, Path dest) {
+    String pkgRelative(String key, Path dest) {
         String destString = QuiltPackage.osConvert(dest.toAbsolutePath().normalize().toString())
+        String pkgKey = QuiltPackage.osConvert(key)
         // find pkgKey in destination.toString()
         int index = destString.indexOf(pkgKey)
         println("pkgRelative[$index]: $pkgKey in $destString")
