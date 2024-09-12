@@ -1,8 +1,35 @@
 # Changelog
 
-## [0.8.1] UNRELEASED
+## [0.8.6] 2024-09-11
 
-- Fix bug in path extraction from S3 URIs
+- Fix addOverlay bug on subfolders
+- Fix Windows tests
+- Improve test coverage
+
+## [0.8.5] 2024-09-10a
+
+- Error with packaging subfolders on S3 overlay
+- Improved overlay debugging
+
+## [0.8.4] 2024-09-10
+
+- Fix bug with unrecognized output URIs
+
+## [0.8.3] 2024-09-08
+
+- Fix Windows bug with overlay files
+
+## [0.8.2] 2024-09-07
+
+- Use copyFile rather than writeString for overlay files [requires NextFlow 23 or later]
+- Restore README and quilt_summarize to output
+
+## [0.8.1] 2024-09-05
+
+- Get output URI directly from params
+- Add `dest` parameter to Quilt URIs inferred from S3 URIs
+- Specify `outputPrefixes` using `quilt` section of `nextflow.config`
+- Stop proactively installing packages
 
 ## [0.8.0] 2024-08-31
 

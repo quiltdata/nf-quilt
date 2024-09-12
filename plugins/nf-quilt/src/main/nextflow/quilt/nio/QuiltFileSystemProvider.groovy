@@ -33,6 +33,7 @@ import java.nio.file.LinkOption
 import java.nio.file.NoSuchFileException
 import java.nio.file.OpenOption
 import java.nio.file.Path
+import java.nio.file.Paths
 import java.nio.file.StandardOpenOption
 import java.nio.file.attribute.BasicFileAttributeView
 import java.nio.file.attribute.BasicFileAttributes
@@ -71,11 +72,6 @@ class QuiltFileSystemProvider extends FileSystemProvider implements FileSystemTr
         if (path in QuiltPath) {
             return (QuiltPath)path
         }
-        String pathString = path?.toString() ?: '-'
-        if (pathString.startsWith(QuiltParser.SCHEME + ':/')) {
-            QuiltPath qPath = QuiltPathFactory.parse(pathString)
-            return qPath
-        }
         String pathClassName = path?.class?.name ?: '-'
         throw new IllegalArgumentException(
             "Not a valid Quilt blob storage path object: `${path}` [${pathClassName}]"
@@ -85,10 +81,6 @@ class QuiltFileSystemProvider extends FileSystemProvider implements FileSystemTr
     static QuiltFileSystem getQuiltFilesystem(Path path) {
         final qPath = asQuiltPath(path)
         final fs = qPath.getFileSystem()
-        if (fs !in QuiltFileSystem) {
-            String pathClassName = path?.class?.name ?: '-'
-            throw new IllegalArgumentException("Not a valid Quilt file system: `$fs` [${pathClassName}]")
-        }
         return (QuiltFileSystem)fs
     }
 
@@ -114,24 +106,15 @@ class QuiltFileSystemProvider extends FileSystemProvider implements FileSystemTr
         log.debug "QuiltFileSystemProvider.download: ${remoteFile} -> ${localDestination}"
         QuiltPath qPath = asQuiltPath(remoteFile)
         Path cachedFile = qPath.localPath()
-        /*
-         * UNUSED: QuiltPackage is always installed
-         *
         QuiltPackage pkg = qPath.pkg()
+        log.info "download Quilt package: ${pkg} installed? ${pkg.installed}"
         if (!pkg.installed) {
-            log.info "download.install Quilt package: ${pkg}"
             Path dest = pkg.install()
             if (!dest) {
                 log.error "download.install failed: ${pkg}"
                 throw new IOException("Failed to install Quilt package: ${pkg}")
             }
             log.info "download.installed Quilt package to: $dest"
-        }
-        */
-
-        if (!Files.exists(cachedFile)) {
-            log.error "download: File ${cachedFile} not found"
-            throw new NoSuchFileException(remoteFile.toString())
         }
 
         final CopyOptions opts = CopyOptions.parse(options)
@@ -323,7 +306,7 @@ class QuiltFileSystemProvider extends FileSystemProvider implements FileSystemTr
     }
 
     void checkRoot(Path path) {
-        if (path.toString() == '/') {
+        if (path == Paths.get('/')) {
             throw new UnsupportedOperationException("Operation 'checkRoot' not supported on root path")
         }
     }
@@ -479,7 +462,7 @@ class QuiltFileSystemProvider extends FileSystemProvider implements FileSystemTr
             QuiltFileSystem fs = qPath.filesystem
             return (V)fs.getFileAttributeView(qPath)
         }
-        throw new UnsupportedOperationException("Operation 'getFileAttributeView' is not supported by QuiltFileSystem")
+        throw new UnsupportedOperationException("Operation 'getFileAttributeView' is not supported for type $type")
     }
 
     @Override

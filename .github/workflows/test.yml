@@ -20,7 +20,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [windows-latest, ubuntu-latest, macos-latest]
         java_version: [11, 17, 19]
     runs-on: ${{ matrix.os }}
 
@@ -60,7 +60,7 @@ jobs:
       with:
         name: nf-quilt-test-reports-${{ matrix.os }}-${{ matrix.java_version }}
         path: |
-            D:\a\nf-quilt\nf-quilt\plugins\nf-quilt\build\reports\tests\test\
+            D:\a\nf-quilt\nf-quilt\plugins\nf-quilt\build\reports\
         overwrite: true
     - name: Archive production artifacts (Linux and MacOS)
       uses: actions/upload-artifact@v4
@@ -68,6 +68,6 @@ jobs:
       with:
         name: nf-quilt-test-reports-${{ matrix.os }}-${{ matrix.java_version }}
         path: |
-            ${{ github.workspace }}/plugins/nf-quilt/build/reports/tests/test/
+            ${{ github.workspace }}/plugins/nf-quilt/build/reports/
         overwrite: true
 

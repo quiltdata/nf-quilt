@@ -214,15 +214,17 @@ final class QuiltPath implements Path, Comparable {
     Path relativize(Path other) {
         if (this == other) { return null }
         String file = (other in QuiltPath) ? ((QuiltPath)other).localPath() : other.toString()
-        String base = [pkg().toString(), parsed.getPath()].join(QuiltParser.SEP)
-        //log.debug("relativize[$base] in [$file]")
+        String base = QuiltPackage.osConvert("${pkg()}/${parsed.getPath()}")
+        log.debug("relativize[$base] in [$file]")
         int i = file.indexOf(base)
         if (i < 1) {
-            throw new UnsupportedOperationException("other[$file] does not contain package[$base]")
+            throw new IllegalArgumentException("other[$file] does not contain package[$base]")
         }
 
         String tail = file.substring(i + base.size())
-        if (tail.size() > 0 && tail[0] == '/') { tail = tail.substring(1) } // drop leading "/"
+        if (tail.size() > 0 && (tail[0] == '/' || tail[0] == '\\')) {
+            tail = tail.substring(1)
+        } // drop leading separator
         //log.debug("tail[$i] -> $tail")
         return Paths.get(tail)
     }

@@ -18,12 +18,13 @@ package nextflow.quilt.nio
 
 import nextflow.quilt.QuiltSpecification
 import nextflow.quilt.QuiltObserver
+import nextflow.quilt.jep.QuiltPackage
 import nextflow.Session
+//import spock.lang.Ignore
 
 import java.nio.file.Path
 import java.nio.file.Paths
 import groovy.transform.CompileDynamic
-import spock.lang.Ignore
 
 /**
  *
@@ -32,115 +33,153 @@ import spock.lang.Ignore
 @CompileDynamic
 class QuiltObserverTest extends QuiltSpecification {
 
-    void 'should extract Quilt path from appropriate UNIX Path'() {
-        given:
-        Path pkg = Paths.get('/var/tmp/output/quilt-example#package=examples%2fhurdat')
-        Path unpkg = Paths.get('/var/tmp/output/quilt-example/examples/hurdat')
-        expect:
-        QuiltObserver.asQuiltPath(unpkg) == null
-        QuiltObserver.asQuiltPath(pkg).toString() == 'quilt-example#package=examples%2fhurdat'
+    private static final String SPEC_KEY = 'udp-spec/nf-quilt/source'
+    private static final String TEST_KEY = 'bkt/pre/suf'
+
+    Session mockSession(boolean success = false) {
+        String quilt_uri = 'quilt+s3://bucket#package=prefix%2fsuffix'
+        return GroovyMock(Session) {
+            getParams() >> [pubNot: 'foo', pubBad: 'foo:bar', outdir: SpecURI(), pubDir: testURI, inDir: quilt_uri]
+            isSuccess() >> success
+            config >> [quilt: [outputPrefixes: ['pub']]]
+            workDir >> Paths.get('./work')
+        }
+    }
+    QuiltObserver makeObserver(boolean success = false) {
+        QuiltObserver observer = new QuiltObserver()
+        observer.onFlowCreate(mockSession(success))
+        return observer
     }
 
-    void 'normalized Paths from params, and match'() {
-        given:
-        String subURL = fullURL.replace('?key=val&key2=val2', '')
-        String noURL = fullURL.replace('bkt', 'bucket')
-        String newURL = fullURL.replace('bkt', 'new-bucket')
-        Session session = Stub(Session)
-        session.getParams() >> [subdir: subURL, outdir: fullURL, nodir: noURL]
-        QuiltObserver observer = new QuiltObserver()
-
-        when:
-        observer.onFlowCreate(session)
-        String n_bkt = observer.uniqueURIs['bkt/pre/suf']
-        String n_bucket = observer.uniqueURIs['bucket/pre/suf']
-        String n_new = QuiltObserver.pathless(newURL).replace('pre/suf', 'pre%2fsuf')
-
-        then:
-        observer
-        n_bkt != null
-        n_bucket != null
-        fullURL.contains('&path=')
-        !n_bkt.contains('&path=')
-        !n_bucket.contains('&path=')
-        n_bkt.split('#')[0] == 'quilt+s3://bkt?key=val&key2=val2'
-        n_bkt.contains('quilt+s3://bkt?key=val&key2=val2')
-        n_bucket.contains('quilt+s3://bucket?key=val&key2=val2')
-
-        when:
-        Path fullPath = QuiltPathFactory.parse(fullURL)
-        Path subPath = QuiltPathFactory.parse(subURL)
-        Path noPath = QuiltPathFactory.parse(noURL)
-        Path newPath = QuiltPathFactory.parse(newURL)
-
-        then:
-        observer.checkPath(fullPath) == n_bkt
-        observer.checkPath(subPath) == n_bkt
-        observer.checkPath(noPath) == n_bucket
-        observer.checkPath(newPath) == n_new
-    }
-
-    // FIXME: Should infer package name from pubdir/outdir parameters, not just each file's path
-    void 'should extract package URI from output path'() {
-        given:
-        QuiltObserver observer = new QuiltObserver()
-        Path path = Paths.get(filepath)
-        String uri = observer.extractPackageURI(path)
+    void 'should extract appropriate UNIX Path asQuiltPath'() {
         expect:
-        uri == quilt_uri
+        String unixFolder = "/var/tmp/output/${pkgString}"
+        Path unixPath = Paths.get(unixFolder)
+        QuiltObserver.asQuiltPath(unixPath).toString() == pkgString
         where:
-        filepath | quilt_uri
-        '/bucket/prefix/suffix/folder/file.ext' | 'quilt+s3://bucket#package=prefix%2fsuffix&path=folder/file.ext'
-        '/bucket/prefix/suffix/file.ext' | 'quilt+s3://bucket#package=prefix%2fsuffix&path=file.ext'
-        '/bucket/prefix/file.ext' | 'quilt+s3://bucket#package=prefix%2fdefault_suffix&path=file.ext'
-        '/bucket/file.ext' | 'quilt+s3://bucket#package=default_prefix%2fdefault_suffix&path=file.ext'
+        pkgString << ['quilt-example#package=examples%2fhurdat', 'udp-spec#package=nf-quilt%2fsource']
     }
 
-    void 'should recover URI from onFilePublish QuiltPath'() {
+    void 'should form pkgKey from QuiltPath'() {
+        given:
+        Path testPath = QuiltPathFactory.parse(testURI)
+        Path specPath = QuiltPathFactory.parse(SpecURI())
+        expect:
+        QuiltObserver.pkgKey(testPath) == QuiltPackage.osConvert(TEST_KEY)
+        QuiltObserver.pkgKey(specPath) == QuiltPackage.osConvert(SPEC_KEY)
+    }
+
+    void 'should extract quiltURIfromS3'() {
+        expect:
+        QuiltObserver.quiltURIfromS3(s3_uri) == quilt_uri
+        where:
+        s3_uri | quilt_uri
+        's3://bucket/prefix/suffix' | 'quilt+s3://bucket#package=prefix%2fsuffix&dest=prefix%2fsuffix'
+        's3://bucket/prefix'        | 'quilt+s3://bucket#package=prefix%2fdefault_suffix&dest=prefix'
+        's3://bucket'               | 'quilt+s3://bucket#package=default_prefix%2fdefault_suffix&dest=/'
+        's3://bucket/folder/prefix/suffix' | 'quilt+s3://bucket#package=prefix%2fsuffix&dest=folder%2fprefix%2fsuffix'
+    }
+
+    void 'should return workRelative path for source'() {
+        given:
+        QuiltObserver observer = makeObserver()
+        Path workDir = observer.session.workDir
+        String subPath = 'output/file.txt'
+        String workPath = "job/hash/${subPath}"
+        Path source = Paths.get(workDir.toString(), workPath)
+        expect:
+        String relPath = observer.workRelative(source)
+        relPath == QuiltPackage.osConvert(subPath)
+    }
+
+    void 'should return pkgRelative path for dest'() {
+        given:
+        QuiltObserver observer = makeObserver()
+        expect:
+        Path dest = Paths.get(TEST_KEY, folderPath)
+        String relPath = observer.pkgRelative(offset, dest)
+        rc == (relPath == QuiltPackage.osConvert(folderPath))
+        where:
+        rc    | offset | folderPath
+        true  | TEST_KEY | 'output/file.txt'
+        false | SPEC_KEY | 'output/file.txt'
+    }
+
+    void 'should findOutputParams'() {
+        given:
+        QuiltObserver observer = makeObserver()
+        String targetKey = QuiltPackage.osConvert('bucket/prefix/suffix')
+        expect:
+        String key = QuiltPackage.osConvert(unixKey)
+        observer.outputURIs
+        !observer.outputURIs.containsKey(targetKey)
+        observer.outputURIs.size() == 2
+
+        observer.outputURIs.containsKey(key)
+        observer.outputURIs[key] == uri
+        observer.confirmQuiltPath(QuiltPathFactory.parse(uri))
+        where:
+        unixKey | uri
+        SPEC_KEY | SpecURI()
+        TEST_KEY | testURI
+    }
+
+    void 'should set outputPrefixes from config'() {
         given:
         QuiltObserver observer = new QuiltObserver()
-        Path path = Paths.get(key)
-        Path quiltPath = QuiltPathFactory.parse(quilt_uri)
-        observer.onFilePublish(quiltPath, path)
-        String pkgKey = observer.pkgKey(quiltPath)
+        Map<String, Map<String, Object>> config = ['quilt': ['outputPrefixes': ['bucket', 'file']]]
+        observer.checkConfig(config)
         expect:
-        pkgKey == key
-        observer.uniqueURIs[key] == quilt_uri
-        observer.publishedURIs[key] == quilt_uri
-        where:
-        key | quilt_uri
-        'bucket/prefix/suffix' | 'quilt+s3://bucket#package=prefix%2fsuffix'
+        observer.outputPrefixes.size() == 2
+        observer.outputPrefixes.contains('bucket')
+        observer.outputPrefixes.contains('file')
     }
 
-    @Ignore('FIXME: handle onFilePublish with local Path')
-    void 'should extract URI from onFilePublish local Path'() {
+    void 'should not confirmQuiltPath for non-output URIs'() {
         given:
         QuiltObserver observer = new QuiltObserver()
-        Path quiltPath = QuiltPathFactory.parse(quilt_uri)
-        Path path = Paths.get('/'+key)
-        observer.onFilePublish(path, quiltPath)
-        String pkgKey = observer.pkgKey(quiltPath)
+        QuiltPath specPath = QuiltPathFactory.parse(SpecURI())
+        QuiltPath testPath = QuiltPathFactory.parse(testURI)
         expect:
-        pkgKey == key
-        observer.uniqueURIs[key] == quilt_uri
-        observer.publishedURIs[key] == quilt_uri
-        where:
-        key | quilt_uri
-        'bucket/prefix/suffix' | 'quilt+s3://bucket#package=prefix%2fsuffix'
+        !observer.confirmQuiltPath(specPath)
+        !observer.confirmQuiltPath(testPath)
     }
 
-    void 'should not error on onFlowComplete'() {
+    void 'should return: #rc if canOverlayPath with: #path in: #root'() {
+        given:
+        QuiltObserver observer = makeObserver()
+        expect:
+        rc == observer.canOverlayPath(Paths.get(root, path), Paths.get(path))
+        where:
+        rc    | root     | path
+        true  | SPEC_KEY | 'output/file.txt'
+        true  | TEST_KEY | 'output/file.txt'
+        false | '/root'  | 'output/file.txt'
+    }
+
+    /// source usually lacks subfolder paths
+    void 'should addOverlay logical path with subfolders'() {
+        given:
+        QuiltObserver observer = makeObserver()
+        String file_path  = 'source'
+        Path source = Paths.get(root, file_path)
+        Path dest = Paths.get(root, path)
+        expect:
+        String relPath = observer.addOverlay(TEST_KEY, dest, source)
+        relPath == result ?: QuiltPackage.osConvert(result)
+        where:
+        root     | path     | result
+        TEST_KEY | SPEC_KEY | SPEC_KEY
+        SPEC_KEY | TEST_KEY | null
+    }
+
+    void 'should not error on onFlowComplete success'() {
         given:
         String quilt_uri = 'quilt+s3://bucket#package=prefix%2fsuffix'
         QuiltObserver observer = new QuiltObserver()
         QuiltPath qPath = QuiltPathFactory.parse(quilt_uri)
-        Session session = GroovyMock(Session) {
-            // getWorkflowMetadata() >> metadata
-            getParams() >> [outdir: quilt_uri]
-            isSuccess() >> false
-        }
-        observer.onFlowCreate(session)
-        observer.onFilePublish(qPath, qPath)
+        observer.onFlowCreate(mockSession(false))
+        observer.onFilePublish(qPath.localPath())
         when:
         observer.onFlowComplete()
         then:

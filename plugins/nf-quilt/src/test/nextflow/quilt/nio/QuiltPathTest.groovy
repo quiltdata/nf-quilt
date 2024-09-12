@@ -13,7 +13,6 @@ import java.nio.file.ProviderMismatchException
 
 import spock.lang.Unroll
 import spock.lang.Ignore
-import spock.lang.IgnoreIf
 
 /**
  *
@@ -192,10 +191,10 @@ class QuiltPathTest extends QuiltSpecification {
         thrown ProviderMismatchException
     }
 
-    @Ignore('FIXME: subpath not yet implemented')
+    @Ignore('FIXME: test subpath in QuiltParser first')
     void 'should validate subpath: #expected'() {
         expect:
-        pathify(path).subpath(from, to) == pathify(expected)
+        pathify(path).subpath(from, to).getPath() == expected
         where:
         path                                             | from  | to    | expected
         'bucket#package=some%2fbig%2fdata%2ffile.txt'    | 0     | 1     | 'data'
@@ -210,13 +209,13 @@ class QuiltPathTest extends QuiltSpecification {
         pathify(path).startsWith(pathify(prefix)) == expected
 
         where:
-        path                         | prefix                | expected
+        path                          | prefix                | expected
         'bucket#package=s/d/file.txt' | 'bucket#package=s%2fd' | true
         'bucket#package=s/d/file.txt' | 'bucket#package=s' | true
         'bucket#package=s/d/file.txt' | 'bucket' | true
         'bucket#package=s/d/file.txt' | 'file.txt' | false
-        'data%2ffile.txt'            | 'data'              | true
-        'data%2ffile.txt'            | 'file.txt'          | false
+        'data%2ffile.txt'             | 'data'              | true
+        'data%2ffile.txt'             | 'file.txt'          | false
     }
 
     @Unroll
@@ -226,13 +225,13 @@ class QuiltPathTest extends QuiltSpecification {
         //pathify(path).endsWith(pathify(suffix)) == expected
 
         where:
-        path             | suffix            | expected
-        SUB_PATH         | 'file.txt'        | true
-        SUB_PATH         | 'f%2ffile.txt'    | true
-        SUB_PATH         | '/f%2ffile.txt'   | false
-        SUB_PATH         | 'bucket'          | false
-        'data%2ffile.txt' | 'data' | false
-        'data%2ffile.txt' | 'file.txt' | true
+        path              | suffix            | expected
+        SUB_PATH          | 'file.txt'        | true
+        SUB_PATH          | 'f%2ffile.txt'    | true
+        SUB_PATH          | '/f%2ffile.txt'   | false
+        SUB_PATH          | 'bucket'          | false
+        'data%2ffile.txt' | 'data'            | false
+        'data%2ffile.txt' | 'file.txt'        | true
     }
 
     @Unroll
@@ -240,10 +239,10 @@ class QuiltPathTest extends QuiltSpecification {
         expect:
         pathify(path).normalize() == pathify(expected)
         where:
-        path                              | expected
-        'bucket#path=s/d/file.txt'        | 'bucket#path=s/d/file.txt'
+        path                               | expected
+        'bucket#path=s/d/file.txt'         | 'bucket#path=s/d/file.txt'
         'bucket#path=some%2f..%2ffile.txt' | 'bucket#path=file.txt'
-        'file.txt'                        | 'file.txt'
+        'file.txt'                         | 'file.txt'
     }
 
     @Unroll
@@ -258,22 +257,38 @@ class QuiltPathTest extends QuiltSpecification {
         'bucket'                    | 'some%2ffile-name.txt'        | 'bucket#path=some%2ffile-name.txt'
     }
 
+    String based(String fragment = '') {
+        return "bucket#package=so%2fme${fragment}"
+    }
+
+    String sepJoin(String... parts) {
+        if (QuiltPackage.osSep() == '/') {
+            return parts.join('%2f')
+        }
+        return parts.join('%5c')
+    }
     @Unroll
-    @IgnoreIf({ System.getProperty('os.name').toLowerCase().contains('windows') })
     void 'should validate relativize'() {
         expect:
         pathify(path).relativize(pathify(other)).toString() == pathify(expected).toString()
         where:
-        path                              | other                                      | expected
-        'bucket#package=so%2fme'          | 'bucket#package=so%2fme%2fdata%2ffile.txt' | 'data%2ffile.txt'
-        'bucket#package=so%2fme%2fdata'   | 'bucket#package=so%2fme%2fdata%2ffile.txt' | 'file.txt'
-        'bucket#package=so%2fme&path=foo' | 'bucket#package=so%2fme&path=foo%2fbar'    | 'bar'
+        path               | other                       | expected
+        based()            | based('%2fdata%2ffile.txt') | sepJoin('data', 'file.txt')
+        based('%2fdata')   | based('%2fdata%2ffile.txt') | 'file.txt'
+        based('&path=foo') | based('&path=foo%2fbar')    | 'bar'
+    }
+
+    void 'should error on relativize if no common path'() {
+        when:
+        pathify('bucket#package=so%2fme&path=bar').relativize(pathify('bucket#package=so%2fme&path=foo'))
+        then:
+        thrown IllegalArgumentException
     }
 
     void 'should reconstruct full URLs'() {
         given:
         QuiltPath pkgPath = QuiltPathFactory.parse(PKG_URL)
-        QuiltPath fullPath = QuiltPathFactory.parse(fullURL)
+        QuiltPath fullPath = QuiltPathFactory.parse(testURI)
         expect:
         !pkgPath.toUriString().contains('?')
         fullPath.toUriString().contains('?')
@@ -297,6 +312,89 @@ class QuiltPathTest extends QuiltSpecification {
         then:
         prior
         path.pkg() == prior
+    }
+
+    void 'should getNameCount'() {
+        expect:
+        pathify(path).getNameCount() == expected
+        where:
+        path | expected
+        'bucket#package=so%2fme' | 0
+        'bucket#package=so%2fme&path=file-name.txt' | 1
+        'bucket#package=so%2fme&path=folder/name.txt' | 2
+        'bucket#package=so%2fme&path=folder%2fname.txt' | 2
+    }
+
+    void 'should error on getName'() {
+        when:
+        pathify('bucket#package=so%2fme').getName(-1)
+        then:
+        thrown UnsupportedOperationException
+    }
+
+    void 'should return subPaths'() {
+        given:
+        Path path = pathify('bucket#package=so%2fme&path=folder/name.txt')
+        Path subPath = path.subpath(1, 2)
+        expect:
+        subPath
+        subPath.toString() == 'bucket#package=so%2fme&path=name.txt'
+        }
+
+    void 'should match endsWith'() {
+        given:
+        QuiltPath path = pathify('bucket#package=so%2fme&path=folder/name.txt')
+        expect:
+        path.endsWith('name.txt')
+        !path.endsWith('folder')
+    }
+
+    void 'should error on resolveSibling'() {
+        when:
+        Path path = pathify('bucket#package=so%2fme&path=folder/name.txt')
+        pathify('bucket#package=so%2fme').resolveSibling(path)
+        then:
+        thrown UnsupportedOperationException
+    }
+
+    void 'should error on toAbsolutePath if not absolute'() {
+        when:
+        pathify('bucket').toAbsolutePath()
+        then:
+        thrown UnsupportedOperationException
+    }
+
+    void 'should error on toRealPath'() {
+        when:
+        pathify('bucket#package=so%2fme').toRealPath()
+        then:
+        thrown UnsupportedOperationException
+    }
+
+    void 'should error on toFile'() {
+        when:
+        pathify('bucket#package=so%2fme').toFile()
+        then:
+        thrown UnsupportedOperationException
+    }
+
+    void 'should error on iterator'() {
+        when:
+        pathify('bucket#package=so%2fme').iterator()
+        then:
+        thrown UnsupportedOperationException
+    }
+
+    void 'should error on register'() {
+        when:
+        pathify('bucket#package=so%2fme').register(null)
+        then:
+        thrown UnsupportedOperationException
+
+        when:
+        pathify('bucket#package=so%2fme').register(null, null)
+        then:
+        thrown UnsupportedOperationException
     }
 
 }

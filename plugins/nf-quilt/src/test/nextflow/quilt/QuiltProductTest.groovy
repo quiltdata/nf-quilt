@@ -40,7 +40,7 @@ import spock.lang.Unroll
 class QuiltProductTest extends QuiltSpecification {
 
     QuiltProduct makeProduct(String query=null, boolean success = false) {
-        String subURL = query ? fullURL.replace('key=val&key2=val2', query) : fullURL
+        String subURL = query ? testURI.replace('key=val&key2=val2', query) : testURI
         WorkflowMetadata metadata = GroovyMock(WorkflowMetadata) {
             toMap() >> [start:'2022-01-01', complete:'2022-01-02']
         }
@@ -218,7 +218,8 @@ class QuiltProductTest extends QuiltSpecification {
     }
 
     @Unroll
-    @IgnoreIf({ env.WRITE_BUCKET == 'quilt-example' || env.WRITE_BUCKET ==  null })
+    @IgnoreIf({ env.WRITE_BUCKET ==  null })
+    @Ignore('Invalid test: top-level summarize')
     void 'should summarize top-level readable files + multiqc '() {
         given:
         String sumURL = writeableURL('summarized')

@@ -20,6 +20,7 @@ package nextflow.quilt.jep
 import groovy.json.JsonOutput
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
+import java.nio.file.FileSystems
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -54,6 +55,18 @@ class QuiltPackage {
     private final Path folder
     private final Map meta
     private boolean installed
+
+    static String osSep() {
+        return FileSystems.getDefault().getSeparator()
+    }
+
+    static String osJoin(String... parts) {
+        return parts.join(osSep())
+    }
+
+    static String osConvert(String path) {
+        return path.replace('/', FileSystems.getDefault().getSeparator())
+    }
 
     static String today() {
         LocalDate date = LocalDate.now()
@@ -153,7 +166,7 @@ class QuiltPackage {
      */
     List<String> relativeChildren(String subpath) {
         Path subfolder = folder.resolve(subpath)
-        String base = subfolder.toString() + '/'
+        String base = subfolder.toString() + osSep()
         List<String> result = []
         final String[] children = subfolder.list().sort()
         //log.debug("relativeChildren[${base}] $children")
@@ -172,10 +185,6 @@ class QuiltPackage {
     void setup() {
         Files.createDirectories(this.folder)
         this.installed = false
-        if (!this.is_force()) {
-            log.debug("QuiltPackage.setup.install.options: $parsed.options")
-            install(true) // FIXME: only needed for nextflow < 23.12?
-        }
     }
 
     boolean is_force() {
@@ -215,7 +224,7 @@ class QuiltPackage {
 
             manifest.install(dest)
             log.info("install: ${implicitStr}installed into $dest)")
-            println("QuiltPackage.install.Children: ${relativeChildren('')}")
+            log.debug("QuiltPackage.install.Children: ${relativeChildren('')}")
         } catch (IOException e) {
             if (!implicit) {
                 log.error("failed to install $packageName", e)

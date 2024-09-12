@@ -106,6 +106,17 @@ ${nextflow}
         }
     }
 
+    static void copyFile(Path source, String destRoot, String relpath) {
+        Path dest  = Paths.get(destRoot, relpath.split('/') as String[])
+        try {
+            dest.getParent().toFile().mkdirs() // ensure directories exist first
+            Files.copy(source, dest)
+        }
+        catch (Exception e) {
+            log.error("writeString: cannot write `$source` to `$dest` in `${destRoot}`")
+        }
+    }
+
     static String now() {
         LocalDateTime time = LocalDateTime.now()
         return time.toString()
@@ -127,7 +138,7 @@ ${nextflow}
 
         if (session.isSuccess() || pkg.is_force()) {
             if (overlays) {
-                log.info("publishing overlays: ${overlays.size()}")
+                log.debug("publishing overlays: ${overlays.size()}")
                 publishOverlays(overlays)
             } else {
                 log.info('No overlays to publish.')
@@ -139,15 +150,20 @@ ${nextflow}
     }
 
     void publishOverlays(Map<String, Path> overlays) {
-        overlays.each { key, overlay ->
-            log.info("publishing overlay[$key]: ${overlay}")
-            writeString(overlay.text, pkg, key)
+        /// Copying published files to inside package directory
+        /// for (re)upload to the package
+        /// FIXME: Replace this with in-place packaging
+        overlays.each { relpath, source ->
+            log.info("publishing overlay[$relpath]: ${source}")
+            copyFile(source, pkg.packageDest().toString(), relpath)
         }
     }
 
     void publish() {
         log.debug("publish($msg)")
         meta = setupMeta()
+        setupReadme()
+        setupSummarize()
         try {
             log.info("publish.pushing: ${pkg}")
             def m = pkg.push(msg, meta)

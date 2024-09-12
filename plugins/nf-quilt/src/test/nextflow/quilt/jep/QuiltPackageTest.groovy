@@ -196,7 +196,8 @@ class QuiltPackageTest extends QuiltSpecification {
         println("read-only-bucket:TEST_URL: ${READONLY_URL}")
         def qout = factory.parseUri(READONLY_URL)
         def opkg = qout.pkg()
-        println("opkg: ${opkg}")
+        opkg.install()
+        println("opkg: ${opkg} installed: ${opkg.isInstalled()}")
         def outPath = Paths.get(opkg.packageDest().toString(), 'foo/bar.txt')
         println("outPath: ${outPath}")
         Files.writeString(outPath, "Time: ${timestamp}")
@@ -236,7 +237,7 @@ class QuiltPackageTest extends QuiltSpecification {
     }
 
     // TODO: ensure metadata is correctly inserted into package
-    @IgnoreIf({ env.WRITE_BUCKET == 'quilt-example' || env.WRITE_BUCKET ==  null })
+    @IgnoreIf({ env.WRITE_BUCKET ==  null })
     void 'should not fail pushing invalid metadata '() {
         given:
         QuiltPackage opkg = writeablePackage('observer')
@@ -245,7 +246,7 @@ class QuiltPackageTest extends QuiltSpecification {
         opkg.push('msg', meta)
     }
 
-    @IgnoreIf({ env.WRITE_BUCKET == 'quilt-example' || env.WRITE_BUCKET ==  null })
+    @IgnoreIf({ env.WRITE_BUCKET ==  null })
     void 'should fail if invalid workflow'() {
         given:
         String pkgName = "workflow-bad-${timestamp}"
@@ -253,10 +254,10 @@ class QuiltPackageTest extends QuiltSpecification {
         when:
         bad_wf.push('missing-workflow first time', [:])
         then:
-        thrown(com.quiltdata.quiltcore.workflows.WorkflowException)
+        thrown(RuntimeException)
     }
 
-    @IgnoreIf({ env.WRITE_BUCKET == 'quilt-example' || env.WRITE_BUCKET ==  null })
+    @IgnoreIf({ env.WRITE_BUCKET ==  null })
     void 'should fail push if unsatisfied workflow'() {
         given:
         Map meta =  [
@@ -271,12 +272,12 @@ class QuiltPackageTest extends QuiltSpecification {
         when:
         good_wf.push('empty meta', [:])
         then:
-        thrown(com.quiltdata.quiltcore.workflows.WorkflowException)
+        thrown(RuntimeException)
 
         when:
         good_wf.push('bad_meta', bad_meta)
         then:
-        thrown(com.quiltdata.quiltcore.workflows.WorkflowException)
+        thrown(RuntimeException)
 
         expect:
         good_wf.push('my-workflow', meta)

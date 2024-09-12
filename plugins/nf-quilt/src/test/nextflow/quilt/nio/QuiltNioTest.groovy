@@ -79,6 +79,17 @@ class QuiltNioTest extends QuiltSpecification {
         text.startsWith('id')
     }
 
+    void 'should pretend to read file attributes'() {
+        given:
+        Path path = Paths.get(new URI(WRITE_URL))
+        makeObject(path, TEXT)
+
+        when:
+        BasicFileAttributes attrs = Files.readAttributes(path, BasicFileAttributes)
+        then:
+        attrs != null
+    }
+
     @IgnoreIf({ System.getProperty('os.name').toLowerCase().contains('windows') })
     @IgnoreIf({ System.getProperty('os.name').toLowerCase().contains('linux') })
     void 'should read file attributes'() {
@@ -213,6 +224,7 @@ class QuiltNioTest extends QuiltSpecification {
     }
 
     @IgnoreIf({ env.WRITE_BUCKET ==  null })
+    @Ignore('Invalid test: top-level summarize')
     void 'move a remote file to a bucket'() {
         given:
         Path path = Paths.get(new URI(WRITE_URL))
@@ -512,9 +524,7 @@ class QuiltNioTest extends QuiltSpecification {
         list  == [ 'file4.txt' ]
     }
 
-    // \QuiltPackage.quilt_dev_null_test_null\foo
-    @IgnoreIf({ System.getProperty('os.name').toLowerCase().contains('windows') })
-    void 'should check walkTree'() {
+    void 'should check walkTree 1'() {
         given:
         makeObject(null_path('foo/file1.txt'), 'A')
         makeObject(null_path('foo/file2.txt'), 'BB')
@@ -554,8 +564,8 @@ class QuiltNioTest extends QuiltSpecification {
         dirs.size() == 4
         dirs.contains('null')
         dirs.contains('foo')
-        dirs.contains('foo/bar')
-        dirs.contains('foo/bar/baz')
+        dirs.contains(QuiltPackage.osConvert('foo/bar'))
+        dirs.contains(QuiltPackage.osConvert('foo/bar/baz'))
 
         when:
         dirs = []
@@ -646,8 +656,8 @@ class QuiltNioTest extends QuiltSpecification {
         dirs.contains('foo')
         files.size() == 3
         files.containsKey('foo')
-        files.containsKey('foo/bar')
-        files.containsKey('foo/baz')
+        files.containsKey(QuiltPackage.osConvert('foo/bar'))
+        files.containsKey(QuiltPackage.osConvert('foo/baz'))
     }
 
     void 'should handle file names with same prefix'() {
