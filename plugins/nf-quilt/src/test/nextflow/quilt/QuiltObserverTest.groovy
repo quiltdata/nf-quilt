@@ -166,7 +166,7 @@ class QuiltObserverTest extends QuiltSpecification {
         Path dest = Paths.get(root, path)
         expect:
         String relPath = observer.addOverlay(TEST_KEY, dest, source)
-        relPath == QuiltPackage.osConvert(result)
+        relPath == result ?: QuiltPackage.osConvert(result)
         where:
         root     | path     | result
         TEST_KEY | SPEC_KEY | SPEC_KEY
