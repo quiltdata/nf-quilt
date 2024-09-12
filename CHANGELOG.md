@@ -3,7 +3,8 @@
 ## [0.8.6] 2024-09-11
 
 - Fix addOverlay bug on subfolders
-- Improve Windows code coverage
+- Fix Windows tests
+- Improve test coverage
 
 ## [0.8.5] 2024-09-10a
 

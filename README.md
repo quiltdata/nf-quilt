@@ -80,8 +80,8 @@ From the command-line, do, e.g.:
 ```bash
 # export NXF_VER=23.04.3
 export LOG4J_DEBUG=true  # for verbose logging
-export NXF_PLUGINS_TEST_REPOSITORY=https://github.com/quiltdata/nf-quilt/releases/download/0.8.5/nf-quilt-0.8.5-meta.json
-nextflow run main.nf -plugins nf-quilt@0.8.5
+export NXF_PLUGINS_TEST_REPOSITORY=https://github.com/quiltdata/nf-quilt/releases/download/0.8.6/nf-quilt-0.8.6-meta.json
+nextflow run main.nf -plugins nf-quilt@0.8.6
 ```
 
 For Tower, you can use the "Pre-run script" to set the environment variables.
