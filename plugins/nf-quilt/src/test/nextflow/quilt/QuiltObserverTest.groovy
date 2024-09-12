@@ -98,7 +98,7 @@ class QuiltObserverTest extends QuiltSpecification {
         expect:
         Path dest = Paths.get(TEST_KEY, folderPath)
         String relPath = observer.pkgRelative(offset, dest)
-        rc == (relPath == folderPath)
+        rc == (relPath == QuiltPackage.osConvert(folderPath))
         where:
         rc    | offset | folderPath
         true  | TEST_KEY | 'output/file.txt'
@@ -166,7 +166,7 @@ class QuiltObserverTest extends QuiltSpecification {
         Path dest = Paths.get(root, path)
         expect:
         String relPath = observer.addOverlay(TEST_KEY, dest, source)
-        relPath == result
+        relPath == QuiltPackage.osConvert(result)
         where:
         root     | path     | result
         TEST_KEY | SPEC_KEY | SPEC_KEY
