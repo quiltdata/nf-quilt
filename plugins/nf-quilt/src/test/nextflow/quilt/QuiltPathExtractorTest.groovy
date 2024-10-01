@@ -16,12 +16,13 @@
  */
 package nextflow.quilt
 
-// import nextflow.quilt.jep.QuiltPackage
-//import spock.lang.Ignore
 import nextflow.quilt.jep.QuiltParser
+import nextflow.quilt.nio.QuiltPath
+import nextflow.quilt.nio.QuiltPathFactory
 
 // import java.nio.file.Path
 // import java.nio.file.Paths
+//import spock.lang.Ignore
 import groovy.transform.CompileDynamic
 
 /**
@@ -40,7 +41,7 @@ class QuiltPathExtractorTest extends QuiltSpecification {
     void 'test uriFromS3File'() {
         expect:
         def quilt_uri = QuiltPathExtractor.uriFromS3File(s3path)
-        assert quilt_uri == expected
+        quilt_uri == expected
 
         where:
         s3path                      | expected
@@ -49,6 +50,18 @@ class QuiltPathExtractorTest extends QuiltSpecification {
         '/bkt/pre/FILE.md'          | "quilt+s3://bkt#package=pre%2f${DS}&path=FILE.md"
         '/bkt/FILE.md'              | "quilt+s3://bkt#package=${DP}%2f${DS}&path=FILE.md"
         '/FILE.md'                  | "quilt+s3://${DB}#package=${DP}%2f${DS}&path=FILE.md"
+    }
+
+    void 'test with QuiltPath'() {
+        when:
+        String uri = SpecURI()
+        QuiltPath path = QuiltPathFactory.parse(uri)
+        QuiltPathExtractor extract = new QuiltPathExtractor(path)
+
+        then:
+        extract.isOverlay == false
+        extract.uri == uri
+        extract.path == path
     }
 
 }
