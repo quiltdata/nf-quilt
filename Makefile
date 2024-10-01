@@ -38,7 +38,7 @@ compile:
 	./gradlew compileGroovy exportClasspath
 	@echo "DONE `date`"
 
-nextflow-git:
+nextflow:
 	if [ ! -d "$(NF_DIR)" ]; then git clone https://github.com/nextflow-io/nextflow.git  "$(NF_DIR)"; fi
 	cd "$(NF_DIR)"; git checkout && make compile && git restore .; cd ..
 
