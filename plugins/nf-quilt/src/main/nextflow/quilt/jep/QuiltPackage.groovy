@@ -97,6 +97,11 @@ class QuiltPackage {
         PKGS.clear()
     }
 
+    static QuiltPackage forUriString(String uri) {
+        QuiltParser parsed = QuiltParser.forUriString(uri)
+        return forParsed(parsed)
+    }
+
     static QuiltPackage forParsed(QuiltParser parsed) {
         boolean isNull = parsed.hasNullBucket()
         if (isNull && !PKGS.isEmpty()) {
@@ -111,6 +116,18 @@ class QuiltPackage {
         pkg = new QuiltPackage(parsed)
         PKGS[pkgKey] = pkg
         return pkg
+    }
+
+    static boolean hasKey(String pkgKey) {
+        return PKGS.containsKey(pkgKey)
+    }
+
+    static String uriForKey(String pkgKey) {
+        QuiltPackage pkg = PKGS.get(pkgKey)
+        if (pkg) {
+            return pkg.toUriString()
+        }
+        return null
     }
 
     static List<Path> listDirectory(Path rootPath) {
@@ -311,6 +328,14 @@ class QuiltPackage {
     @Override
     String toString() {
         return "QuiltPackage.${bucket}_${packageName}".replaceAll(/[-\/]/, '_')
+    }
+
+    String toUriString() {
+        return parsed.toUriString()
+    }
+
+    String toKey() {
+        return parsed.toPackageString()
     }
 
     String meta_overrides(String key, Serializable baseline = null) {

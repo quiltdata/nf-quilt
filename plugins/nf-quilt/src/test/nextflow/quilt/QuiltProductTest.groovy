@@ -14,13 +14,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package nextflow.quilt.nio
+package nextflow.quilt
 
 import nextflow.Session
 import nextflow.script.WorkflowMetadata
 
-import nextflow.quilt.QuiltSpecification
-import nextflow.quilt.QuiltProduct
+import nextflow.quilt.nio.QuiltPath
+import nextflow.quilt.nio.QuiltPathFactory
 import nextflow.quilt.jep.QuiltParser
 import nextflow.quilt.jep.QuiltPackage
 
