@@ -41,10 +41,6 @@ class QuiltPathExtractor  {
     QuiltPath path
     boolean isOverlay = false
 
-    static QuiltPathExtractor fromString(String path) {
-        return new QuiltPathExtractor(Paths.get(path))
-    }
-
     static void copyFile(Path source, String destRoot, String relpath) {
         Path dest  = Paths.get(destRoot, relpath.split('/') as String[])
         try {
@@ -59,7 +55,8 @@ class QuiltPathExtractor  {
     /**
      * Converts an S3 path to a Quilt URI.
      *
-     * This method takes an S3 path and extracts the bucket, prefix, suffix, and path components
+     * This method takes an absolute path representing an S3 output uri
+     * and extracts the bucket, prefix, suffix, and path components
      * to construct a Quilt URI.
      *
      * Example input:
@@ -72,19 +69,27 @@ class QuiltPathExtractor  {
      * - suffix: s3-test (or `default_suffix` if missing)
      * - path: inputs/a_folder/THING_TWO.md
      */
-    static String quiltURIfromPath(String s3path) {
-        log.debug("quiltURIfromPath: $s3path")
+    static String uriFromS3File(String s3path) {
+        log.debug("uriFromS3File: $s3path")
         String[] partsArray = s3path.split('/')
         List<String> parts = new ArrayList(partsArray.toList())
-        // parts.eachWithIndex { p, i -> println("quiltURIfromPath.parts[$i]: $p") }
+        parts.eachWithIndex { p, i -> println("uriFromS3File.parts[$i]: $p") }
+        if (parts.size() < 2) {
+            log.error("uriFromS3File: invalid path: $s3path")
+            return ''
+        }
+        parts.remove(0) // remove leading slash
+        String file = parts.remove(parts.size() - 1)
 
-        String bucket = parts.remove(0) ?: QuiltParser.NULL_BUCKET
-        String prefix = parts.remove(0) ?: 'default_prefix'
-        String suffix = parts.remove(0) ?: 'default_suffix'
-        String dest = parts.join('/')
+        String bucket = parts.size() > 0 ? parts.remove(0) : QuiltParser.NULL_BUCKET
+        String prefix = parts.size() > 0 ? parts.remove(0) : 'default_prefix'
+        String suffix = parts.size() > 0 ? parts.remove(0) : 'default_suffix'
+        String folder = parts.join('/')
+        String sub_path = folder.length() > 0 ? folder + '/' + file : file
 
+        println("uriFromS3File: $bucket/$prefix/$suffix/$sub_path")
         String base = "quilt+s3://${bucket}#package=${prefix}%2f${suffix}"
-        String uri = base + '&dest=' + ((dest) ?: '/')
+        String uri = base + '&path=' + sub_path
         return uri
     }
 
@@ -117,7 +122,7 @@ class QuiltPathExtractor  {
     }
 
     boolean makeQuiltPath(Path path) {
-        String quiltURI = quiltURIfromPath(path.toString())
+        String quiltURI = uriFromS3File(path.toString())
         this.path = QuiltPathFactory.parse(quiltURI)
         this.uri = this.path.toUriString()
         this.pkg = this.path.pkg()

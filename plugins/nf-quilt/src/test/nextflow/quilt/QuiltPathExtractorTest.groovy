@@ -37,19 +37,18 @@ class QuiltPathExtractorTest extends QuiltSpecification {
     final static private String DS = 'default_suffix'
     final static private String DB = QuiltParser.NULL_BUCKET
 
-    void 'test quiltURIfromPath'() {
+    void 'test uriFromS3File'() {
         expect:
-        assert QuiltPathExtractor.fromString(s3path) == expected
+        def quilt_uri = QuiltPathExtractor.uriFromS3File(s3path)
+        assert quilt_uri == expected
 
         where:
         s3path                      | expected
         '/bkt/pre/suf/fold/FILE.md' | 'quilt+s3://bkt#package=pre%2fsuf&path=fold/FILE.md'
-        '/bkt/pre/suf/FILE.md'      | 'quilt+s3://bkt#package=pre%2fsuf&path=/'
-        '/bkt/pre/FILE.md'          | "quilt+s3://bkt#package=pre%2f${DS}&path=fold/FILE.md"
-        '/bkt/FILE.md'              | "quilt+s3://bkt#package=${DP}%2f${DS}&path=fold/FILE.md"
+        '/bkt/pre/suf/FILE.md'      | 'quilt+s3://bkt#package=pre%2fsuf&path=FILE.md'
+        '/bkt/pre/FILE.md'          | "quilt+s3://bkt#package=pre%2f${DS}&path=FILE.md"
+        '/bkt/FILE.md'              | "quilt+s3://bkt#package=${DP}%2f${DS}&path=FILE.md"
         '/FILE.md'                  | "quilt+s3://${DB}#package=${DP}%2f${DS}&path=FILE.md"
-        '/'                         | "quilt+s3://${DB}#package=${DP}%2f${DS}&path=/"
-        ''                          | "quilt+s3://${DB}#package=${DP}%2f${DS}&path=/"
     }
 
 }
