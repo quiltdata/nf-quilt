@@ -72,7 +72,7 @@ class QuiltPathExtractorTest extends QuiltSpecification {
         extracted().uri == uri
     }
 
-    void 'test boolean findQuiltPath'() {
+    void 'test findQuiltPath returns boolean'() {
         when:
         QuiltPathExtractor extract = extracted()
 
@@ -86,7 +86,7 @@ class QuiltPathExtractorTest extends QuiltSpecification {
     }
 
     // Test findQuiltPath updates uri/path/pkg
-    void 'test settors findQuiltPath'() {
+    void 'test findQuiltPath overrides attributes'() {
         when:
         QuiltPathExtractor extract = extracted()
         extract.findQuiltPath('bucket#package=prefix%2fsuffix&path=.%2fFILE.md')
@@ -99,7 +99,7 @@ class QuiltPathExtractorTest extends QuiltSpecification {
         extract.pkgKey() == 'bucket#package=prefix%2fsuffix'
     }
 
-    // Test findQuiltPath retrieves existing metadata
+    // Test findQuiltPath retrieves metadata from prior package
     // Test makeQuiltPath creates new uri/path/pkg
     // Test makeQuiltPath sets isOverlay
     // Test copyToPackage copies overly file to package folder
