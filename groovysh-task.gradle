@@ -21,7 +21,7 @@ gradle.projectsLoaded {
             }
 
             project.dependencies {
-                groovyshdependencies "org.apache.groovy:groovy-groovysh:4.0.22"
+                groovyshdependencies "org.apache.groovy:groovy-groovysh:4.0.23"
             }
 
             project.tasks.register('groovysh') {
