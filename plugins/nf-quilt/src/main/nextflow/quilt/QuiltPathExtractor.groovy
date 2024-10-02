@@ -73,7 +73,7 @@ class QuiltPathExtractor  {
         log.debug("uriFromS3File: $s3path")
         String[] partsArray = s3path.split('/')
         List<String> parts = new ArrayList(partsArray.toList())
-        parts.eachWithIndex { p, i -> println("uriFromS3File.parts[$i]: $p") }
+        // parts.eachWithIndex { p, i -> println("uriFromS3File.parts[$i]: $p") }
         if (parts.size() < 2) {
             log.error("uriFromS3File: invalid path: $s3path")
             return ''
@@ -99,21 +99,27 @@ class QuiltPathExtractor  {
             this.path = (QuiltPath) path
             this.uri = this.path.toUriString()
             this.pkg = this.path.pkg()
-        } else if (!findQuiltPath(path.getFileName())) {
+        } else if (!findQuiltPath(path.getFileName().toString())) {
             makeQuiltPath(path)
             this.isOverlay = true
         }
     }
 
-    boolean findQuiltPath(Path filename) {
-        if (!filename.contains('#package')) {
+    boolean findQuiltPath(String filename) {
+        println("findQuiltPath.filename: $filename")
+        // check for '#package' in filename
+        if (!filename.toString().contains('#package')) {
+            println("findQuiltPath: no package in $filename")
             return false
         }
 
         this.uri = "${QuiltParser.SCHEME}://${filename}"
+        println("findQuiltPath.uri: $uri")
         this.path = QuiltPathFactory.parse(this.uri)
+        println("findQuiltPath.path: $path")
         this.pkg = this.path.pkg()
         String key = this.pkg.toKey()
+        println("findQuiltPath.key: $key")
         if (QuiltPackage.hasKey(key)) {
             this.pkg = QuiltPackage.forUriString(this.uri)
             this.uri = this.pkg.toUriString() // may contain metadata

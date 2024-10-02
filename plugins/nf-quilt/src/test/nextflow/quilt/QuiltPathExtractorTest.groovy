@@ -38,6 +38,13 @@ class QuiltPathExtractorTest extends QuiltSpecification {
     final static private String DS = 'default_suffix'
     final static private String DB = QuiltParser.NULL_BUCKET
 
+    QuiltPathExtractor extracted() {
+        String uri = SpecURI()
+        QuiltPath path = QuiltPathFactory.parse(uri)
+        QuiltPathExtractor extract = new QuiltPathExtractor(path)
+        return extract
+    }
+
     void 'test uriFromS3File'() {
         expect:
         def quilt_uri = QuiltPathExtractor.uriFromS3File(s3path)
@@ -62,6 +69,39 @@ class QuiltPathExtractorTest extends QuiltSpecification {
         extract.isOverlay == false
         extract.uri == uri
         extract.path == path
+        extracted().uri == uri
     }
+
+    void 'test boolean findQuiltPath'() {
+        when:
+        QuiltPathExtractor extract = extracted()
+
+        then:
+        rc == extract.findQuiltPath(path)
+
+        where:
+        rc    | path
+        false | 'FILE.md'
+        true  | 'bucket#package=prefix%2fsuffix&path=FILE.md'
+    }
+
+    // Test findQuiltPath updates uri/path/pkg
+    void 'test settors findQuiltPath'() {
+        when:
+        QuiltPathExtractor extract = extracted()
+        extract.findQuiltPath('bucket#package=prefix%2fsuffix&path=.%2fFILE.md')
+
+        then:
+        extract.isOverlay == false
+        extract.uri == 'quilt+s3://bucket#package=prefix%2fsuffix&path=FILE.md'
+        extract.path.toString() == 'bucket#package=prefix%2fsuffix&path=.%2fFILE.md'
+        extract.pkg.toUriString() == 'quilt+s3://bucket#package=prefix%2fsuffix&path=FILE.md'
+        extract.pkgKey() == 'bucket#package=prefix%2fsuffix'
+    }
+
+    // Test findQuiltPath retrieves existing metadata
+    // Test makeQuiltPath creates new uri/path/pkg
+    // Test makeQuiltPath sets isOverlay
+    // Test copyToPackage copies overly file to package folder
 
 }
