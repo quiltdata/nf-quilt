@@ -16,7 +16,6 @@
 package nextflow.quilt
 
 import nextflow.Session
-import nextflow.quilt.nio.QuiltPath
 import nextflow.trace.TraceObserver
 
 import java.nio.file.Path

@@ -113,17 +113,13 @@ class QuiltPathify  {
             return false
         }
 
-        this.uri = "${QuiltParser.SCHEME}://${filename}"
+        uri = "${QuiltParser.SCHEME}://${filename}"
         println("findQuiltPath.uri: $uri")
-        this.path = QuiltPathFactory.parse(this.uri)
+        path = QuiltPathFactory.parse(this.uri)
         println("findQuiltPath.path: $path")
-        this.pkg = this.path.pkg()
-        String key = this.pkg.toKey()
-        println("findQuiltPath.key: $key")
-        if (QuiltPackage.hasKey(key)) {
-            this.pkg = QuiltPackage.forUriString(this.uri)
-            this.uri = this.pkg.toUriString() // may contain metadata
-        }
+        pkg = path.pkg()
+        println("findQuiltPath.pkg: $pkg")
+        println("findQuiltPath.uri2: $uri")
         return true
     }
 
@@ -148,6 +144,17 @@ class QuiltPathify  {
 
     String pkgKey() {
         return pkg.toKey()
+    }
+
+    boolean hasRoot() {
+        return (QuiltPackage.hasKey(pkgKey()))
+    }
+
+    QuiltPackage getRoot() {
+        if (hasRoot()) {
+            return QuiltPackage.forKey(pkgKey())
+        }
+        return null
     }
 
 }

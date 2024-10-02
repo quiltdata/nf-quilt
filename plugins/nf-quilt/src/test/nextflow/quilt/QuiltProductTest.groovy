@@ -50,7 +50,8 @@ class QuiltProductTest extends QuiltSpecification {
             isSuccess() >> success
         }
         QuiltPath path = QuiltPathFactory.parse(subURL)
-        return new QuiltProduct(path, session)
+        QuiltPathify pathify = new QuiltPathify(path)
+        return new QuiltProduct(pathify, session)
     }
 
     QuiltProduct makeWriteProduct(Map meta = [:]) {

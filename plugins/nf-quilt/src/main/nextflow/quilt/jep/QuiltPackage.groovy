@@ -122,10 +122,9 @@ class QuiltPackage {
         return PKGS.containsKey(pkgKey)
     }
 
-    static String uriForKey(String pkgKey) {
-        QuiltPackage pkg = PKGS.get(pkgKey)
-        if (pkg) {
-            return pkg.toUriString()
+    static QuiltPackage forKey(String pkgKey) {
+        if (hasKey(pkgKey)) {
+            return PKGS.get(pkgKey)
         }
         return null
     }

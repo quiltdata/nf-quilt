@@ -89,17 +89,19 @@ class QuiltPathifyTest extends QuiltSpecification {
     void 'test findQuiltPath overrides attributes'() {
         when:
         QuiltPathify pathify = getPathify()
-        pathify.findQuiltPath('bucket#package=prefix%2fsuffix&path=.%2fFILE.md')
+        println("pathify1: ${pathify.uri}")
+        pathify.findQuiltPath('buck#package=prefix%2fsuffix&path=.%2fFILE.md')
+        println("pathify2: ${pathify.uri}")
 
         then:
         pathify.isOverlay == false
-        pathify.uri == 'quilt+s3://bucket#package=prefix%2fsuffix&path=FILE.md'
-        pathify.path.toString() == 'bucket#package=prefix%2fsuffix&path=.%2fFILE.md'
-        pathify.pkg.toUriString() == 'quilt+s3://bucket#package=prefix%2fsuffix&path=FILE.md'
-        pathify.pkgKey() == 'bucket#package=prefix%2fsuffix'
+        pathify.uri == 'quilt+s3://buck#package=prefix%2fsuffix&path=.%2fFILE.md'
+        pathify.path.toString() == 'buck#package=prefix%2fsuffix&path=.%2fFILE.md'
+        pathify.pkg.toUriString() == 'quilt+s3://buck#package=prefix%2fsuffix&path=.%2fFILE.md'
+        pathify.pkgKey() == 'buck#package=prefix%2fsuffix'
     }
 
-    // Test findQuiltPath retrieves metadata from prior package
+    // Test findQuiltPath.getRoot() retrieves metadata from prior package
     // Test makeQuiltPath creates new uri/path/pkg
     // Test makeQuiltPath sets isOverlay
     // Test copyToPackage copies overly file to package folder
