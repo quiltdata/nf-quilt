@@ -34,12 +34,12 @@ import groovy.util.logging.Slf4j
  */
 @Slf4j
 @CompileStatic
-class QuiltPathExtractor  {
+class QuiltPathify  {
 
-    private QuiltPackage pkg
-    private String uri
-    QuiltPath path
     boolean isOverlay = false
+    QuiltPath path
+    QuiltPackage pkg
+    String uri
 
     static void copyFile(Path source, String destRoot, String relpath) {
         Path dest  = Paths.get(destRoot, relpath.split('/') as String[])
@@ -94,7 +94,7 @@ class QuiltPathExtractor  {
     }
 
     // Constructor takes a Path and finds QuiltPath and QuiltPackage
-    QuiltPathExtractor(Path path) {
+    QuiltPathify(Path path) {
         if (path in QuiltPath) {
             this.path = (QuiltPath) path
             this.uri = this.path.toUriString()

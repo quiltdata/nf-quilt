@@ -26,28 +26,28 @@ import nextflow.quilt.nio.QuiltPathFactory
 import groovy.transform.CompileDynamic
 
 /**
- * Test class for QuiltPathExtractor
+ * Test class for QuiltPathify
  *
  * Author: Ernest Prabhakar <ernest@quiltdata.io>
  */
 
 @CompileDynamic
-class QuiltPathExtractorTest extends QuiltSpecification {
+class QuiltPathifyTest extends QuiltSpecification {
 
     final static private String DP = 'default_prefix'
     final static private String DS = 'default_suffix'
     final static private String DB = QuiltParser.NULL_BUCKET
 
-    QuiltPathExtractor extracted() {
+    QuiltPathify getPathify() {
         String uri = SpecURI()
         QuiltPath path = QuiltPathFactory.parse(uri)
-        QuiltPathExtractor extract = new QuiltPathExtractor(path)
-        return extract
+        QuiltPathify pathify = new QuiltPathify(path)
+        return pathify
     }
 
     void 'test uriFromS3File'() {
         expect:
-        def quilt_uri = QuiltPathExtractor.uriFromS3File(s3path)
+        def quilt_uri = QuiltPathify.uriFromS3File(s3path)
         quilt_uri == expected
 
         where:
@@ -63,21 +63,21 @@ class QuiltPathExtractorTest extends QuiltSpecification {
         when:
         String uri = SpecURI()
         QuiltPath path = QuiltPathFactory.parse(uri)
-        QuiltPathExtractor extract = new QuiltPathExtractor(path)
+        QuiltPathify pathify = new QuiltPathify(path)
 
         then:
-        extract.isOverlay == false
-        extract.uri == uri
-        extract.path == path
-        extracted().uri == uri
+        pathify.isOverlay == false
+        pathify.uri == uri
+        pathify.path == path
+        getPathify().uri == uri
     }
 
     void 'test findQuiltPath returns boolean'() {
         when:
-        QuiltPathExtractor extract = extracted()
+        QuiltPathify pathify = getPathify()
 
         then:
-        rc == extract.findQuiltPath(path)
+        rc == pathify.findQuiltPath(path)
 
         where:
         rc    | path
@@ -88,15 +88,15 @@ class QuiltPathExtractorTest extends QuiltSpecification {
     // Test findQuiltPath updates uri/path/pkg
     void 'test findQuiltPath overrides attributes'() {
         when:
-        QuiltPathExtractor extract = extracted()
-        extract.findQuiltPath('bucket#package=prefix%2fsuffix&path=.%2fFILE.md')
+        QuiltPathify pathify = getPathify()
+        pathify.findQuiltPath('bucket#package=prefix%2fsuffix&path=.%2fFILE.md')
 
         then:
-        extract.isOverlay == false
-        extract.uri == 'quilt+s3://bucket#package=prefix%2fsuffix&path=FILE.md'
-        extract.path.toString() == 'bucket#package=prefix%2fsuffix&path=.%2fFILE.md'
-        extract.pkg.toUriString() == 'quilt+s3://bucket#package=prefix%2fsuffix&path=FILE.md'
-        extract.pkgKey() == 'bucket#package=prefix%2fsuffix'
+        pathify.isOverlay == false
+        pathify.uri == 'quilt+s3://bucket#package=prefix%2fsuffix&path=FILE.md'
+        pathify.path.toString() == 'bucket#package=prefix%2fsuffix&path=.%2fFILE.md'
+        pathify.pkg.toUriString() == 'quilt+s3://bucket#package=prefix%2fsuffix&path=FILE.md'
+        pathify.pkgKey() == 'bucket#package=prefix%2fsuffix'
     }
 
     // Test findQuiltPath retrieves metadata from prior package

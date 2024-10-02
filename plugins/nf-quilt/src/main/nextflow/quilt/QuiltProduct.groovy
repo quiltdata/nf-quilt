@@ -128,9 +128,9 @@ ${nextflow}
     private String msg
     private Map meta
 
-    QuiltProduct(QuiltPath path, Session session) {
-        this.path = path
-        this.pkg = path.pkg()
+    QuiltProduct(QuiltPathify pathify, Session session) {
+        this.path = pathify.path
+        this.pkg = pathify.pkg
         this.msg =  pkg.toString()
         this.meta = [pkg: msg, time_start: now()]
         this.session = session

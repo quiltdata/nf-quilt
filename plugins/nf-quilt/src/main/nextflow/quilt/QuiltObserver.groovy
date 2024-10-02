@@ -41,7 +41,7 @@ class QuiltObserver implements TraceObserver {
     final private Map<String,Object> configMetadata = [:]
     final private Lock lock = new ReentrantLock() // Need this because of threads
     // Is this overkill? Do we ever have more than one output URI per run?
-    final private Map<String,QuiltPath> publishedPaths = [:]
+    final private Map<String,QuiltPathify> publishedPaths = [:]
 
     void checkConfig(Map<String, Map<String,Object>> config) {
         Object metadata = config.get('quilt')?.get('metadata')
@@ -50,20 +50,20 @@ class QuiltObserver implements TraceObserver {
         }
     }
 
-    boolean checkExtractedPath(QuiltPathExtractor extract) {
-        String key = extract.pkgKey()
+    boolean checkExtractedPath(QuiltPathify pathify) {
+        String key = pathify.pkgKey()
         if (key in publishedPaths) {
             return true
         }
         log.debug("checkExtractedPath: $key not in publishedPaths")
-        addPublishedPath(key, extract.path)
+        addPublishedPath(key, pathify)
         return false
     }
 
-    void addPublishedPath(String key, QuiltPath qPath) {
+    void addPublishedPath(String key, QuiltPathify pathify) {
         lock.lock()
         try {
-            publishedPaths[key] = qPath
+            publishedPaths[key] = pathify
         } finally {
             lock.unlock()
         }
@@ -85,12 +85,12 @@ class QuiltObserver implements TraceObserver {
             log.debug('onFilePublish: no session intialized')
             return
         }
-        QuiltPathExtractor extract = new QuiltPathExtractor(destination)
-        if (extract.isOverlay && source == null) {
-            log.error("onFilePublish.isOverlay: no source for $extract")
+        QuiltPathify pathify = new QuiltPathify(destination)
+        if (pathify.isOverlay && source == null) {
+            log.error("onFilePublish.isOverlay: no source for $pathify")
             return
         }
-        checkExtractedPath(extract)
+        checkExtractedPath(pathify)
     }
 
     @Override
