@@ -38,8 +38,7 @@ class QuiltPathifyTest extends QuiltSpecification {
     final static private String DS = 'default_suffix'
     final static private String DB = QuiltParser.NULL_BUCKET
 
-    QuiltPathify getPathify() {
-        String uri = SpecURI()
+    QuiltPathify getPathify(String uri = SpecURI()) {
         QuiltPath path = QuiltPathFactory.parse(uri)
         QuiltPathify pathify = new QuiltPathify(path)
         return pathify
@@ -99,6 +98,17 @@ class QuiltPathifyTest extends QuiltSpecification {
         pathify.path.toString() == 'buck#package=prefix%2fsuffix&path=.%2fFILE.md'
         pathify.pkg.toUriString() == 'quilt+s3://buck#package=prefix%2fsuffix&path=.%2fFILE.md'
         pathify.pkgKey() == 'buck#package=prefix%2fsuffix'
+    }
+
+    void 'test findQuiltPath preserves metadata'() {
+        when:
+        String pathWithout = 'bucket#package=prefix%2fsuffix&path=FILE.md'
+        String pathWith = pathWithout.replace('#', '?key=value#')
+        String uriWith = "quilt+s3://${pathWith}"
+        QuiltPathify pathify = getPathify(uriWith)
+
+        then:
+        pathify.uri == uriWith
     }
 
     // Test findQuiltPath.getRoot() retrieves metadata from prior package
