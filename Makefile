@@ -19,8 +19,8 @@ verify: #compile
 	./gradlew check || open $(REPORT)
 
 fast:
-	./gradlew ${mm}test --fail-fast || open ./plugins/nf-quilt/build/reports/tests/test/index.html
-
+	./gradlew test ${ONE} --fail-fast || open ./plugins/nf-quilt/build/reports/tests/test/index.html
+# example: make fast ONE="--tests QuiltProductTest"
 check-env:
 	echo $(VERSION)
 	echo $(WRITE_BUCKET)
