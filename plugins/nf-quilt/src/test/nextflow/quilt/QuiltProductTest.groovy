@@ -74,6 +74,9 @@ class QuiltProductTest extends QuiltSpecification {
         product.pkg
         product.session != null
         product.session.getWorkflowMetadata() != null
+        product.meta != null
+        product.meta.size() == 4
+        product.meta.key == 'val'
     }
 
     void 'should generate solid string for timestamp from now'() {

@@ -87,7 +87,7 @@ class QuiltPathify  {
         String folder = parts.join('/')
         String sub_path = folder.length() > 0 ? folder + '/' + file : file
 
-        println("uriFromS3File: $bucket/$prefix/$suffix/$sub_path")
+        log.debug("uriFromS3File: $bucket/$prefix/$suffix/$sub_path")
         String base = "quilt+s3://${bucket}#package=${prefix}%2f${suffix}"
         String uri = base + '&path=' + sub_path
         return uri
@@ -119,7 +119,6 @@ class QuiltPathify  {
         println("findQuiltPath.path: $path")
         pkg = path.pkg()
         println("findQuiltPath.pkg: $pkg")
-        println("findQuiltPath.uri2: $uri")
         return true
     }
 
@@ -146,15 +145,8 @@ class QuiltPathify  {
         return pkg.toKey()
     }
 
-    boolean hasRoot() {
-        return (QuiltPackage.hasKey(pkgKey()))
-    }
-
-    QuiltPackage getRoot() {
-        if (hasRoot()) {
-            return QuiltPackage.forKey(pkgKey())
-        }
-        return null
+    String toString() {
+        return "QuiltPathify[${uri}]"
     }
 
 }

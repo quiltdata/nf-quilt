@@ -108,7 +108,7 @@ class QuiltPackage {
             return PKGS.values().last()
         }
 
-        String pkgKey = parsed.toPackageString()
+        String pkgKey = parsed.toPackageString(true) // ignore metadata for Key
         log.debug("QuiltPackage.forParsed[${pkgKey}]")
         def pkg = PKGS.get(pkgKey)
         if (pkg) { return pkg }
@@ -330,11 +330,13 @@ class QuiltPackage {
     }
 
     String toUriString() {
+        println(' QuiltPackage.toUriString')
         return parsed.toUriString()
     }
 
     String toKey() {
-        return parsed.toPackageString()
+        println(' QuiltPackage.toKey:true')
+        return parsed.toPackageString(true)
     }
 
     String meta_overrides(String key, Serializable baseline = null) {

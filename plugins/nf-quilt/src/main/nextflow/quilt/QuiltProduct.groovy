@@ -132,7 +132,7 @@ ${nextflow}
         this.path = pathify.path
         this.pkg = pathify.pkg
         this.msg =  pkg.toString()
-        this.meta = [pkg: msg, time_start: now()]
+        this.meta = pkg.meta + [pkg: msg, time_start: now()]
         this.session = session
 
         if (session.isSuccess() || pkg.is_force()) {
@@ -163,6 +163,7 @@ ${nextflow}
     }
 
     boolean shouldSkip(key) {
+        println("shouldSkip[$key]: ${pkg.meta}")
         return pkg.meta.containsKey(key) && pkg.meta[key] == KEY_SKIP
     }
 
@@ -188,6 +189,7 @@ ${nextflow}
     }
 
     Map getMetadata(Map cf) {
+        // add metadata from quilt and URI
         if (cf != null) {
             cf.remove('executor')
             cf.remove('params')

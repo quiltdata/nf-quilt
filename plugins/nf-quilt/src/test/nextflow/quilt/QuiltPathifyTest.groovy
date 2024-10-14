@@ -88,30 +88,43 @@ class QuiltPathifyTest extends QuiltSpecification {
     void 'test findQuiltPath overrides attributes'() {
         when:
         QuiltPathify pathify = getPathify()
-        println("pathify1: ${pathify.uri}")
         pathify.findQuiltPath('buck#package=prefix%2fsuffix&path=.%2fFILE.md')
-        println("pathify2: ${pathify.uri}")
 
         then:
         pathify.isOverlay == false
         pathify.uri == 'quilt+s3://buck#package=prefix%2fsuffix&path=.%2fFILE.md'
         pathify.path.toString() == 'buck#package=prefix%2fsuffix&path=.%2fFILE.md'
         pathify.pkg.toUriString() == 'quilt+s3://buck#package=prefix%2fsuffix&path=.%2fFILE.md'
-        pathify.pkgKey() == 'buck#package=prefix%2fsuffix'
     }
 
     void 'test findQuiltPath preserves metadata'() {
         when:
-        String pathWithout = 'bucket#package=prefix%2fsuffix&path=FILE.md'
-        String pathWith = pathWithout.replace('#', '?key=value#')
-        String uriWith = "quilt+s3://${pathWith}"
+        println('\nMETADATA: findQuiltPath preserves metadata\n')
+        String meta = '?key=value'
+        String uriWithout = 'quilt+s3://bucket#package=prefix%2fsuffix&path=FILE.md'
+        String uriWith = uriWithout.replace('#', meta + '#')
+        println("pathify1.uriWith: $uriWith")
         QuiltPathify pathify = getPathify(uriWith)
+        println("pathify1.uri: ${pathify.uri}")
+        println("pathify1.uriString: ${pathify.pkg.toUriString()}")
 
         then:
+        uriWith.contains(meta)
         pathify.uri == uriWith
+        pathify.pkg.toUriString() == uriWith
+
+        when:
+        println('pathify2.uriWithout: $uriWithout')
+        QuiltPathify pathify2 = getPathify(uriWithout)
+        println("pathify2.uri: ${pathify2.uri}")
+        println("pathify2.uriString: ${pathify2.pkg.toUriString()}")
+
+        then:
+        pathify2.pkgKey() == pathify.pkgKey()
+        pathify2.uri == uriWithout
+        pathify2.pkg.toUriString() == uriWith
     }
 
-    // Test findQuiltPath.getRoot() retrieves metadata from prior package
     // Test makeQuiltPath creates new uri/path/pkg
     // Test makeQuiltPath sets isOverlay
     // Test copyToPackage copies overly file to package folder
