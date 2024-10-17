@@ -111,7 +111,7 @@ class QuiltFileSystemProviderTest extends QuiltSpecification {
     void 'should upload file to test bucket'() {
         given:
         QuiltFileSystemProvider provider = new QuiltFileSystemProvider()
-        String url = writeableURL('upload')
+        String url = writeableURI('upload')
         String filename = 'UPLOAD_THIS.md'
         QuiltPath remotePath = QuiltPathFactory.parse(url)
         QuiltPath remoteFile = remotePath.resolveSibling(filename)

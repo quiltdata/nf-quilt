@@ -257,6 +257,7 @@ class QuiltParser {
     }
 
     Map<String,Object> getMetadata() {
+        println("  QuiltParser.getMetadata: ${metadata}")
         return metadata
     }
 
@@ -292,7 +293,7 @@ class QuiltParser {
             if (tag) { pkg += ":$tag" }
             str += "#package=${pkg.replace('/', '%2f')}"
         }
-        println("    toPackageString[forKey:$forKey, metdata:$metadata]: ${str}")
+        println("    toPackageString[forKey:$forKey, metadata:$metadata]: ${str}")
         return str
     }
 
@@ -311,6 +312,7 @@ class QuiltParser {
         if (catalogName) {
             str += "&catalog=${catalogName}"
         }
+        println("    toString: ${str}")
         return str
     }
 

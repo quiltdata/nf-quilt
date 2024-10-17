@@ -131,6 +131,7 @@ ${nextflow}
     QuiltProduct(QuiltPathify pathify, Session session) {
         this.path = pathify.path
         this.pkg = pathify.pkg
+        println("QuiltProduct: ${pkg} -> ${pkg.toUriString()}")
         this.msg =  pkg.toString()
         this.meta = pkg.meta + [pkg: msg, time_start: now()]
         this.session = session
@@ -144,7 +145,7 @@ ${nextflow}
 
     void publish() {
         log.debug("publish($msg)")
-        meta = setupMeta()
+        addSessionMeta()
         setupReadme()
         setupSummarize()
         try {
@@ -163,22 +164,26 @@ ${nextflow}
     }
 
     boolean shouldSkip(key) {
-        println("shouldSkip[$key]: ${pkg.meta}")
+        println("shouldSkip[$key]: meta:${pkg.meta} uri:${pkg.toUriString()}")
         return pkg.meta.containsKey(key) && pkg.meta[key] == KEY_SKIP
     }
 
-    Map setupMeta() {
-        try {
-            meta = getMetadata(session.config)
-            meta['quilt'] = [package_id: pkg.toString(), uri: path.toUriString()]
-            msg = "${meta['config']['runName']}: ${meta['cmd']}"
-            meta.remove('config')
+    boolean addSessionMeta() {
+        if (shouldSkip(KEY_META)) {
+            return false
         }
-        catch (Exception e) {
-            log.error("setupMeta failed: ${e.getMessage()}", pkg.meta)
+        try {
+            Map smeta = getMetadata(session.config)
+            smeta['quilt'] = [package_id: pkg.toString(), uri: path.toUriString()]
+            msg = "${smeta['config']['runName']}: ${smeta['cmd']}"
+            smeta.remove('config')
+            meta += smeta
+        } catch (Exception e) {
+            log.error("addSessionMeta.getMetadata failed: ${e.getMessage()}", pkg.meta)
+            return false
         }
         writeNextflowMetadata(meta, 'metadata')
-        return shouldSkip(KEY_META) ? [:] : meta
+        return true
     }
 
     String writeNextflowMetadata(Map map, String suffix) {

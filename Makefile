@@ -16,10 +16,10 @@ REPORT ?= ./plugins/$(PROJECT)/build/reports/tests/test/index.html
 
 verify: #compile
 	echo $(WRITE_BUCKET)
-	./gradlew check || open $(REPORT)
+	./gradlew test ${ONE} || open $(REPORT)
 
 fast:
-	./gradlew test ${ONE} --fail-fast || open ./plugins/nf-quilt/build/reports/tests/test/index.html
+	./gradlew test ${ONE} --fail-fast || open $(REPORT)
 # example: make fast ONE="--tests QuiltProductTest"
 check-env:
 	echo $(VERSION)

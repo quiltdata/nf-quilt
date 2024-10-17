@@ -39,30 +39,38 @@ import spock.lang.Unroll
 @CompileDynamic
 class QuiltProductTest extends QuiltSpecification {
 
-    QuiltProduct makeProduct(String query=null, boolean success = false) {
-        String subURL = query ? testURI.replace('key=val&key2=val2', query) : testURI
-        WorkflowMetadata metadata = GroovyMock(WorkflowMetadata) {
+    QuiltProduct makeProductFromUrl(String url, boolean success = false) {
+        println("makeProductFromUrl[success:$success]: ${url}")
+        WorkflowMetadata wf_meta = GroovyMock(WorkflowMetadata) {
             toMap() >> [start:'2022-01-01', complete:'2022-01-02']
         }
+        QuiltPath path = QuiltPathFactory.parse(url)
+        println("path: ${path}")
+        QuiltPathify pathify = new QuiltPathify(path)
+        println("pathify: ${pathify}")
         Session session = GroovyMock(Session) {
-            getWorkflowMetadata() >> metadata
-            getParams() >> [outdir: subURL]
+            getWorkflowMetadata() >> wf_meta
+            getParams() >> [outdir: url]
             isSuccess() >> success
         }
-        QuiltPath path = QuiltPathFactory.parse(subURL)
-        QuiltPathify pathify = new QuiltPathify(path)
         return new QuiltProduct(pathify, session)
     }
 
+    QuiltProduct makeProduct(String query=null, boolean success = false) {
+        if (query == null) {
+            return makeProductFromUrl(testURI, success)
+        }
+        String subURL = uniqueQueryURI(query)
+        return makeProductFromUrl(subURL, success)
+    }
+
     QuiltProduct makeWriteProduct(Map meta = [:]) {
-        String subURL = writeableURL('quilt_product_test') + '&workflow=my-workflow'
+        String subURL = writeableURI('quilt_product_test') + '&workflow=my-workflow'
         if (meta) {
             String query = QuiltParser.unparseQuery(meta)
             subURL = subURL.replace('#', "?${query}#")
         }
-        Session session = GroovyMock(Session)
-        QuiltPath path = QuiltPathFactory.parse(subURL)
-        return new QuiltProduct(path, session)
+        return makeProductFromUrl(subURL)
     }
 
     void 'should generate mocks from makeProduct'() {
@@ -102,7 +110,7 @@ class QuiltProductTest extends QuiltSpecification {
 
     void 'shouldSkip is true if key=SKIP'() {
         given:
-        QuiltProduct product = makeProduct('readme=SKIP&metadata=SKIP')
+        QuiltProduct product = makeProduct('readme=SKIP')
         expect:
         !product.shouldSkip(QuiltProduct.KEY_SKIP)
         product.shouldSkip(QuiltProduct.KEY_README)
@@ -226,7 +234,7 @@ class QuiltProductTest extends QuiltSpecification {
     @Ignore('Invalid test: top-level summarize')
     void 'should summarize top-level readable files + multiqc '() {
         given:
-        String sumURL = writeableURL('summarized')
+        String sumURL = writeableURI('summarized')
         QuiltPackage sumPkg = writeablePackage('summarized')
         writeFiles(sumPkg.packageDest())
 
@@ -254,15 +262,28 @@ class QuiltProductTest extends QuiltSpecification {
 
         expect:
         quilt_meta != null
+        quilt_meta.config == meta
     }
 
-    void 'should setupMeta from session'() {
-        given:
-        QuiltProduct product = makeProduct()
-        Map quilt_meta = product.setupMeta()
+    void 'should addSessionMeta from session'() {
+        when:
+        QuiltProduct product = makeProduct('a=b&c=d')
+        Map start_meta = product.meta
+        println("start_meta: ${start_meta}")
 
-        expect:
-        quilt_meta != null
+        then:
+        start_meta != null
+        start_meta.size() == 4
+        start_meta.a == 'b'
+
+        when:
+        product.addSessionMeta()
+        Map end_meta = product.meta
+
+        then:
+        end_meta != null
+        end_meta.size() == 7
+        end_meta.a == 'b'
     }
 
     void 'should throw error on publish'() {

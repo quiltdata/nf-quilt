@@ -92,13 +92,18 @@ class QuiltSpecification extends Specification {
         Plugins.startIfMissing('nf-quilt')
     }
 
-    String writeableURL(String suffix='QuiltSpecification') {
+    String writeableURI(String suffix='QuiltSpecification') {
         return "quilt+s3://${writeBucket}#package=test/${suffix}&force=true"
+    }
+
+    String uniqueQueryURI(String query = 'key=val') {
+        String now = QuiltProduct.now()
+        return "quilt+s3://${now}?${query}#package=test/unique"
     }
 
     QuiltPackage writeablePackage(String suffix, String workflow=null) {
         QuiltPathFactory factory = new QuiltPathFactory()
-        String url = writeableURL(suffix)
+        String url = writeableURI(suffix)
         if (workflow) {
             url += "&workflow=${workflow}"
         }
