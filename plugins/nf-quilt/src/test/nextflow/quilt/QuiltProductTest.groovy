@@ -14,13 +14,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package nextflow.quilt.nio
+package nextflow.quilt
 
 import nextflow.Session
 import nextflow.script.WorkflowMetadata
 
-import nextflow.quilt.QuiltSpecification
-import nextflow.quilt.QuiltProduct
+import nextflow.quilt.nio.QuiltPath
+import nextflow.quilt.nio.QuiltPathFactory
 import nextflow.quilt.jep.QuiltParser
 import nextflow.quilt.jep.QuiltPackage
 
@@ -50,7 +50,8 @@ class QuiltProductTest extends QuiltSpecification {
             isSuccess() >> success
         }
         QuiltPath path = QuiltPathFactory.parse(subURL)
-        return new QuiltProduct(path, session)
+        QuiltPathify pathify = new QuiltPathify(path)
+        return new QuiltProduct(pathify, session)
     }
 
     QuiltProduct makeWriteProduct(Map meta = [:]) {
@@ -73,6 +74,9 @@ class QuiltProductTest extends QuiltSpecification {
         product.pkg
         product.session != null
         product.session.getWorkflowMetadata() != null
+        product.meta != null
+        product.meta.size() == 4
+        product.meta.key == 'val'
     }
 
     void 'should generate solid string for timestamp from now'() {

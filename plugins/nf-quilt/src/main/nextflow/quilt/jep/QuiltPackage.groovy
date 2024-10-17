@@ -97,13 +97,18 @@ class QuiltPackage {
         PKGS.clear()
     }
 
+    static QuiltPackage forUriString(String uri) {
+        QuiltParser parsed = QuiltParser.forUriString(uri)
+        return forParsed(parsed)
+    }
+
     static QuiltPackage forParsed(QuiltParser parsed) {
         boolean isNull = parsed.hasNullBucket()
         if (isNull && !PKGS.isEmpty()) {
             return PKGS.values().last()
         }
 
-        String pkgKey = parsed.toPackageString()
+        String pkgKey = parsed.toPackageString(true) // ignore metadata for Key
         log.debug("QuiltPackage.forParsed[${pkgKey}]")
         def pkg = PKGS.get(pkgKey)
         if (pkg) { return pkg }
@@ -111,6 +116,17 @@ class QuiltPackage {
         pkg = new QuiltPackage(parsed)
         PKGS[pkgKey] = pkg
         return pkg
+    }
+
+    static boolean hasKey(String pkgKey) {
+        return PKGS.containsKey(pkgKey)
+    }
+
+    static QuiltPackage forKey(String pkgKey) {
+        if (hasKey(pkgKey)) {
+            return PKGS.get(pkgKey)
+        }
+        return null
     }
 
     static List<Path> listDirectory(Path rootPath) {
@@ -311,6 +327,16 @@ class QuiltPackage {
     @Override
     String toString() {
         return "QuiltPackage.${bucket}_${packageName}".replaceAll(/[-\/]/, '_')
+    }
+
+    String toUriString() {
+        println(' QuiltPackage.toUriString')
+        return parsed.toUriString()
+    }
+
+    String toKey() {
+        println(' QuiltPackage.toKey:true')
+        return parsed.toPackageString(true)
     }
 
     String meta_overrides(String key, Serializable baseline = null) {

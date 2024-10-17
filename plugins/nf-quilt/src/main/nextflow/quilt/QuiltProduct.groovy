@@ -123,39 +123,22 @@ ${nextflow}
     }
 
     private final QuiltPath path
-    private final List<Path> overlays
     private final QuiltPackage pkg
     private final Session session
     private String msg
     private Map meta
 
-    QuiltProduct(QuiltPath path, Session session, Map<String, Path> overlays = [:]) {
-        this.path = path
-        this.pkg = path.pkg()
+    QuiltProduct(QuiltPathify pathify, Session session) {
+        this.path = pathify.path
+        this.pkg = pathify.pkg
         this.msg =  pkg.toString()
-        this.meta = [pkg: msg, time_start: now()]
+        this.meta = pkg.meta + [pkg: msg, time_start: now()]
         this.session = session
 
         if (session.isSuccess() || pkg.is_force()) {
-            if (overlays) {
-                log.debug("publishing overlays: ${overlays.size()}")
-                publishOverlays(overlays)
-            } else {
-                log.info('No overlays to publish.')
-            }
             publish()
         } else {
             log.info("not publishing: ${pkg} [unsuccessful session]")
-        }
-    }
-
-    void publishOverlays(Map<String, Path> overlays) {
-        /// Copying published files to inside package directory
-        /// for (re)upload to the package
-        /// FIXME: Replace this with in-place packaging
-        overlays.each { relpath, source ->
-            log.info("publishing overlay[$relpath]: ${source}")
-            copyFile(source, pkg.packageDest().toString(), relpath)
         }
     }
 
@@ -180,6 +163,7 @@ ${nextflow}
     }
 
     boolean shouldSkip(key) {
+        println("shouldSkip[$key]: ${pkg.meta}")
         return pkg.meta.containsKey(key) && pkg.meta[key] == KEY_SKIP
     }
 
@@ -205,6 +189,7 @@ ${nextflow}
     }
 
     Map getMetadata(Map cf) {
+        // add metadata from quilt and URI
         if (cf != null) {
             cf.remove('executor')
             cf.remove('params')

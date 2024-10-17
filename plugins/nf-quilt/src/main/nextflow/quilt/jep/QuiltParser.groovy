@@ -281,9 +281,9 @@ class QuiltParser {
         return options?.get(key)
     }
 
-    String toPackageString() {
+    String toPackageString(boolean forKey = false) {
         String str = "${getBucket()}"
-        if (metadata) {
+        if (metadata && !forKey) {
             str += "?${unparseQuery(metadata)}"
         }
         if (packageName) {
@@ -292,11 +292,12 @@ class QuiltParser {
             if (tag) { pkg += ":$tag" }
             str += "#package=${pkg.replace('/', '%2f')}"
         }
-        // log.debug("toPackageString: ${str}")
+        println("    toPackageString[forKey:$forKey, metdata:$metadata]: ${str}")
         return str
     }
 
     String toString() {
+        println('  QuiltParser.toString')
         String str = toPackageString()
         if (!hasPath()) { return str }
         str += (packageName) ? '&' : '#'
@@ -314,6 +315,7 @@ class QuiltParser {
     }
 
     String toUriString() {
+        println('  QuiltParser.toUriString')
         return PREFIX + toString()
     }
 

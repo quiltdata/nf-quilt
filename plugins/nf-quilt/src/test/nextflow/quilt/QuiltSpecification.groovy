@@ -48,7 +48,7 @@ import spock.lang.Specification
 class QuiltSpecification extends Specification {
 
     static String SpecURI() {
-        return 'quilt+s3://udp-spec#package=nf-quilt/source'
+        return 'quilt+s3://udp-spec#package=nf-quilt%2fsource'
     }
 
     @Shared String testURI
