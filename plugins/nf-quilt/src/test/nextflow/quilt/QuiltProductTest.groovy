@@ -92,7 +92,7 @@ class QuiltProductTest extends QuiltSpecification {
         def now = QuiltProduct.now()
         then:
         now
-        now.contains('T')
+        now.contains('t')
         !now.contains(' ')
     }
 

@@ -119,7 +119,7 @@ ${nextflow}
 
     static String now() {
         LocalDateTime time = LocalDateTime.now()
-        return time.toString()
+        return time.toString().replace(':', '-').replace('T', 't')
     }
 
     private final QuiltPath path

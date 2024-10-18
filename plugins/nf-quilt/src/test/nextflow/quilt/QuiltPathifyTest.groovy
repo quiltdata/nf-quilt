@@ -120,7 +120,7 @@ class QuiltPathifyTest extends QuiltSpecification {
         println("pathify2.uriString: ${pathify2.pkg.toUriString()}")
 
         then:
-        pathify2.pkgKey() == pathify.pkgKey()
+        pathify2.pkgKey() == pathify1.pkgKey()
         pathify2.uri == uriWithout
         pathify2.pkg.toUriString() == uriWith
     }

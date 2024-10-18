@@ -97,8 +97,7 @@ class QuiltSpecification extends Specification {
     }
 
     String uniqueQueryURI(String query = 'key=val') {
-        String now = QuiltProduct.now()
-        return "quilt+s3://${now}?${query}#package=test/unique"
+        return "quilt+s3://${QuiltProduct.now()}?${query}#package=test%2funique"
     }
 
     QuiltPackage writeablePackage(String suffix, String workflow=null) {

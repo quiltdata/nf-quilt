@@ -257,7 +257,6 @@ class QuiltParser {
     }
 
     Map<String,Object> getMetadata() {
-        println("  QuiltParser.getMetadata: ${metadata}")
         return metadata
     }
 
@@ -298,7 +297,6 @@ class QuiltParser {
     }
 
     String toString() {
-        println('  QuiltParser.toString')
         String str = toPackageString()
         if (!hasPath()) { return str }
         str += (packageName) ? '&' : '#'
@@ -312,12 +310,10 @@ class QuiltParser {
         if (catalogName) {
             str += "&catalog=${catalogName}"
         }
-        println("    toString: ${str}")
         return str
     }
 
     String toUriString() {
-        println('  QuiltParser.toUriString')
         return PREFIX + toString()
     }
 
