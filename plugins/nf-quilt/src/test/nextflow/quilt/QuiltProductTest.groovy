@@ -169,6 +169,7 @@ class QuiltProductTest extends QuiltSpecification {
         quilt_summarize.size() == 1
     }
 
+    @IgnoreIf({ env.WRITE_BUCKET ==  null })
     void 'should copyFile'() {
         given:
         QuiltProduct product = makeWriteProduct()
