@@ -49,9 +49,8 @@ class QuiltProductTest extends QuiltSpecification {
             getWorkflowMetadata() >> wf_meta
             getParams() >> [outdir: url]
             isSuccess() >> success
-            config >> [quilt: [metadata: [cfkey: 'cfval']], runName: 'my-run']
-            publishing >> [processes: 'any']
-            stats >> 'any'
+            config >> [quilt: [metadata: [cfkey: 'cfval']], runName: 'my-run', publishing: false]
+            workflow >> [stats: [processes: 1, threads: 1]]
         }
         return new QuiltProduct(pathify, session)
     }
@@ -131,12 +130,21 @@ class QuiltProductTest extends QuiltSpecification {
     }
 
     void 'always creates README if readme!=SKIP'() {
-        given:
+        when:
+        QuiltProduct defaultREADME = makeProduct()
+        String text = defaultREADME.setupReadme()
+        def files = defaultREADME.pkg.folder.list().sort()
+
+        then:
+        !defaultREADME.shouldSkip(QuiltProduct.KEY_README)
+        files.size() == 1
+
+        when:
         String readme_text = 'hasREADME'
         QuiltProduct hasREADME = makeProduct("readme=${readme_text}")
-        String text = hasREADME.setupReadme()
-        def files = hasREADME.pkg.folder.list().sort()
-        expect:
+        text = hasREADME.setupReadme()
+        files = hasREADME.pkg.folder.list().sort()
+        then:
         text == readme_text
         !hasREADME.shouldSkip(QuiltProduct.KEY_README)
         files.size() == 1
