@@ -206,7 +206,7 @@ ${nextflow}
             writeNextflowMetadata(params, 'params')
             params.remove('genomes')
             params.remove('test_data')
-            // printMap(params, 'params')
+        // printMap(params, 'params')
         }
         Map wf = session.getWorkflowMetadata().toMap()
         String start = wf['start']
@@ -290,13 +290,13 @@ ${nextflow}
                     matches.add(rel)
                 }
                 return FileVisitResult.CONTINUE
-            }
+                    }
 
             @Override
             FileVisitResult visitFileFailed(Path file, IOException exc)
                     throws IOException {
                 return FileVisitResult.CONTINUE
-            }
+                    }
 
         })
         return matches

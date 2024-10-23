@@ -40,7 +40,7 @@ class QuiltFileAttributes implements BasicFileAttributes {
         this.key = path.isJustPackage() ? '/' : path.file_key()
         this.origKey = key
         this.attrs = attrs
-        //log.debug("QuiltFileAttributes($path): this=$this")
+    //log.debug("QuiltFileAttributes($path): this=$this")
     }
 
     @Override

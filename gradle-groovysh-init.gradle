@@ -1,12 +1,12 @@
 gradle.projectsLoaded {
     rootProject {
         afterEvaluate { project ->
-            if (!project.repositories.any{it.name == 'MavenRepo'}) {
+            if (!project.repositories.any { it.name == 'MavenRepo' }) {
                 project.repositories {
                     // To be able to load org.codehaus.groovy:groovy-groovysh
                     mavenCentral()
                 }
-            }
+        }
 
             project.configurations {
                 groovyshdependencies
@@ -22,12 +22,12 @@ gradle.projectsLoaded {
                 group 'debug'
                 description 'Runs an interactive shell in the context of the project.'
                 doLast {
-                    URLClassLoader groovyObjectClassLoader = GroovyObject.class.classLoader
+                    URLClassLoader groovyObjectClassLoader = GroovyObject.classLoader
                     def groovyshClass
                     def groovyShell
 
                     // Add dependency jars to classloader
-                    configurations.groovyshdependencies.each {File file ->
+                    configurations.groovyshdependencies.each { File file ->
                         groovyObjectClassLoader.addURL(file.toURL())
                     }
                     Class.forName('jline.console.history.FileHistory', true, groovyObjectClassLoader)
@@ -37,13 +37,13 @@ gradle.projectsLoaded {
                         groovyShell = groovyshClass.newInstance()
                     }
                     if (groovyShell) {
-                        groovyShell.interp.context.variables.put("gradle", gradle)
-                        groovyShell.interp.context.variables.put("settings", gradle.settings)
-                        groovyShell.interp.context.variables.put("project", project)
+                        groovyShell.interp.context.variables.put('gradle', gradle)
+                        groovyShell.interp.context.variables.put('settings', gradle.settings)
+                        groovyShell.interp.context.variables.put('project', project)
                         groovyShell.run('')
                     }
                 }
             }
-        }
     }
+}
 }

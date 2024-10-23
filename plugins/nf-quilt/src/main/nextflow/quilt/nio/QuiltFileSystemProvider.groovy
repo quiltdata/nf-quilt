@@ -488,7 +488,7 @@ class QuiltFileSystemProvider extends FileSystemProvider implements FileSystemTr
             log.warn("readAttributes: Ignore ${qPath} for null bucket")
         }
         throw new UnsupportedOperationException("Not a valid Quilt Storage file attribute type: $type")
-    }
+         }
 
     @Override
     Map<String, Object> readAttributes(Path path, String attributes, LinkOption... options) throws IOException {
