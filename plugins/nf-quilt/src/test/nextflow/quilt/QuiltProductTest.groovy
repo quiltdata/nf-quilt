@@ -135,7 +135,6 @@ class QuiltProductTest extends QuiltSpecification {
         def files = defaultREADME.pkg.folder.list().sort()
 
         then:
-        false
         !defaultREADME.shouldSkip(QuiltProduct.KEY_README)
         files.size() == 1
 
