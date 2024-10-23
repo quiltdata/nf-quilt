@@ -63,7 +63,7 @@ class QuiltProductTest extends QuiltSpecification {
     }
 
     QuiltProduct makeWriteProduct(Map meta = [:]) {
-        String subURL = writeableURI('quilt_product_test') + '&workflow=my-workflow'
+        String subURL = writeableURI('quilt_product_test') // + '&workflow=universal'
         if (meta) {
             String query = QuiltParser.unparseQuery(meta)
             subURL = subURL.replace('#', "?${query}#")
@@ -167,6 +167,22 @@ class QuiltProductTest extends QuiltSpecification {
         expect:
         quilt_summarize
         quilt_summarize.size() == 1
+    }
+
+    void 'should copyFile'() {
+        given:
+        QuiltProduct product = makeWriteProduct()
+        String filename = 'test.md'
+        String text = 'test'
+        Path src = Paths.get(product.pkg.folder.toString(), filename)
+        Path dest = Paths.get(product.pkg.folder.toString(), 'copy', filename)
+        Files.writeString(src, text)
+
+        when:
+        product.copyFile(src, dest.toString(), text)
+
+        then:
+        Files.exists(dest)
     }
 
     @Ignore('Not implemented yet: pushes previous metadata')

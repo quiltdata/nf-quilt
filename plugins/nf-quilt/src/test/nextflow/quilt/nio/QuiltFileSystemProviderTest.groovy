@@ -124,7 +124,8 @@ class QuiltFileSystemProviderTest extends QuiltSpecification {
         !Files.exists(remoteFile.localPath())
 
         when:
-        provider.upload(tempFile, remoteFile)
+        CopyOption opt = StandardCopyOption.REPLACE_EXISTING
+        provider.upload(tempFile, remoteFile, opt)
 
         then:
         Files.exists(remoteFile)
