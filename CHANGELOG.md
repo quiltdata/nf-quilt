@@ -5,7 +5,6 @@
 - Use package cache instead of `params` to find output URIs
   (in order to support dynamic URIs set by, e.g. `main.nf`)
 - Allow setting metadata from inside the workflow
-- Dropped support for JDK 11 on Windows, deprecated on other platforms
 
 ## [0.8.6] 2024-09-11
 
