@@ -292,7 +292,6 @@ class QuiltParser {
             if (tag) { pkg += ":$tag" }
             str += "#package=${pkg.replace('/', '%2f')}"
         }
-        println("    toPackageString[forKey:$forKey, metadata:$metadata]: ${str}")
         return str
     }
 

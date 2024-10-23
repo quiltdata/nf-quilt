@@ -131,7 +131,6 @@ ${nextflow}
     QuiltProduct(QuiltPathify pathify, Session session) {
         this.path = pathify.path
         this.pkg = pathify.pkg
-        println("QuiltProduct: ${pkg} -> ${pkg.toUriString()}")
         this.msg =  pkg.toString()
         this.meta = pkg.meta + [pkg: msg, time_start: now()]
         this.session = session
@@ -164,7 +163,6 @@ ${nextflow}
     }
 
     boolean shouldSkip(key) {
-        println("shouldSkip[$key]: meta:${pkg.meta} uri:${pkg.toUriString()}")
         return pkg.meta.containsKey(key) && pkg.meta[key] == KEY_SKIP
     }
 

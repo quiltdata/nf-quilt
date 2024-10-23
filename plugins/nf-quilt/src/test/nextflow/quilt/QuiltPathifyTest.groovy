@@ -103,10 +103,7 @@ class QuiltPathifyTest extends QuiltSpecification {
         String meta = "meta=${now}"
         String uriWith = uniqueQueryURI(meta)
         String uriWithout = uriWith.replace("?$meta", '')
-        println("pathify1.uriWith: $uriWith")
         QuiltPathify pathify1 = getPathify(uriWith)
-        println("pathify1.uri: ${pathify1.uri}")
-        println("pathify1.uriString: ${pathify1.pkg.toUriString()}")
 
         then:
         uriWith.contains(meta)
@@ -114,10 +111,7 @@ class QuiltPathifyTest extends QuiltSpecification {
         pathify1.pkg.toUriString() == uriWith
 
         when:
-        println('pathify2.uriWithout: $uriWithout')
         QuiltPathify pathify2 = getPathify(uriWithout)
-        println("pathify2.uri: ${pathify2.uri}")
-        println("pathify2.uriString: ${pathify2.pkg.toUriString()}")
 
         then:
         pathify2.pkgKey() == pathify1.pkgKey()

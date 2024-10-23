@@ -106,19 +106,14 @@ class QuiltPathify  {
     }
 
     boolean findQuiltPath(String filename) {
-        println("findQuiltPath.filename: $filename")
         // check for '#package' in filename
         if (!filename.toString().contains('#package')) {
-            println("findQuiltPath: no package in $filename")
             return false
         }
 
         uri = "${QuiltParser.SCHEME}://${filename}"
-        println("findQuiltPath.uri: $uri")
         path = QuiltPathFactory.parse(this.uri)
-        println("findQuiltPath.path: $path")
         pkg = path.pkg()
-        println("findQuiltPath.pkg: $pkg")
         return true
     }
 

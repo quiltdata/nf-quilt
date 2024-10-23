@@ -127,7 +127,6 @@ class QuiltParserTest extends QuiltSpecification {
         when:
         String query = 'key=val1,val2&quay=vale1&quay=vale2'
         Map<String,Object> result = QuiltParser.parseQuery(query)
-        println "QuiltParserTest[$query] -> ${result}"
         String unparsed = QuiltParser.unparseQuery(result)
 
         then:

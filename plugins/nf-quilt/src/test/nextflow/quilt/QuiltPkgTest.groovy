@@ -43,9 +43,7 @@ class QuiltPkgTest extends QuiltSpecification {
         String baseURI = SpecURI().replace('source', suffix)
         QuiltPathFactory factory = new QuiltPathFactory()
         QuiltPath qpath = factory.parseUri(baseURI)
-        println("Parsed: $qpath")
         QuiltPackage pkg = qpath.pkg()
-        println("Package: $pkg")
         return pkg
     }
 

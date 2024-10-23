@@ -330,12 +330,10 @@ class QuiltPackage {
     }
 
     String toUriString() {
-        println(' QuiltPackage.toUriString')
         return parsed.toUriString()
     }
 
     String toKey() {
-        println(' QuiltPackage.toKey:true')
         return parsed.toPackageString(true)
     }
 

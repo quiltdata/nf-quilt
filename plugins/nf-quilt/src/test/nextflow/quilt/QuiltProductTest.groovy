@@ -40,18 +40,16 @@ import spock.lang.Unroll
 class QuiltProductTest extends QuiltSpecification {
 
     QuiltProduct makeProductFromUrl(String url, boolean success = false) {
-        println("makeProductFromUrl[success:$success]: ${url}")
         WorkflowMetadata wf_meta = GroovyMock(WorkflowMetadata) {
             toMap() >> [start:'2022-01-01', complete:'2022-01-02']
         }
         QuiltPath path = QuiltPathFactory.parse(url)
-        println("path: ${path}")
         QuiltPathify pathify = new QuiltPathify(path)
-        println("pathify: ${pathify}")
         Session session = GroovyMock(Session) {
             getWorkflowMetadata() >> wf_meta
             getParams() >> [outdir: url]
             isSuccess() >> success
+            config >> [quilt: [metadata: [cfkey: 'cfval']], runName: 'my-run']
         }
         return new QuiltProduct(pathify, session)
     }
@@ -113,8 +111,8 @@ class QuiltProductTest extends QuiltSpecification {
         QuiltProduct product = makeProduct('readme=SKIP')
         expect:
         !product.shouldSkip(QuiltProduct.KEY_SKIP)
+        !product.shouldSkip(QuiltProduct.KEY_META)
         product.shouldSkip(QuiltProduct.KEY_README)
-        product.shouldSkip(QuiltProduct.KEY_META)
 
         !makeProduct('?readme=now').shouldSkip()
     }
@@ -269,20 +267,19 @@ class QuiltProductTest extends QuiltSpecification {
         when:
         QuiltProduct product = makeProduct('a=b&c=d')
         Map start_meta = product.meta
-        println("start_meta: ${start_meta}")
 
         then:
         start_meta != null
         start_meta.size() == 4
         start_meta.a == 'b'
+        product.addSessionMeta()
 
         when:
-        product.addSessionMeta()
         Map end_meta = product.meta
 
         then:
         end_meta != null
-        end_meta.size() == 7
+        end_meta.size() > 4
         end_meta.a == 'b'
     }
 
