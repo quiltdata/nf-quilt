@@ -50,6 +50,8 @@ class QuiltProductTest extends QuiltSpecification {
             getParams() >> [outdir: url]
             isSuccess() >> success
             config >> [quilt: [metadata: [cfkey: 'cfval']], runName: 'my-run']
+            publishing >> [processes: 'any']
+            stats >> 'any'
         }
         return new QuiltProduct(pathify, session)
     }
