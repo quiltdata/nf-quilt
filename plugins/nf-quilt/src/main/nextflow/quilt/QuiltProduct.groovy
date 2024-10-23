@@ -78,7 +78,7 @@ ${nextflow}
 
 ### Processes
 
-`${meta['workflow']['stats']['processes']}`
+`${meta['workflow']?.get('stats')?.get('processes')}`
 '''
     private final static String DEFAULT_SUMMARIZE = '*.md,*.html,*.?sv,*.pdf,igv.json,**/multiqc_report.html'
 
@@ -239,7 +239,7 @@ ${nextflow}
             text = makeReadme()
         }
         catch (Exception e) {
-            log.error("setupReadme failed: ${e.getMessage()}", pkg.meta)
+            log.error("setupReadme failed: ${e.getMessage()}\n{$e}", pkg.meta)
         }
         if (text != null && text.length() > 0) {
             //log.debug("setupReadme: ${text.length()} bytes")
@@ -261,15 +261,17 @@ ${nextflow}
             ?.replace('nextflow.NextflowMeta(', '  - **')\
             ?.replace(')', '```')
             ?.replace(':', '**: ```')
-        String template = engine.createTemplate(raw_readme).make([
+        Map params = [
             cmd: cmd,
             meta: meta,
             msg: msg,
             nextflow: nextflow,
             now: now(),
             pkg: pkg.packageName,
-        ])
-        // log.debug("readme.template: ${template}")
+        ]
+        log.debug("makeReadme.params: ${params}")
+        String template = engine.createTemplate(raw_readme).make(params)
+        log.debug("makeReadme.template: ${template}")
         return template
     }
 

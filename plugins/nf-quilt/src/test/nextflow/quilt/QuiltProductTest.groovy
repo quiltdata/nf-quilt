@@ -50,7 +50,6 @@ class QuiltProductTest extends QuiltSpecification {
             getParams() >> [outdir: url]
             isSuccess() >> success
             config >> [quilt: [metadata: [cfkey: 'cfval']], runName: 'my-run', publishing: false]
-            workflow >> [stats: [processes: 1, threads: 1]]
         }
         return new QuiltProduct(pathify, session)
     }
@@ -136,6 +135,7 @@ class QuiltProductTest extends QuiltSpecification {
         def files = defaultREADME.pkg.folder.list().sort()
 
         then:
+        false
         !defaultREADME.shouldSkip(QuiltProduct.KEY_README)
         files.size() == 1
 
