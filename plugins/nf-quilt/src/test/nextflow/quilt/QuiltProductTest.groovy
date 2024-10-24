@@ -14,13 +14,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package nextflow.quilt.nio
+package nextflow.quilt
 
 import nextflow.Session
 import nextflow.script.WorkflowMetadata
 
-import nextflow.quilt.QuiltSpecification
-import nextflow.quilt.QuiltProduct
+import nextflow.quilt.nio.QuiltPath
+import nextflow.quilt.nio.QuiltPathFactory
 import nextflow.quilt.jep.QuiltParser
 import nextflow.quilt.jep.QuiltPackage
 
@@ -39,29 +39,36 @@ import spock.lang.Unroll
 @CompileDynamic
 class QuiltProductTest extends QuiltSpecification {
 
-    QuiltProduct makeProduct(String query=null, boolean success = false) {
-        String subURL = query ? testURI.replace('key=val&key2=val2', query) : testURI
-        WorkflowMetadata metadata = GroovyMock(WorkflowMetadata) {
+    QuiltProduct makeProductFromUrl(String url, boolean success = false) {
+        WorkflowMetadata wf_meta = GroovyMock(WorkflowMetadata) {
             toMap() >> [start:'2022-01-01', complete:'2022-01-02']
         }
+        QuiltPath path = QuiltPathFactory.parse(url)
+        QuiltPathify pathify = new QuiltPathify(path)
         Session session = GroovyMock(Session) {
-            getWorkflowMetadata() >> metadata
-            getParams() >> [outdir: subURL]
+            getWorkflowMetadata() >> wf_meta
+            getParams() >> [outdir: url]
             isSuccess() >> success
+            config >> [quilt: [metadata: [cfkey: 'cfval']], runName: 'my-run', publishing: false]
         }
-        QuiltPath path = QuiltPathFactory.parse(subURL)
-        return new QuiltProduct(path, session)
+        return new QuiltProduct(pathify, session)
+    }
+
+    QuiltProduct makeProduct(String query=null, boolean success = false) {
+        if (query == null) {
+            return makeProductFromUrl(testURI, success)
+        }
+        String subURL = uniqueQueryURI(query)
+        return makeProductFromUrl(subURL, success)
     }
 
     QuiltProduct makeWriteProduct(Map meta = [:]) {
-        String subURL = writeableURL('quilt_product_test') + '&workflow=my-workflow'
+        String subURL = writeableURI('quilt_product_test') // + '&workflow=universal'
         if (meta) {
             String query = QuiltParser.unparseQuery(meta)
             subURL = subURL.replace('#', "?${query}#")
         }
-        Session session = GroovyMock(Session)
-        QuiltPath path = QuiltPathFactory.parse(subURL)
-        return new QuiltProduct(path, session)
+        return makeProductFromUrl(subURL)
     }
 
     void 'should generate mocks from makeProduct'() {
@@ -73,6 +80,9 @@ class QuiltProductTest extends QuiltSpecification {
         product.pkg
         product.session != null
         product.session.getWorkflowMetadata() != null
+        product.meta != null
+        product.meta.size() == 4
+        product.meta.key == 'val'
     }
 
     void 'should generate solid string for timestamp from now'() {
@@ -80,7 +90,7 @@ class QuiltProductTest extends QuiltSpecification {
         def now = QuiltProduct.now()
         then:
         now
-        now.contains('T')
+        now.contains('t')
         !now.contains(' ')
     }
 
@@ -98,11 +108,11 @@ class QuiltProductTest extends QuiltSpecification {
 
     void 'shouldSkip is true if key=SKIP'() {
         given:
-        QuiltProduct product = makeProduct('readme=SKIP&metadata=SKIP')
+        QuiltProduct product = makeProduct('readme=SKIP')
         expect:
         !product.shouldSkip(QuiltProduct.KEY_SKIP)
+        !product.shouldSkip(QuiltProduct.KEY_META)
         product.shouldSkip(QuiltProduct.KEY_README)
-        product.shouldSkip(QuiltProduct.KEY_META)
 
         !makeProduct('?readme=now').shouldSkip()
     }
@@ -119,12 +129,21 @@ class QuiltProductTest extends QuiltSpecification {
     }
 
     void 'always creates README if readme!=SKIP'() {
-        given:
+        when:
+        QuiltProduct defaultREADME = makeProduct()
+        String text = defaultREADME.setupReadme()
+        def files = defaultREADME.pkg.folder.list().sort()
+
+        then:
+        !defaultREADME.shouldSkip(QuiltProduct.KEY_README)
+        files.size() == 1
+
+        when:
         String readme_text = 'hasREADME'
         QuiltProduct hasREADME = makeProduct("readme=${readme_text}")
-        String text = hasREADME.setupReadme()
-        def files = hasREADME.pkg.folder.list().sort()
-        expect:
+        text = hasREADME.setupReadme()
+        files = hasREADME.pkg.folder.list().sort()
+        then:
         text == readme_text
         !hasREADME.shouldSkip(QuiltProduct.KEY_README)
         files.size() == 1
@@ -148,6 +167,23 @@ class QuiltProductTest extends QuiltSpecification {
         expect:
         quilt_summarize
         quilt_summarize.size() == 1
+    }
+
+    @IgnoreIf({ env.WRITE_BUCKET ==  null })
+    void 'should copyFile'() {
+        given:
+        QuiltProduct product = makeWriteProduct()
+        String filename = 'test.md'
+        String text = 'test'
+        Path src = Paths.get(product.pkg.folder.toString(), filename)
+        Path dest = Paths.get(product.pkg.folder.toString(), 'copy', filename)
+        Files.writeString(src, text)
+
+        when:
+        product.copyFile(src, dest.toString(), text)
+
+        then:
+        Files.exists(dest)
     }
 
     @Ignore('Not implemented yet: pushes previous metadata')
@@ -199,7 +235,7 @@ class QuiltProductTest extends QuiltSpecification {
         Path outPath = Paths.get(root, filename)
         outPath.getParent().toFile().mkdirs()
         Files.writeString(outPath, "#Time, Filename\n${timestamp},${filename}")
-        // println("writeFile: ${filename} -> ${outPath}")
+    // println("writeFile: ${filename} -> ${outPath}")
     }
 
     int writeFiles(dest) {
@@ -222,7 +258,7 @@ class QuiltProductTest extends QuiltSpecification {
     @Ignore('Invalid test: top-level summarize')
     void 'should summarize top-level readable files + multiqc '() {
         given:
-        String sumURL = writeableURL('summarized')
+        String sumURL = writeableURI('summarized')
         QuiltPackage sumPkg = writeablePackage('summarized')
         writeFiles(sumPkg.packageDest())
 
@@ -250,15 +286,27 @@ class QuiltProductTest extends QuiltSpecification {
 
         expect:
         quilt_meta != null
+        quilt_meta.config == meta
     }
 
-    void 'should setupMeta from session'() {
-        given:
-        QuiltProduct product = makeProduct()
-        Map quilt_meta = product.setupMeta()
+    void 'should addSessionMeta from session'() {
+        when:
+        QuiltProduct product = makeProduct('a=b&c=d')
+        Map start_meta = product.meta
 
-        expect:
-        quilt_meta != null
+        then:
+        start_meta != null
+        start_meta.size() == 4
+        start_meta.a == 'b'
+        product.addSessionMeta()
+
+        when:
+        Map end_meta = product.meta
+
+        then:
+        end_meta != null
+        end_meta.size() > 4
+        end_meta.a == 'b'
     }
 
     void 'should throw error on publish'() {

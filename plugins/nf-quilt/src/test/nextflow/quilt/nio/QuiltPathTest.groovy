@@ -339,7 +339,7 @@ class QuiltPathTest extends QuiltSpecification {
         expect:
         subPath
         subPath.toString() == 'bucket#package=so%2fme&path=name.txt'
-        }
+    }
 
     void 'should match endsWith'() {
         given:

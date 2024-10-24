@@ -111,7 +111,7 @@ class QuiltFileSystemProviderTest extends QuiltSpecification {
     void 'should upload file to test bucket'() {
         given:
         QuiltFileSystemProvider provider = new QuiltFileSystemProvider()
-        String url = writeableURL('upload')
+        String url = writeableURI('upload')
         String filename = 'UPLOAD_THIS.md'
         QuiltPath remotePath = QuiltPathFactory.parse(url)
         QuiltPath remoteFile = remotePath.resolveSibling(filename)
@@ -124,7 +124,8 @@ class QuiltFileSystemProviderTest extends QuiltSpecification {
         !Files.exists(remoteFile.localPath())
 
         when:
-        provider.upload(tempFile, remoteFile)
+        CopyOption opt = StandardCopyOption.REPLACE_EXISTING
+        provider.upload(tempFile, remoteFile, opt)
 
         then:
         Files.exists(remoteFile)

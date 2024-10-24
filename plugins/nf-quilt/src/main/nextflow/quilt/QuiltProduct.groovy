@@ -78,7 +78,7 @@ ${nextflow}
 
 ### Processes
 
-`${meta['workflow']['stats']['processes']}`
+`${meta['workflow']?.get('stats')?.get('processes')}`
 '''
     private final static String DEFAULT_SUMMARIZE = '*.md,*.html,*.?sv,*.pdf,igv.json,**/multiqc_report.html'
 
@@ -119,49 +119,32 @@ ${nextflow}
 
     static String now() {
         LocalDateTime time = LocalDateTime.now()
-        return time.toString()
+        return time.toString().replace(':', '-').replace('T', 't')
     }
 
     private final QuiltPath path
-    private final List<Path> overlays
     private final QuiltPackage pkg
     private final Session session
     private String msg
     private Map meta
 
-    QuiltProduct(QuiltPath path, Session session, Map<String, Path> overlays = [:]) {
-        this.path = path
-        this.pkg = path.pkg()
+    QuiltProduct(QuiltPathify pathify, Session session) {
+        this.path = pathify.path
+        this.pkg = pathify.pkg
         this.msg =  pkg.toString()
-        this.meta = [pkg: msg, time_start: now()]
+        this.meta = pkg.meta + [pkg: msg, time_start: now()]
         this.session = session
 
         if (session.isSuccess() || pkg.is_force()) {
-            if (overlays) {
-                log.debug("publishing overlays: ${overlays.size()}")
-                publishOverlays(overlays)
-            } else {
-                log.info('No overlays to publish.')
-            }
             publish()
         } else {
             log.info("not publishing: ${pkg} [unsuccessful session]")
         }
     }
 
-    void publishOverlays(Map<String, Path> overlays) {
-        /// Copying published files to inside package directory
-        /// for (re)upload to the package
-        /// FIXME: Replace this with in-place packaging
-        overlays.each { relpath, source ->
-            log.info("publishing overlay[$relpath]: ${source}")
-            copyFile(source, pkg.packageDest().toString(), relpath)
-        }
-    }
-
     void publish() {
         log.debug("publish($msg)")
-        meta = setupMeta()
+        addSessionMeta()
         setupReadme()
         setupSummarize()
         try {
@@ -180,21 +163,28 @@ ${nextflow}
     }
 
     boolean shouldSkip(key) {
+        print("shouldSkip[$key]: ${pkg.meta}")
         return pkg.meta.containsKey(key) && pkg.meta[key] == KEY_SKIP
     }
 
-    Map setupMeta() {
+    boolean addSessionMeta() {
+        if (shouldSkip(KEY_META)) {
+            return false
+        }
         try {
-            meta = getMetadata(session.config)
-            meta['quilt'] = [package_id: pkg.toString(), uri: path.toUriString()]
-            msg = "${meta['config']['runName']}: ${meta['cmd']}"
-            meta.remove('config')
+            Map smeta = getMetadata(session.config)
+            println("addSessionMeta.smeta: ${smeta}")
+            smeta['quilt'] = [package_id: pkg.toString(), uri: path.toUriString()]
+            msg = "${smeta['config']['runName']}: ${smeta['cmd']}"
+            smeta.remove('config')
+            meta += smeta
+        } catch (Exception e) {
+            log.error("addSessionMeta.getMetadata failed: ${e.getMessage()}", pkg.meta)
+            return false
         }
-        catch (Exception e) {
-            log.error("setupMeta failed: ${e.getMessage()}", pkg.meta)
-        }
+        println("addSessionMeta.meta: ${meta}")
         writeNextflowMetadata(meta, 'metadata')
-        return shouldSkip(KEY_META) ? [:] : meta
+        return true
     }
 
     String writeNextflowMetadata(Map map, String suffix) {
@@ -205,6 +195,7 @@ ${nextflow}
     }
 
     Map getMetadata(Map cf) {
+        // add metadata from quilt and URI
         if (cf != null) {
             cf.remove('executor')
             cf.remove('params')
@@ -218,7 +209,7 @@ ${nextflow}
             writeNextflowMetadata(params, 'params')
             params.remove('genomes')
             params.remove('test_data')
-            // printMap(params, 'params')
+        // printMap(params, 'params')
         }
         Map wf = session.getWorkflowMetadata().toMap()
         String start = wf['start']
@@ -251,7 +242,7 @@ ${nextflow}
             text = makeReadme()
         }
         catch (Exception e) {
-            log.error("setupReadme failed: ${e.getMessage()}", pkg.meta)
+            log.error("setupReadme failed: ${e.getMessage()}\n{$e}", pkg.meta)
         }
         if (text != null && text.length() > 0) {
             //log.debug("setupReadme: ${text.length()} bytes")
@@ -273,15 +264,17 @@ ${nextflow}
             ?.replace('nextflow.NextflowMeta(', '  - **')\
             ?.replace(')', '```')
             ?.replace(':', '**: ```')
-        String template = engine.createTemplate(raw_readme).make([
+        Map params = [
             cmd: cmd,
             meta: meta,
             msg: msg,
             nextflow: nextflow,
             now: now(),
             pkg: pkg.packageName,
-        ])
-        // log.debug("readme.template: ${template}")
+        ]
+        log.debug("makeReadme.params: ${params}")
+        String template = engine.createTemplate(raw_readme).make(params)
+        log.debug("makeReadme.template: ${template}")
         return template
     }
 
@@ -302,13 +295,13 @@ ${nextflow}
                     matches.add(rel)
                 }
                 return FileVisitResult.CONTINUE
-            }
+                    }
 
             @Override
             FileVisitResult visitFileFailed(Path file, IOException exc)
                     throws IOException {
                 return FileVisitResult.CONTINUE
-            }
+                    }
 
         })
         return matches

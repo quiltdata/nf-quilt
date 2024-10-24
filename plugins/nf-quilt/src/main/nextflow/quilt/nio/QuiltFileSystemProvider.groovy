@@ -110,10 +110,6 @@ class QuiltFileSystemProvider extends FileSystemProvider implements FileSystemTr
         log.info "download Quilt package: ${pkg} installed? ${pkg.installed}"
         if (!pkg.installed) {
             Path dest = pkg.install()
-            if (!dest) {
-                log.error "download.install failed: ${pkg}"
-                throw new IOException("Failed to install Quilt package: ${pkg}")
-            }
             log.info "download.installed Quilt package to: $dest"
         }
 
@@ -488,7 +484,7 @@ class QuiltFileSystemProvider extends FileSystemProvider implements FileSystemTr
             log.warn("readAttributes: Ignore ${qPath} for null bucket")
         }
         throw new UnsupportedOperationException("Not a valid Quilt Storage file attribute type: $type")
-    }
+         }
 
     @Override
     Map<String, Object> readAttributes(Path path, String attributes, LinkOption... options) throws IOException {

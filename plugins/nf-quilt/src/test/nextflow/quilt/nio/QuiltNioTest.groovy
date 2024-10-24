@@ -307,7 +307,6 @@ class QuiltNioTest extends QuiltSpecification {
     void 'should create temp file and directory'() {
         given:
         Path base = Paths.get(new URI(PACKAGE_URL)).toAbsolutePath()
-        println "BASE: ${base}"
 
         when:
         Path t1 = Files.createTempDirectory(base, 'test')

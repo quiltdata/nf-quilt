@@ -15,9 +15,9 @@
  */
 
 plugins {
-    id "java"
-    id "groovy"
-    id "io.nextflow.nf-build-plugin" version "1.0.1"
+    id 'java'
+    id 'groovy'
+    id 'io.nextflow.nf-build-plugin' version '1.0.1'
 }
 
 ext.github_organization = project.findProperty('github_organization') ?: 'nextflow-io'
@@ -29,8 +29,9 @@ ext.github_index_url = "https://github.com/${github_organization}/plugins/main/p
 jar.enabled = false
 
 String computeSha512(File file) {
-    if( !file.exists() )
+    if (!file.exists()) {
         throw new GradleException("Missing file: $file -- cannot compute SHA-512")
+    }
     return org.apache.commons.codec.digest.DigestUtils.sha512Hex(file.bytes)
 }
 
@@ -40,7 +41,7 @@ String now() {
 
 List<String> allPlugins() {
     def plugins = []
-    new File(rootProject.rootDir, 'plugins') .eachDir { if(it.name.startsWith('nf-')) plugins.add(it.name) }
+    new File(rootProject.rootDir, 'plugins') .eachDir { if (it.name.startsWith('nf-')) plugins.add(it.name) }
     return plugins
 }
 
@@ -48,7 +49,7 @@ String metaFromManifest(String meta, File file) {
     def str = file.text
     def regex = ~/(?m)^$meta:\s*([\w-\.<>=]+)$/
     def m = regex.matcher(str)
-    if( m.find() ) {
+    if (m.find()) {
         def ver = m.group(1)
         println "Set plugin '${file.parentFile.parentFile.parentFile.parentFile.name}' version=${ver}"
         return ver
@@ -68,7 +69,7 @@ subprojects {
         mavenCentral()
     }
 
-    version = metaFromManifest('Plugin-Version',file('src/resources/META-INF/MANIFEST.MF'))
+    version = metaFromManifest('Plugin-Version', file('src/resources/META-INF/MANIFEST.MF'))
 
     tasks.withType(Jar) {
         duplicatesStrategy = DuplicatesStrategy.INCLUDE
@@ -94,7 +95,7 @@ subprojects {
 "version": "${project.version}",
 "date": "${timestamp}",
 "url": "https://github.com/${github_organization}/${project.name}/releases/download/${project.version}/${project.name}-${project.version}.zip",
-"requires": "${metaFromManifest('Plugin-Requires',file('src/resources/META-INF/MANIFEST.MF'))}",
+"requires": "${metaFromManifest('Plugin-Requires', file('src/resources/META-INF/MANIFEST.MF'))}",
 "sha512sum": "${computeSha512(zip)}"
 }
 """
@@ -129,10 +130,10 @@ subprojects {
     /*
     * "install" the plugin the project root build/plugins directory
     */
-    project.parent.tasks.getByName("assemble").dependsOn << copyPluginZip
+    project.parent.tasks.getByName('assemble').dependsOn << copyPluginZip
 
     task uploadPlugin(type: io.nextflow.gradle.tasks.GithubUploader, dependsOn: makeZip) {
-        assets = providers.provider {["$buildDir/libs/${project.name}-${project.version}.zip",
+        assets = providers.provider { ["$buildDir/libs/${project.name }-${project.version }.zip",
                                       "$buildDir/libs/${project.name}-${project.version}-meta.json" ]}
         release = providers.provider { project.version }
         repo = providers.provider { project.name }
@@ -141,7 +142,6 @@ subprojects {
         authToken = github_access_token
         skipExisting = true
     }
-
 }
 
 task upload(dependsOn: [subprojects.uploadPlugin]) { }
@@ -151,7 +151,7 @@ classes.dependsOn subprojects.copyPluginLibs
 /*
  * Merge and publish the plugins index file
  */
-task publishIndex( type: io.nextflow.gradle.tasks.GithubRepositoryPublisher ) {
+task publishIndex(type: io.nextflow.gradle.tasks.GithubRepositoryPublisher) {
     indexUrl = github_index_url
     repos = allPlugins()
     owner = github_organization

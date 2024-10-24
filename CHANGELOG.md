@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.8.7] 2024-10-23
+
+- Use package cache instead of `params` to find output URIs
+  (in order to support dynamic URIs set by, e.g. `main.nf`)
+- Allow setting metadata from inside the workflow
+
 ## [0.8.6] 2024-09-11
 
 - Fix addOverlay bug on subfolders

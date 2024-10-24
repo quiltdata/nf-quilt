@@ -48,7 +48,7 @@ import spock.lang.Specification
 class QuiltSpecification extends Specification {
 
     static String SpecURI() {
-        return 'quilt+s3://udp-spec#package=nf-quilt/source'
+        return 'quilt+s3://udp-spec#package=nf-quilt%2fsource'
     }
 
     @Shared String testURI
@@ -92,13 +92,17 @@ class QuiltSpecification extends Specification {
         Plugins.startIfMissing('nf-quilt')
     }
 
-    String writeableURL(String suffix='QuiltSpecification') {
+    String writeableURI(String suffix='QuiltSpecification') {
         return "quilt+s3://${writeBucket}#package=test/${suffix}&force=true"
+    }
+
+    String uniqueQueryURI(String query = 'key=val') {
+        return "quilt+s3://${QuiltProduct.now()}?${query}#package=test%2funique"
     }
 
     QuiltPackage writeablePackage(String suffix, String workflow=null) {
         QuiltPathFactory factory = new QuiltPathFactory()
-        String url = writeableURL(suffix)
+        String url = writeableURI(suffix)
         if (workflow) {
             url += "&workflow=${workflow}"
         }

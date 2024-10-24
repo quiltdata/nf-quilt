@@ -125,7 +125,6 @@ class QuiltPackageTest extends QuiltSpecification {
         def qpkg = qpath.pkg()
         Path outputFolder = pkg.packageDest()
         Path readmeFile = outputFolder.resolve('README.md')
-        println("qpkg: ${qpkg} -> ${qpath.localPath()} == ${readmeFile}")
 
         expect:
         !qpath.isJustPackage()
@@ -193,18 +192,14 @@ class QuiltPackageTest extends QuiltSpecification {
 
     void 'should fail pushing new files to read-only bucket '() {
         given:
-        println("read-only-bucket:TEST_URL: ${READONLY_URL}")
         def qout = factory.parseUri(READONLY_URL)
         def opkg = qout.pkg()
         opkg.install()
-        println("opkg: ${opkg} installed: ${opkg.isInstalled()}")
         def outPath = Paths.get(opkg.packageDest().toString(), 'foo/bar.txt')
-        println("outPath: ${outPath}")
         Files.writeString(outPath, "Time: ${timestamp}")
         expect:
         Files.exists(outPath)
         when:
-        println('Pushing to read-only bucket')
         opkg.push()
         then:
         thrown(RuntimeException)

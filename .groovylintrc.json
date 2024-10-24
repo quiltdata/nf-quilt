@@ -28,6 +28,9 @@
         "JUnitPublicNonTestMethod": {
             "enabled": false
         },
+        "JUnitTestMethodWithoutAssert": {
+            "enabled": false
+        },
         "JavaIoPackageAccess": {
             "enabled": false
         },
