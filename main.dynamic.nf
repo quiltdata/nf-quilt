@@ -9,7 +9,8 @@ packageFiles = Channel.fromPath(params.input)
 
 process transfer {
     publishDir(
-        path: 'quilt+s3://udp-spec#package=nf-quilt/dynamic',
+        /* groovylint-disable-next-line LineLength */
+        path: 'quilt+s3://udp-spec?Status=In-flight&Program=CCR4&sample_name=sample123&OwnerEmail=ownerexample.com&author_name=JohnDoe&project_code=PROJ_ABC&flowcell_id=FC123456&jira_id=JIRA-456&instrument_name=NextSeq2000&xaira_registry=xaira-scratch&session_id=abc123-def456-ghi789&workflow=None#package=nf-quilt/dynamic',
         mode: 'copy',
     )
     container 'ubuntu:20.04'
@@ -22,6 +23,7 @@ process transfer {
 
     """
     mkdir -p data
+    mkdir -p inputs
     cp -r $x inputs/
     echo inputs/$x
     """

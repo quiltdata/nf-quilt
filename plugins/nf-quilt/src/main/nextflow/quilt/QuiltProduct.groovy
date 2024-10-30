@@ -134,6 +134,7 @@ ${nextflow}
         this.msg =  pkg.toString()
         this.meta = pkg.meta + [pkg: msg, time_start: now()]
         this.session = session
+        println("QuiltProduct: ${pkg.toUriString()}")
 
         if (session.isSuccess() || pkg.is_force()) {
             publish()
@@ -170,14 +171,22 @@ ${nextflow}
         if (shouldSkip(KEY_META)) {
             return false
         }
+        Map<String, Map<String,Object>> cf = session.config
+        println("addSessionMeta.cf: ${cf}")
+        Map qf = cf.navigate('quilt') as Map<String, Map<String, Object>>
+        println("addSessionMeta.qf: ${qf}")
+        Map<String, Object> cmeta = qf.navigate('meta') as Map<String, Object>
+        println("addSessionMeta.cmeta: ${cmeta}")
+
         try {
-            Map smeta = getMetadata(session.config)
+            Map smeta = getMetadata(cf)
+            // println("addSessionMeta.smeta: ${smeta}")
             smeta['quilt'] = [package_id: pkg.toString(), uri: path.toUriString()]
             msg = "${smeta['config']['runName']}: ${smeta['cmd']}"
             smeta.remove('config')
-            meta += smeta
+            meta += smeta + cmeta
         } catch (Exception e) {
-            log.error("addSessionMeta.getMetadata failed: ${e.getMessage()}", pkg.meta)
+            log.error("addSessionMeta.getMetadata failed: ${e.getMessage()}\n{$e}", pkg.meta)
             return false
         }
         writeNextflowMetadata(meta, 'metadata')
@@ -223,6 +232,7 @@ ${nextflow}
             // printMap(wf, 'workflow')
             log.info("\npublishing: ${wf['runName']}")
         }
+
         return [
             cmd: cmd,
             config: cf,

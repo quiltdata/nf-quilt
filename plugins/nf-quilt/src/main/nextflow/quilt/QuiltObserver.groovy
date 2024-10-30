@@ -37,17 +37,9 @@ class QuiltObserver implements TraceObserver {
     private Session session
     private String workDir
 
-    final private Map<String,Object> configMetadata = [:]
     final private Lock lock = new ReentrantLock() // Need this because of threads
     // Is this overkill? Do we ever have more than one output URI per run?
     final private Map<String,QuiltPathify> publishedPaths = [:]
-
-    void checkConfig(Map<String, Map<String,Object>> config) {
-        Object metadata = config.get('quilt')?.get('metadata')
-        if (metadata) {
-            configMetadata.putAll(metadata as Map<String,Object>)
-        }
-    }
 
     boolean checkExtractedPath(QuiltPathify pathify) {
         String key = pathify.pkgKey()
@@ -73,7 +65,6 @@ class QuiltObserver implements TraceObserver {
         log.debug("`onFlowCreate` $this")
         this.session = session
         this.workDir = session.config.workDir
-        checkConfig(session.config)
     }
 
     @Override
