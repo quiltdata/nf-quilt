@@ -1,55 +1,42 @@
 # nf-quilt
 
-Nextflow plugin for reading and writing Quilt packages as a FileSystem
+Nextflow plugin for reading and writing Quilt packages
 
-[`nf-quilt`](https://github.com/quiltdata/nf-quilt) (v0.3.2 or later) is a Nextflow [plugin](https://www.nextflow.io/docs/latest/plugins.html)
-developed by [Quilt Data](https://quiltdata.com/) that enables you read and write directly
-to Quilt packages using `quilt+s3` URIs wherever your Nextflow pipeline currently use `s3` URIs.
+[`nf-quilt`](https://github.com/quiltdata/nf-quilt) is a Nextflow
+[plugin](https://www.nextflow.io/docs/latest/plugins.html) developed by [Quilt
+Data, Inc.](https://quiltdata.com/) that enables you read and write directly to
+Quilt packages wherever your Nextflow pipeline currently uses `s3` URIs. It
+works with any Amazon S3-compatible object store, as long as you have the
+appropriate
+[credentials](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html).
 
-## NEW: Use nf-quilt plugin with existing S3 URIs
+Quilt packages are versioned, immutable, and shareable data containers that
+store data, metadata, and documentation as a single atomic unit. They are
+accessible even by non-technical users via the Quilt Platfrom, a graphical
+web catalog which runs either in your private AWS cloud or on
+[open.quiltdata.com](https://open.quiltdata.com).
 
-In v0.8+, the plugin can even be used with "native" S3 URIs.  You can continue using your exising S3 URIs,and Nextflow will write the data out as usual.  However, simply by adding the `nf-quilt` plugin, you can also "overlay" that data with a Quilt package containing all the metadata from that run.
+## Writing to Quilt Packages
 
-For example:
+For example, if your current pipeline writes to an S3 bucket specified by the
+environment variable `$WRITE_BUCKET`:
 
 ```shell
-nextflow run nf-core/rnaseq -plugins nf-quilt --outdir "s3://quilt-example-bucket/test/nf_quilt_rnaseq"
-# other parameters omitted for brevity
+nextflow run nf-core/rnaseq --outdir "s3://$WRITE_BUCKET/nf_quilt/rnaseq"
 ```
 
-will automatically create the package:
+All you have to do is add the `nf-quilt` plugin to your command line:
 
-```url
-quilt+s3://quilt-example-bucket#package=test/nf_quilt_rnaseq
+```shell
+nextflow run nf-core/rnaseq -plugins nf-quilt --outdir "s3://$WRITE_BUCKET/nf_quilt/rnaseq"
 ```
 
-## NEW: Use nextflow.config to configure the plugin
+This will automatically create a nicely-formmated Quilt package with all the
+metadata from that run.
 
-In v0.9+, you can use the `quilt` section of your `nextflow.config` file to specify the metadata and other plugin behaviors:
+## Use nextflow.config to configure the plugin
 
-```groovy
-quilt {
-    catalog = 'open.quiltdata.com'
-    meta = [pipeline: 'nf-core/rnaseq']
-    force = false
-}
-```
-
-Placing these parameters directly in the URI has been deprecated,
-and may be removed in a future release.
-
-## I. Using the nf-quilt plugin in Production
-
-This plugin allows your existing pipelines, without modification,
-to read and write versioned Quilt packages stored on Amazon S3.
-
-Use the following three steps to configure Nextflow Tower or your command-line environment.
-[Note: versions 0.7.0 and later no longer require the `quilt3` Python client.]
-
-1. Enable the `nf-quilt` plugin
-
-The usual way to enable a plugin is to add the following to your `nextflow.config` file,
-or (in Tower) the "Advanced Options ->  Nextflow config file":
+To avoid having to manually specify the plugin, you can add it to your `nextflow.config` file:
 
 ```groovy
 plugins {
@@ -57,118 +44,130 @@ plugins {
 }
 ```
 
-![Example Tower Configuration](./README-Tower.png)
+This also works with Nextflow Tower, where you can add the plugin to the
+"Advanced Options -> Nextflow config file".
 
-You can alternatively specify the plugin as part of the command-line, .e.g.:
+![Example Tower Configuration](./images/tower-config.png)
 
-```bash
-nextflow run ./main.nf -profile standard -plugins nf-quilt --outdir 'quilt+s3://bucket#package=prefix/suffix'
+As of v0.9+, you can also add a `quilt` section to your `nextflow.config` file to specify the metadata and other plugin behaviors:
+
+```groovy
+quilt {
+    catalog = 'open.quiltdata.com'
+    force = false  // replace (instead of update) existing packages
+    meta = [pipeline: 'nf-core/rnaseq']
+}
 ```
 
-## II. Working With Quilt+ URIs (optional for output)
+See "Configuration" below for more details.
 
-1. Obtain a Quilt+ URI for each package
+## Working With Quilt+ URIs (Optional)
 
-Each Quilt+ package URI you read or write from has the form:
+When using the `nf-quilt` plugin, you can use Quilt+ URIs (instead of S3 URIs)
+to specify the package you want to read or write. For example, the URI for the
+package created from the initial example would be:
 
-```string
-quilt+s3://bucket#package=prefix/suffix
+```shell
+quilt+s3://$WRITE_BUCKET#package=nf_quilt/rnaseq
 ```
 
-You must have the appropriate read or write permissions for that `bucket`,
-and your environment must have the corresponding
-[AWS credentials](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html).
+### Input URIs
 
-In the Quilt catalog, you can find the Quilt+ URI for an existing package
-in the `<> CODE | URI` section at the top.
-You can also manually create URIs for new packages that don't yet exist.
+Versioned Quilt+ URIs can be used as input URIs in your Nextflow pipeline, to ensure you know precisely which data you are using. For example, this is a specific version of the output from `nf-core/sarek`:
 
-See 'Advanced Options' below for more details.
-
-1. Set the appropriate parameter(s) in your pipeline
-
-For `nf-core` pipelines, use `--input` to read and `--outdir` to write.
-Otherwise, whatever is passed to `Channel.fromPath` as input
-and to `publishDir` as outdir.
-
-You can also specify these as YAML to pass to `-params-file`:
-
-```yaml
-input: "quilt+s3://quilt-example#package=examples/hurdat"
-outdir: "quilt+s3://nf-core-gallery#package=test/hurdat"
+```shell
+quilt+s3://$READ_BUCKET#package=nf-core/sarek@8a2164f48be8e0d6385f64b76b74a8543e9fb1b12a8eff6daeaffa653d52fcf7
 ```
 
-Note that `--key` on the command-line corresponds to `params.key` in your script.
+If are using the Quilt Platform, you can find the Quilt+ URI for a package in the `<> CODE | URI` section at the top of the package page.
 
-1. Optional: use a pre-release plugin
+![Example Quilt+ URI](./images/quilt-uri.png)
 
-If a plugin is not yet available in the Nextflow plugin registry, you can use a pre-release version.
-From the command-line, do, e.g.:
+### Output URIs
 
-```bash
-# export NXF_VER=23.04.3
-export LOG4J_DEBUG=true  # for verbose logging
-export NXF_PLUGINS_TEST_REPOSITORY=https://github.com/quiltdata/nf-quilt/releases/download/0.8.7/nf-quilt-0.8.7-meta.json
-nextflow run main.nf -plugins nf-quilt@0.8.7
+You can specify a Quilt+ URI as the `--outdir` parameter in your Nextflow pipeline if you want to specify the package name and metadata for the output,
+but don't care about the precise location in S3. For example:
+
+```shell
+nextflow run nf-core/rnaseq --outdir "quilt+s3://$WRITE_BUCKET?key=value#package=nf_quilt/rnaseq"
 ```
 
-For Tower, you can use the "Pre-run script" to set the environment variables.
+The `key=value` part is optional, and can be used to specify metadata for the
+package, which will be added to the metadata automatically generated by the
+plugin. This is particularly when working with [Quilt
+workflows](https://docs.quiltdata.com/workflows), which require specific
+metadata to be present before a package can be created.
 
-## III. Advanced URI Options
+### CLI Usage
 
-There are a number of additional parameters you can add to Quilt+ URIs,
-in order to customize the behavior of the plugin:
+If your workflow supports `--input` and `--outdir` parameters, you can use them to specify the Quilt+ URIs. For example:
 
-* Fragment Parameters:
-  * **catalog**: specify the DNS hostname of the Quilt catalog to use (default: `open.quiltdata.com`)
-  * **force**: force package update (even if already exists or local copy out-of-date)
-  * **package**: specify the name of the package to read or write (default: `.`)
-  * **path**: specify a path within the package to read or write (default: `.`) [not fully supported yet]
-  * **workflow**: specify the name of a workflow to use for metadata validation (default: none)
-
-* Query Parameters: also stored as package-level metadata
-  * **msg**: specify the commit message to use when saving the package
-  * **readme**: specify a string for the package README_NF_QUILT.md file
-    (will substitute "${variables}"), or SKIP to not create a README
-  * **metadata**: specify SKIP to not push any new metadata (implicit or explicit)
-  * **_any other key_**: specify any other metadata key to store in the package
-
-See below for more details.
-When running from the git repository,
-you can use the Makefile to test the various options,
-as long as you set a WRITE_BUCKET:
-
-```bash
-export WRITE_BUCKET=bucket-with-write-access
-make pkg-test  # create "test/hurdat" package on s3://$WRITE_BUCKET
+```shell
+nextflow run main.nf --input "quilt+s3://$READ_BUCKET#package=nf-core/sarek@8a2164f48be8e0d6385f64b76b74a8543e9fb1b12a8eff6daeaffa653d52fcf7" --outdir "quilt+s3://$WRITE_BUCKET?key=value#package=test/my-sarek-processor"
 ```
 
-### A. Quilt+ URIs for Metadata Workflows
+Note that you need to quote the URIs to prevent the shell from interpreting the `?` and `#` characters.
 
-Sometimes you may want to ensure the created package contains specific metadata.
-This is done using [Quilt workflows](https://docs.quiltdata.com/advanced/workflows).
-Specify the workflow name as an additional `workflow=` fragment parameter,
-and any metadata properties as part of the query string.
+## Configurations
 
-```bash
-make pkg-test QUERY='?mkey1=val1&mkey2=val2' FRAGMENT='&workflow=my_workflow'
-```
+There are a number of additional parameters you can set in order to customize
+the behavior of the plugin:
 
-Note that specifying a workflow means that package creation will fail (and nothing will be saved)
-if the query string does not contain all the required metadata,
-so you should carefully test it before running long jobs.
+* **catalog**: specify the DNS hostname of the Quilt catalog to use (default: `open.quiltdata.com`)
+* **force**: completely replace the existing package, rather than updating it (default: `false`)
+* **meta**: specify a map of metadata to add to the package (default: `{}`)
+* **msg**: specify the commit message template to use when saving the package
+* **pkg**: specify the name of the package to read or write, when using an S3 URI (default: the first two path components)
+* **readme**: specify a template string for the package README_NF_QUILT.md file
+* **workflow**: specify the name of a Quilt workflow on that bucket to use for metadata validation (default: None)
 
-### B. Quilt+ URIs for Custom Data Products
+NOTE: These configurations were previously specified as part of the Quilt+ URI.
+That functionality has been deprecated, and may be removed in a future release.
+
+### Template Strings
 
 Version 0.3.4 and later allow you to customize both the `msg`
-and `readme` via metadata query keys:
+and `readme` via template strings that use these `${variables}`:
 
-```bash
-make pkg-test QUERY='?msg=text+str&readme=GStr+%24msg+%24now+%24%7Bmeta[%22quilt%22]%7D'
+* `cmd`: the current command line
+* `meta`: the complete metadata
+* `msg`: the current commit message
+* `nextflow`: the current Nextflow configuration
+* `now`: the ISO 8601 date and time
+* `pkg`: the package name
+
+Note that the full `meta` is usually extremely large. You should use conditional
+keys to extract only the metadata you need, if present. For example:
+
+```groovy
+quilt {
+    meta = [pipeline: 'nf-core/rnaseq']
+    msg = "${meta['config']['runName']}: ${meta['cmd']}"
+    readme = '''
+# ${pkg}
+
+## ${now}
+
+## Run Command
+
+${cmd}
+
+### Workflow
+
+- **workflow run name**: ```${meta['workflow']?.get('runName')}```
+- **scriptFile**: ```${meta['workflow']?.get('scriptFile')}```
+- **sessionI**: ```${meta['workflow']?.get('sessionId')}```
+- **start**: ```${meta['time_start']}```
+- **complete**: ```${meta['time_complete']}```
+
+### Nextflow
+
+${nextflow}
+
+### Processes
+
+`${meta['workflow']?.get('stats')?.getAt('processes')}`
+    '''
+}
 ```
 
-The `readme` parameter is a Groovy GString template which expands the `${variables}`:
-
-* `msg`: the current commit message
-* `now`: the ISO 8601 date and time
-* `meta`: the complete metadata (very large! use only  subsets)

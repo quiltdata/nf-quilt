@@ -1,5 +1,24 @@
 # Developer Documentation
 
+## Using Pre-Release Versions
+
+Occasionally we will release beta versions of the plugin that are not yet available in the Nextflow plugin registry. You can help test these versions as follows:
+
+- Set the `NXF_PLUGINS_TEST_REPOSITORY` environment variable to the URL of the plugin's metadata file
+- Specify the plugin version in the `plugins` section of your `nextflow.config` file
+
+From the command-line, do, e.g.:
+
+```bash
+export LOG4J_DEBUG=true  # for verbose logging
+export NXF_PLUGINS_TEST_REPOSITORY=https://github.com/quiltdata/nf-quilt/releases/download/0.8.5/nf-quilt-0.8.5-meta.json
+nextflow run main.nf -plugins nf-quilt@0.8.5
+```
+
+For Tower, you set the environment variables in the "Pre-run script".
+
+![Example Tower Pre-run Script](./images/tower-beta.png)
+
 ## Using Development Versions
 
 If you want to use edge versions of nf-quilt, you must run it with a development
@@ -87,13 +106,13 @@ Otherwise, follow these steps:
 1. Create a file named `gradle.properties` in the project root containing the
    following attributes (this file should not be committed to Git):
 
-   * `github_organization`: the GitHub organisation where the plugin repository
+   - `github_organization`: the GitHub organisation where the plugin repository
      is hosted.
-   * `github_username`: The GitHub username granting access to the plugin
+   - `github_username`: The GitHub username granting access to the plugin
      repository.
-   * `github_access_token`: The GitHub access token required to upload and
+   - `github_access_token`: The GitHub access token required to upload and
      commit changes to the plugin repository.
-   * `github_commit_email`: The email address associated with your GitHub
+   - `github_commit_email`: The email address associated with your GitHub
      account.
 
 2. Use the following command to package and create a release for your plugin on
