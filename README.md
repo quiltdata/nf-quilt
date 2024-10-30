@@ -142,7 +142,7 @@ keys to extract only the metadata you need, if present. For example:
 ```groovy
 quilt {
     meta = [pipeline: 'nf-core/rnaseq']
-    msg = "${meta['config']['runName']}: ${meta['cmd']}"
+    msg = "${meta['config']?.get('runName')}: ${meta['cmd']}"
     readme = '''
 # ${pkg}
 

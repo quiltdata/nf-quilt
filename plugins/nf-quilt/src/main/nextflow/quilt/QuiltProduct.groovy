@@ -173,7 +173,9 @@ ${nextflow}
         }
         Map<String, Map<String,Object>> cf = session.config
         println("addSessionMeta.cf: ${cf}")
-        Map qf = cf.navigate('quilt') as Map<String, Map<String, Object>>
+        Map qf = cf.navigate('quilt') as Map<String, Object>
+        qf['package_id'] = pkg.toString()
+        qf['uri'] = path.toUriString()
         println("addSessionMeta.qf: ${qf}")
         Map<String, Object> cmeta = qf.navigate('meta') as Map<String, Object>
         println("addSessionMeta.cmeta: ${cmeta}")
@@ -181,12 +183,13 @@ ${nextflow}
         try {
             Map smeta = getMetadata(cf)
             // println("addSessionMeta.smeta: ${smeta}")
-            smeta['quilt'] = [package_id: pkg.toString(), uri: path.toUriString()]
-            msg = "${smeta['config']['runName']}: ${smeta['cmd']}"
+            smeta['quilt'] = qf
             smeta.remove('config')
             meta += smeta + cmeta
+            msg = "${cf.get('runName')}: ${meta['cmd']}"
         } catch (Exception e) {
-            log.error("addSessionMeta.getMetadata failed: ${e.getMessage()}\n{$e}", pkg.meta)
+            println("addSessionMeta.getMetadata failed: $e")
+            log.error("addSessionMeta.getMetadata failed: ${e.getMessage()}", pkg.meta)
             return false
         }
         writeNextflowMetadata(meta, 'metadata')

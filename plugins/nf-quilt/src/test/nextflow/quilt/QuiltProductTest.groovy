@@ -49,7 +49,7 @@ class QuiltProductTest extends QuiltSpecification {
             getWorkflowMetadata() >> wf_meta
             getParams() >> [outdir: url]
             isSuccess() >> success
-            config >> [quilt: [metadata: [cfkey: 'cfval']], runName: 'my-run', publishing: false]
+            config >> [quilt: [meta: [cfkey: 'cfval']], runName: 'my-run', publishing: false]
         }
         return new QuiltProduct(pathify, session)
     }
@@ -187,7 +187,7 @@ class QuiltProductTest extends QuiltSpecification {
     }
 
     @Ignore('Not implemented yet: pushes previous metadata')
-    void 'pushes previous metadata if metadata=SKIP'() {
+    void 'pushes previous metadata if meta=SKIP'() {
         given:
         Map meta = [
             'Name': 'QuiltPackageTest',
@@ -196,7 +196,7 @@ class QuiltProductTest extends QuiltSpecification {
             'Type': 'NGS'
         ]
         Map bad_meta = meta + ['Type': 'Workflow']
-        Map skip_meta = ['metadata': 'SKIP']
+        Map skip_meta = ['meta': 'SKIP']
 
         when:
         makeWriteProduct() // no metadata
