@@ -54,8 +54,12 @@ make test-all
 make pkg-test WRITE_BUCKET=your-writeablebucket 
 ```
 
-This ensures you have properly installed Nextflow and configured your local AWS
-credentials.
+This ensures you have properly installed Nextflow and configured your local
+<--markdownlint-disable-next-line MD041-->
+[AWS credentials](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html).
+
+You can also set WRITE_BUCKET and other parameters in a `.env` file in the
+project root, and they will be automatically read by the Makefile.
 
 ### Running a Pipeline Locally
 

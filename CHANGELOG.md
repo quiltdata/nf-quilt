@@ -1,6 +1,14 @@
 # Changelog
 
-## [0.8.7] 2024-10-23
+## [0.9.0] 2024-10-30
+
+- Shift metadata and configuration to `quilt` scope of nextflow.config
+- Moved test workflows into `wf` folder
+- Write the output URI when publishing
+- Handle malformed Quilt URIs gracefully
+- Rewrite README.md, splitting out developer documentation to README_DEV.md
+
+## [0.8.7] 2024-10-23 UNPUBLISHED
 
 - Use package cache instead of `params` to find output URIs
   (in order to support dynamic URIs set by, e.g. `main.nf`)
