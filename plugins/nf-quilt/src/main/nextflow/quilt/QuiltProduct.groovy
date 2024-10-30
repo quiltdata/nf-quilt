@@ -78,7 +78,7 @@ ${nextflow}
 
 ### Processes
 
-`${meta['workflow']?.get('stats')?.get('processes')}`
+`${meta['workflow']?.get('stats')?.getAt('processes')}`
 '''
     private final static String DEFAULT_SUMMARIZE = '*.md,*.html,*.?sv,*.pdf,igv.json,**/multiqc_report.html'
 
@@ -163,7 +163,6 @@ ${nextflow}
     }
 
     boolean shouldSkip(key) {
-        print("shouldSkip[$key]: ${pkg.meta}")
         return pkg.meta.containsKey(key) && pkg.meta[key] == KEY_SKIP
     }
 
@@ -173,7 +172,6 @@ ${nextflow}
         }
         try {
             Map smeta = getMetadata(session.config)
-            println("addSessionMeta.smeta: ${smeta}")
             smeta['quilt'] = [package_id: pkg.toString(), uri: path.toUriString()]
             msg = "${smeta['config']['runName']}: ${smeta['cmd']}"
             smeta.remove('config')
@@ -182,7 +180,6 @@ ${nextflow}
             log.error("addSessionMeta.getMetadata failed: ${e.getMessage()}", pkg.meta)
             return false
         }
-        println("addSessionMeta.meta: ${meta}")
         writeNextflowMetadata(meta, 'metadata')
         return true
     }
