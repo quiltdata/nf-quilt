@@ -73,6 +73,9 @@ pkg-test: compile #-all
 	echo "$(TEST_URI)"
 	$(NF_BIN) run ./main.nf -profile standard -plugins $(PROJECT) --outdir "$(TEST_URI)"
 
+dyn-test: compile #-all
+	$(NF_BIN) run ./main.dynamic.nf -profile standard -plugins $(PROJECT)
+
 s3-overlay: compile
 	$(NF_BIN) run ./main.nf --plugins $(PROJECT) --outdir "$(S3_BASE)/s3-overlay" --input "$(S3_BASE)/s3-in"  
 
