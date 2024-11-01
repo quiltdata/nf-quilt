@@ -216,9 +216,24 @@ class QuiltPackage {
         return installed
     }
 
+    boolean isBucketAccessible() {
+        S3PhysicalKey key = new S3PhysicalKey(bucket, '', null)
+        try {
+            key.listRecursively()
+        } catch (Exception e) {
+            log.error("isBucketAccessible: failed to check $bucket", e)
+            return false
+        }
+        return true
+    }
+
     Path packageDest() {
         return folder
     }
+
+    /*
+     * Package methods
+     */
 
     Path install(boolean implicit=false) {
         if (isNull()) {
