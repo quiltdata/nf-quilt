@@ -50,7 +50,7 @@ final class QuiltPath implements Path, Comparable {
         this.parsed = parsed
         this.paths = parsed.getPaths()
         this.isFileName = isFileName
-        log.debug("Creating QuiltPath: $parsed")
+        log.info("Creating QuiltPath: $parsed")
     }
 
     String getBucket() {
@@ -66,6 +66,7 @@ final class QuiltPath implements Path, Comparable {
     }
 
     QuiltPackage pkg() {
+        println("QuiltPath.pkg: $parsed")
         QuiltParser source = isAbsolute() ? parsed : QuiltParser.forNullBucket()
         return QuiltPackage.forParsed(source)
     }

@@ -103,13 +103,14 @@ class QuiltPackage {
     }
 
     static QuiltPackage forParsed(QuiltParser parsed) {
+        println("QuiltPackage.forParsed: $parsed")
         boolean isNull = parsed.hasNullBucket()
         if (isNull && !PKGS.isEmpty()) {
             return PKGS.values().last()
         }
 
         String pkgKey = parsed.toPackageString(true) // ignore metadata for Key
-        log.debug("QuiltPackage.forParsed[${pkgKey}]")
+        log.info("QuiltPackage.forParsed[${pkgKey}]")
         def pkg = PKGS.get(pkgKey)
         if (pkg) { return pkg }
 

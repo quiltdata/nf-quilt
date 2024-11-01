@@ -135,6 +135,8 @@ ${nextflow}
         this.meta = pkg.meta + [pkg: msg, time_start: now()]
         this.session = session
         println("QuiltProduct: ${pkg.toUriString()}")
+        println("\tQuiltProduct.pkg: ${pkg}")
+        println("\tQuiltProduct.path: ${path}")
 
         if (session.isSuccess() || pkg.is_force()) {
             publish()
@@ -178,6 +180,7 @@ ${nextflow}
         qf['uri'] = path.toUriString()
         println("addSessionMeta.qf: ${qf}")
         Map<String, Object> cmeta = qf.navigate('meta') as Map<String, Object>
+        qf.remove('meta')
         println("addSessionMeta.cmeta: ${cmeta}")
 
         try {

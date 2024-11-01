@@ -70,7 +70,7 @@ class QuiltObserver implements TraceObserver {
     @Override
     void onFilePublish(Path destination, Path source) {
         // Path source may be null, won't work with older versions of Nextflow
-        log.debug("onFilePublish.Path[$destination] <- $source")
+        log.info("\nonFilePublish.dest:$destination <- src:$source")
         if (!session) {
             log.debug('onFilePublish: no session intialized')
             return
