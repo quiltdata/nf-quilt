@@ -22,6 +22,7 @@ import nextflow.Session
 //import spock.lang.Ignore
 
 import java.nio.file.Paths
+import java.nio.file.Path
 import groovy.transform.CompileDynamic
 
 /**
@@ -49,14 +50,62 @@ class QuiltObserverTest extends QuiltSpecification {
     void 'should not error on onFlowComplete success'() {
         given:
         String quilt_uri = 'quilt+s3://bucket#package=prefix%2fsuffix'
-        QuiltObserver observer = new QuiltObserver()
-        QuiltPath qPath = QuiltPathFactory.parse(quilt_uri)
-        observer.onFlowCreate(mockSession(false))
-        observer.onFilePublish(qPath.localPath())
+        QuiltObserver observer = makeObserver()
+        QuiltPath badPath = QuiltPathFactory.parse(quilt_uri)
         when:
+        observer.onFlowCreate(mockSession(false))
+        observer.onFilePublish(badPath)
         observer.onFlowComplete()
         then:
         true
+    }
+
+    void 'should not add publishedPaths if uninitialized'() {
+        given:
+        QuiltObserver observer = new QuiltObserver()
+        QuiltPath validPath = QuiltPathFactory.parse(SpecURI())
+
+        when:
+        // uninitialized
+        observer.onFilePublish(validPath, validPath.localPath())
+        then:
+        validPath.pkg().bucketExists() == true
+        observer.publishedPaths.size() == 0
+    }
+
+    void 'should only add publishedPaths if valid path'() {
+        given:
+        QuiltObserver observer = makeObserver()
+        QuiltPath badPath = QuiltPathFactory.parse('quilt+s3://bucket#package=prefix%2fsuffix')
+        QuiltPath validPath = QuiltPathFactory.parse(SpecURI())
+        Path localPath = Paths.get('/work/bkt/prefix/suffix')
+
+        when:
+        // bad path
+        observer.onFlowCreate(mockSession(false))
+        observer.onFilePublish(badPath, badPath.localPath())
+        then:
+        observer.publishedPaths.size() == 0
+
+        when:
+        // no source
+        observer.onFilePublish(badPath)
+        then:
+        observer.publishedPaths.size() == 0
+
+        when:
+        // local path (treated as overlay)
+        observer.onFilePublish(localPath)
+        then:
+        observer.publishedPaths.size() == 0
+
+        when:
+        // valid bucket
+        observer.onFilePublish(validPath, validPath.localPath())
+        observer.onFlowComplete()
+        then:
+        validPath.pkg().bucketExists() == true
+        observer.publishedPaths.size() == 1
     }
 
 }

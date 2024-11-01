@@ -43,10 +43,11 @@ class QuiltObserver implements TraceObserver {
 
     boolean checkExtractedPath(QuiltPathify pathify) {
         String key = pathify.pkgKey()
+        println("checkExtractedPath[$key]: $pathify [$publishedPaths]")
         if (key in publishedPaths) {
             return true
         }
-        log.debug("checkExtractedPath: $key not in publishedPaths")
+        println("checkExtractedPath: $key not in publishedPaths")
         addPublishedPath(key, pathify)
         return false
     }
@@ -58,11 +59,16 @@ class QuiltObserver implements TraceObserver {
         } finally {
             lock.unlock()
         }
+        println("addPublishedPath[$key]: $pathify [$publishedPaths]")
+    }
+
+    int countPublishedPaths() {
+        return publishedPaths.size()
     }
 
     @Override
     void onFlowCreate(Session session) {
-        log.debug("`onFlowCreate` $this")
+        log.info("`onFlowCreate` $session")
         this.session = session
         this.workDir = session.config.workDir
     }
@@ -70,16 +76,20 @@ class QuiltObserver implements TraceObserver {
     @Override
     void onFilePublish(Path destination, Path source) {
         // Path source may be null, won't work with older versions of Nextflow
-        log.info("\nonFilePublish.dest:$destination <- src:$source")
-        if (!session) {
-            log.debug('onFilePublish: no session intialized')
+        log.info("onFilePublish.dest:$destination <- src:$source")
+        println("\tonFilePublish.session: $session")
+        if (session == null) {
+            log.info('onFilePublish: no session intialized')
             return
         }
+        println('\tonFilePublish.QuiltPathify')
         QuiltPathify pathify = new QuiltPathify(destination)
+        println("\tonFilePublish.pathify: $pathify")
         if (!pathify.bucketExists()) {
             log.debug("onFilePublish.bucketExists[false]: $pathify")
             return
         }
+        println("\tonFilePublish.isOverlay: ${pathify.isOverlay}")
         if (pathify.isOverlay && source == null) {
             log.error("onFilePublish.isOverlay: no source for $pathify")
             return
