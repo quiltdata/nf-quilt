@@ -69,7 +69,7 @@ class QuiltObserverTest extends QuiltSpecification {
         // uninitialized
         observer.onFilePublish(validPath, validPath.localPath())
         then:
-        validPath.pkg().bucketExists() == true
+        validPath.pkg().isBucketAccessible() == true
         observer.publishedPaths.size() == 0
     }
 
@@ -104,7 +104,7 @@ class QuiltObserverTest extends QuiltSpecification {
         observer.onFilePublish(validPath, validPath.localPath())
         observer.onFlowComplete()
         then:
-        validPath.pkg().bucketExists() == true
+        validPath.pkg().isBucketAccessible() == true
         observer.publishedPaths.size() == 1
     }
 

@@ -216,12 +216,12 @@ class QuiltPackage {
         return installed
     }
 
-    boolean bucketExists() {
+    boolean isBucketAccessible() {
         S3PhysicalKey key = new S3PhysicalKey(bucket, '', null)
         try {
             key.listRecursively()
         } catch (Exception e) {
-            log.error("bucketExists: failed to check $bucket", e)
+            log.error("isBucketAccessible: failed to check $bucket", e)
             return false
         }
         return true

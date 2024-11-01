@@ -85,8 +85,8 @@ class QuiltObserver implements TraceObserver {
         println('\tonFilePublish.QuiltPathify')
         QuiltPathify pathify = new QuiltPathify(destination)
         println("\tonFilePublish.pathify: $pathify")
-        if (!pathify.bucketExists()) {
-            log.debug("onFilePublish.bucketExists[false]: $pathify")
+        if (!pathify.isBucketAccessible()) {
+            log.debug("onFilePublish.isBucketAccessible[false]: $pathify")
             return
         }
         println("\tonFilePublish.isOverlay: ${pathify.isOverlay}")
