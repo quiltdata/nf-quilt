@@ -23,7 +23,7 @@ import nextflow.quilt.nio.QuiltPathFactory
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.nio.file.Path
-//import spock.lang.Ignore
+import spock.lang.IgnoreIf
 import groovy.transform.CompileDynamic
 
 /**
