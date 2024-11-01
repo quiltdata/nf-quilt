@@ -49,7 +49,7 @@ class QuiltProductTest extends QuiltSpecification {
             getWorkflowMetadata() >> wf_meta
             getParams() >> [outdir: url]
             isSuccess() >> success
-            config >> [quilt: [meta: [cfkey: 'cfval']], runName: 'my-run', publishing: false]
+            config >> [quilt: [meta: [cfkey: 'cfval']]]
         }
         return new QuiltProduct(pathify, session)
     }
