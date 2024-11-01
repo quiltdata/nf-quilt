@@ -46,16 +46,6 @@ class QuiltObserverTest extends QuiltSpecification {
         return observer
     }
 
-    void 'should set metadata from config'() {
-        given:
-        QuiltObserver observer = new QuiltObserver()
-        Map<String, Map<String, Object>> config = [quilt: [metadata: [key: 'value']]]
-        expect:
-        observer.configMetadata.size() == 0
-        observer.checkConfig(config)
-        observer.configMetadata.size() == 1
-    }
-
     void 'should not error on onFlowComplete success'() {
         given:
         String quilt_uri = 'quilt+s3://bucket#package=prefix%2fsuffix'

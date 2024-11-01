@@ -78,7 +78,7 @@ ${nextflow}
 
 ### Processes
 
-`${meta['workflow']?.get('stats')?.get('processes')}`
+`${meta['workflow']?.get('stats')?.getAt('processes')}`
 '''
     private final static String DEFAULT_SUMMARIZE = '*.md,*.html,*.?sv,*.pdf,igv.json,**/multiqc_report.html'
 
@@ -134,6 +134,9 @@ ${nextflow}
         this.msg =  pkg.toString()
         this.meta = pkg.meta + [pkg: msg, time_start: now()]
         this.session = session
+        println("QuiltProduct: ${pkg.toUriString()}")
+        println("\tQuiltProduct.pkg: ${pkg}")
+        println("\tQuiltProduct.path: ${path}")
 
         if (session.isSuccess() || pkg.is_force()) {
             publish()
@@ -163,7 +166,6 @@ ${nextflow}
     }
 
     boolean shouldSkip(key) {
-        print("shouldSkip[$key]: ${pkg.meta}")
         return pkg.meta.containsKey(key) && pkg.meta[key] == KEY_SKIP
     }
 
@@ -171,18 +173,28 @@ ${nextflow}
         if (shouldSkip(KEY_META)) {
             return false
         }
+        Map<String, Map<String,Object>> cf = session.config
+        println("addSessionMeta.cf: ${cf}")
+        Map qf = cf.navigate('quilt') as Map<String, Object>
+        qf['package_id'] = pkg.toString()
+        qf['uri'] = path.toUriString()
+        println("addSessionMeta.qf: ${qf}")
+        Map<String, Object> cmeta = qf.navigate('meta') as Map<String, Object>
+        qf.remove('meta')
+        println("addSessionMeta.cmeta: ${cmeta}")
+
         try {
-            Map smeta = getMetadata(session.config)
-            println("addSessionMeta.smeta: ${smeta}")
-            smeta['quilt'] = [package_id: pkg.toString(), uri: path.toUriString()]
-            msg = "${smeta['config']['runName']}: ${smeta['cmd']}"
+            Map smeta = getMetadata(cf)
+            // println("addSessionMeta.smeta: ${smeta}")
+            smeta['quilt'] = qf
             smeta.remove('config')
-            meta += smeta
+            meta += smeta + cmeta
+            msg = "${cf.get('runName')}: ${meta['cmd']}"
         } catch (Exception e) {
+            println("addSessionMeta.getMetadata failed: $e")
             log.error("addSessionMeta.getMetadata failed: ${e.getMessage()}", pkg.meta)
             return false
         }
-        println("addSessionMeta.meta: ${meta}")
         writeNextflowMetadata(meta, 'metadata')
         return true
     }
@@ -226,6 +238,7 @@ ${nextflow}
             // printMap(wf, 'workflow')
             log.info("\npublishing: ${wf['runName']}")
         }
+
         return [
             cmd: cmd,
             config: cf,

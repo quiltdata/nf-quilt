@@ -233,7 +233,7 @@ class QuiltPackageTest extends QuiltSpecification {
 
     // TODO: ensure metadata is correctly inserted into package
     @IgnoreIf({ env.WRITE_BUCKET ==  null })
-    void 'should not fail pushing invalid metadata '() {
+    void 'should not fail pushing invalid metadata / no workflow'() {
         given:
         QuiltPackage opkg = writeablePackage('observer')
         Map meta =  ['key': "val=\'(key)\'"]
@@ -242,7 +242,7 @@ class QuiltPackageTest extends QuiltSpecification {
     }
 
     @IgnoreIf({ env.WRITE_BUCKET ==  null })
-    void 'should fail if invalid workflow'() {
+    void 'should fail push if invalid workflow'() {
         given:
         String pkgName = "workflow-bad-${timestamp}"
         QuiltPackage bad_wf = writeablePackage(pkgName, 'missing-workflow')

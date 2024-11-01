@@ -20,9 +20,10 @@ import nextflow.quilt.jep.QuiltParser
 import nextflow.quilt.nio.QuiltPath
 import nextflow.quilt.nio.QuiltPathFactory
 
-// import java.nio.file.Path
-// import java.nio.file.Paths
-//import spock.lang.Ignore
+import java.nio.file.Files
+import java.nio.file.Paths
+import java.nio.file.Path
+import spock.lang.IgnoreIf
 import groovy.transform.CompileDynamic
 
 /**
@@ -82,9 +83,9 @@ class QuiltPathifyTest extends QuiltSpecification {
         rc    | path
         false | 'FILE.md'
         true  | 'bucket#package=prefix%2fsuffix&path=FILE.md'
+        true  | 'bkt#package=pre%2fsuffix&path=inputs%2fbkt#package=pre%2fsuffix@af541d2%2fdata.tsv'
     }
 
-    // Test findQuiltPath updates uri/path/pkg
     void 'test findQuiltPath overrides attributes'() {
         when:
         QuiltPathify pathify = getPathify()
@@ -119,8 +120,50 @@ class QuiltPathifyTest extends QuiltSpecification {
         pathify2.pkg.toUriString() == uriWith
     }
 
-    // Test makeQuiltPath creates new uri/path/pkg
-    // Test makeQuiltPath sets isOverlay
-    // Test copyToPackage copies overly file to package folder
+    // TODO: Test findQuiltPath works for dynamic URIs
+
+    void 'test makeQuiltPath'() {
+        when:
+        QuiltPathify pathify = getPathify()
+        pathify.makeQuiltPath(s3File)
+
+        then:
+        pathify.isOverlay == false
+        pathify.uri == "quilt+s3://${uri}"
+        pathify.path.toString() == uri
+        pathify.pkg.toUriString() == "quilt+s3://${uri}"
+
+        where:
+        s3File                      | uri
+        '/bkt/pre/suf/fold/FILE.md' | 'bkt#package=pre%2fsuf&path=fold%2fFILE.md'
+    }
+
+    @IgnoreIf({ System.getProperty('os.name').toLowerCase().contains('windows') })
+    void 'test copyToCache copies overlay file to package folder'() {
+        when:
+        Path tempFolder = Files.createTempDirectory('bkt')
+        Path source = Paths.get(tempFolder.toString(), sub_path)
+        Files.createDirectories(source.getParent())
+        Files.createFile(source)
+
+        then:
+        Files.exists(source)
+
+        when:
+        QuiltPathify pathify = new QuiltPathify(source)
+        Path destFolder = pathify.pkg.packageDest()
+        String file = source.getFileName()
+        Path dest = Paths.get(destFolder.toString(), file)
+        pathify.copyToCache(source)
+
+        then:
+        pathify.isOverlay == true
+        Files.exists(dest)
+        Files.delete(dest)
+        Files.delete(source)
+
+        where:
+        sub_path  << ['FILE.md']
+    }
 
 }

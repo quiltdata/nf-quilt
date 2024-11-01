@@ -103,13 +103,14 @@ class QuiltPackage {
     }
 
     static QuiltPackage forParsed(QuiltParser parsed) {
+        println("QuiltPackage.forParsed: $parsed")
         boolean isNull = parsed.hasNullBucket()
         if (isNull && !PKGS.isEmpty()) {
             return PKGS.values().last()
         }
 
         String pkgKey = parsed.toPackageString(true) // ignore metadata for Key
-        log.debug("QuiltPackage.forParsed[${pkgKey}]")
+        log.info("QuiltPackage.forParsed[${pkgKey}]")
         def pkg = PKGS.get(pkgKey)
         if (pkg) { return pkg }
 
@@ -281,15 +282,15 @@ class QuiltPackage {
         })
     }
     // https://docs.quiltdata.com/v/version-5.0.x/examples/gitlike#install-a-package
-    Manifest push(String msg = 'update', Map meta = [:]) {
+    Manifest push(String msg = 'update', Map meta = [:], String pkg = null) {
         if (isNull()) {
             log.debug('null bucket: no need to push')
             return null
         }
-
+        String pkgName = pkg ?: packageName
         S3PhysicalKey registryPath = new S3PhysicalKey(bucket, '', null)
         Registry registry = new Registry(registryPath)
-        Namespace namespace = registry.getNamespace(packageName)
+        Namespace namespace = registry.getNamespace(pkgName)
 
         Manifest.Builder builder = Manifest.builder()
 
@@ -309,10 +310,10 @@ class QuiltPackage {
         builder.setMetadata((ObjectNode)mapper.valueToTree(fullMeta))
 
         Manifest m = builder.build()
-        log.debug("push[${this.parsed}]: ${m}")
+        log.debug("push[${pkgName}]: ${m}")
         try {
             Manifest manifest = m.push(namespace, "nf-quilt:${today()}-${msg}", parsed.workflowName)
-            log.debug("pushed[${this.parsed}]: ${manifest}")
+            log.debug("pushed[${pkgName}]: ${manifest}")
             return manifest
         } catch (Exception e) {
             log.error('ERROR: Failed to push manifest', e)

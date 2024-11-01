@@ -41,6 +41,9 @@ class QuiltPathify  {
     QuiltPackage pkg
     String uri
 
+    /*
+     * Copy a file from source to destRoot/relpath
+     */
     static void copyFile(Path source, String destRoot, String relpath) {
         Path dest  = Paths.get(destRoot, relpath.split('/') as String[])
         try {
@@ -95,43 +98,59 @@ class QuiltPathify  {
 
     // Constructor takes a Path and finds QuiltPath and QuiltPackage
     QuiltPathify(Path path) {
+        println("QuiltPathify: $path")
         if (path in QuiltPath) {
             this.path = (QuiltPath) path
+            println("\tQuiltPathify.QuiltPath: $this.path")
             this.uri = this.path.toUriString()
+            println("\t\tQuiltPathify.QuiltPath.uri: $this.uri")
             this.pkg = this.path.pkg()
+            println("\t\tQuiltPathify.QuiltPath.pkg: $this.pkg")
         } else if (!findQuiltPath(path.getFileName().toString())) {
-            makeQuiltPath(path)
+            makeQuiltPath(path.toString())
             this.isOverlay = true
         }
     }
 
     boolean findQuiltPath(String filename) {
-        // check for '#package' in filename
-        if (!filename.toString().contains('#package')) {
+        println("findQuiltPath: $filename")
+        String base = QuiltPath.getRootPackage(filename)
+        if (base == null) {
             return false
         }
 
-        uri = "${QuiltParser.SCHEME}://${filename}"
+        uri = "${QuiltParser.SCHEME}://${base}"
+        println("\tfindQuiltPath.uri: $uri")
         path = QuiltPathFactory.parse(this.uri)
+        println("\tfindQuiltPath.path: $path")
         pkg = path.pkg()
+        println("\tfindQuiltPath.pkg: $pkg")
         return true
     }
 
-    boolean makeQuiltPath(Path path) {
-        String quiltURI = uriFromS3File(path.toString())
+    boolean makeQuiltPath(String s3File) {
+        println("makeQuiltPath: $s3File")
+        String quiltURI = uriFromS3File(s3File)
+        println("\tmakeQuiltPath.quiltURI: $quiltURI")
         this.path = QuiltPathFactory.parse(quiltURI)
+        println("\tmakeQuiltPath.path: $path")
         this.uri = this.path.toUriString()
+        println("\tmakeQuiltPath.uri: $uri")
         this.pkg = this.path.pkg()
+        println("\tmakeQuiltPath.pkg: $pkg")
         return true
     }
 
-    boolean copyToPackage(Path source) {
+    boolean copyToCache(Path source) {
+        println("copyToCache: $source -> $path")
         if (!this.isOverlay) {
             return false
         }
-        String localPath = path.sub_paths()
+        String localPath = source.getFileName() // FIXME: should be relative to workdir
+        println("\tcopyToCache.localPath: $localPath")
         Path destDir = pkg.packageDest()
-        log.debug("copyToPackage: $source -> $destDir / $localPath")
+        println("\tcopyToCache.destDir: $destDir")
+        println("copyToCache: $source -> $destDir / $localPath")
         copyFile(source, destDir.toString(), localPath)
         return true
     }

@@ -17,6 +17,7 @@ package nextflow.quilt.nio
 
 import nextflow.quilt.jep.QuiltPackage
 import nextflow.quilt.jep.QuiltParser
+
 import java.nio.file.Files
 import java.nio.file.FileSystem
 import java.nio.file.LinkOption
@@ -26,6 +27,7 @@ import java.nio.file.ProviderMismatchException
 import java.nio.file.WatchEvent
 import java.nio.file.WatchKey
 import java.nio.file.WatchService
+import java.util.regex.Matcher
 
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
@@ -45,12 +47,36 @@ final class QuiltPath implements Path, Comparable {
     private final String[] paths
     private final boolean isFileName
 
+    static String getRootPackage(String filename) {
+        int n_package = filename.count('#package')
+        if (n_package < 1) {
+            return null
+        }
+        String base = filename
+        if (n_package > 1) {
+            log.info("\tfindQuiltPath: multiple '#package' in $base")
+            println('\t\tTO MATCH')
+            Matcher matches = (filename =~ /^([^#]+#package=.*)?(?:(?!%2f).)*#package=/)
+            if (!matches) {
+                log.error("findQuiltPath: no match found for $filename")
+                return null
+            }
+            println('\t\tDID MATCH')
+            println("\tfindQuiltPath.matches: $matches")
+            List<String> parts = matches[0] as List<String>
+            println("\tfindQuiltPath.parts: $parts")
+            base = parts[1]
+            log.info("\tfindQuiltPath: trimmed to $base")
+        }
+        return base
+    }
+
     QuiltPath(QuiltFileSystem filesystem, QuiltParser parsed, boolean isFileName = false) {
         this.filesystem = filesystem
         this.parsed = parsed
         this.paths = parsed.getPaths()
         this.isFileName = isFileName
-        log.debug("Creating QuiltPath: $parsed")
+        log.info("Creating QuiltPath: $parsed")
     }
 
     String getBucket() {
@@ -66,6 +92,7 @@ final class QuiltPath implements Path, Comparable {
     }
 
     QuiltPackage pkg() {
+        println("QuiltPath.pkg: $parsed")
         QuiltParser source = isAbsolute() ? parsed : QuiltParser.forNullBucket()
         return QuiltPackage.forParsed(source)
     }
@@ -238,7 +265,8 @@ final class QuiltPath implements Path, Comparable {
     }
 
     String toUriString() {
-        return parsed.toUriString()
+        String rawString = parsed.toUriString()
+        return getRootPackage(rawString) ?: rawString
     }
 
     @Override
