@@ -52,4 +52,54 @@ class QuiltFileSystemTest extends QuiltSpecification {
         fs.supportedFileAttributeViews() == ['basic'] as Set
     }
 
+    void 'should test QuiltPath-only operations'() {
+        when:
+        String BUCKET_NAME = 'bucket'
+        QuiltFileSystemProvider provider = Stub(QuiltFileSystemProvider)
+        QuiltFileSystem fs = new QuiltFileSystem(BUCKET_NAME, provider)
+        QuiltPath quiltPath = QuiltPathFactory.parse('quilt+s3://bkt#package=a/b&path=f.txt')
+        Path localPath = Paths.get('f.txt')
+
+        then:
+        !fs.exists(quiltPath)
+        fs.toUriString(quiltPath)
+        !fs.toUriString(localPath)
+        fs.getBashLib(quiltPath)
+        !fs.getBashLib(localPath)
+        fs.getUploadCmd(BUCKET_NAME, quiltPath)
+        !fs.getUploadCmd(BUCKET_NAME, localPath)
+    }
+
+    void 'should test unimplemented operations'() {
+        given:
+        String BUCKET_NAME = 'bucket'
+        QuiltFileSystemProvider provider = Stub(QuiltFileSystemProvider)
+        QuiltFileSystem fs = new QuiltFileSystem(BUCKET_NAME, provider)
+
+        when:
+        fs.getRootDirectories()
+        then:
+        thrown(UnsupportedOperationException)
+
+        when:
+        fs.getFileStores()
+        then:
+        thrown(UnsupportedOperationException)
+
+        when:
+        fs.getPathMatcher('*')
+        then:
+        thrown(UnsupportedOperationException)
+
+        when:
+        fs.getUserPrincipalLookupService()
+        then:
+        thrown(UnsupportedOperationException)
+
+        when:
+        fs.newWatchService()
+        then:
+        thrown(UnsupportedOperationException)
+    }
+
 }
