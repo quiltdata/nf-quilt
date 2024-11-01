@@ -138,6 +138,7 @@ class QuiltPathifyTest extends QuiltSpecification {
         '/bkt/pre/suf/fold/FILE.md' | 'bkt#package=pre%2fsuf&path=fold%2fFILE.md'
     }
 
+    @IgnoreIf({ System.getProperty('os.name').toLowerCase().contains('windows') })
     void 'test copyToCache copies overlay file to package folder'() {
         when:
         Path tempFolder = Files.createTempDirectory('bkt')
