@@ -76,6 +76,10 @@ class QuiltObserver implements TraceObserver {
             return
         }
         QuiltPathify pathify = new QuiltPathify(destination)
+        if (!pathify.bucketExists()) {
+            log.debug("onFilePublish.bucketExists[false]: $pathify")
+            return
+        }
         if (pathify.isOverlay && source == null) {
             log.error("onFilePublish.isOverlay: no source for $pathify")
             return

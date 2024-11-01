@@ -155,6 +155,10 @@ class QuiltPathify  {
         return true
     }
 
+    boolean bucketExists() {
+        return pkg.bucketExists()
+    }
+
     String pkgKey() {
         return pkg.toKey()
     }

@@ -8,6 +8,10 @@
 - Improve handling of dynamically-specified URIs
 - Rewrite README.md, splitting out developer documentation to README_DEV.md
 
+## [0.8.9] 2024-10-31 UNPUBLISHED
+
+- Handle multiple/internal publishDir calls
+
 ## [0.8.8] 2024-10-31 UNPUBLISHED
 
 - Debug build
