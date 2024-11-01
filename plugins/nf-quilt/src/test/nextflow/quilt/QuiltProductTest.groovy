@@ -117,6 +117,7 @@ class QuiltProductTest extends QuiltSpecification {
         !makeProduct('?readme=now').shouldSkip()
     }
 
+    @IgnoreIf({ System.getProperty('os.name').toLowerCase().contains('windows') })
     void 'does not create README if readme=SKIP'() {
         given:
         QuiltProduct skipREADME = makeProduct('readme=SKIP')
