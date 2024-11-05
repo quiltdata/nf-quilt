@@ -62,6 +62,15 @@ class QuiltProductTest extends QuiltSpecification {
         return makeProductFromUrl(subURL, success)
     }
 
+    QuiltProduct makeConfigProduct(Map config = null) {
+        QuiltPath path = QuiltPathFactory.parse(testURI)
+        QuiltPathify pathify = new QuiltPathify(path)
+        Session session = GroovyMock(Session)
+        session.config >> config
+        QuiltProduct product = new QuiltProduct(pathify, session)
+
+    }
+
     QuiltProduct makeWriteProduct(Map meta = [:]) {
         String subURL = writeableURI('quilt_product_test') // + '&workflow=universal'
         if (meta) {
@@ -109,12 +118,20 @@ class QuiltProductTest extends QuiltSpecification {
     void 'shouldSkip is true if key=SKIP'() {
         given:
         QuiltProduct product = makeProduct('readme=SKIP')
+        Session 
         expect:
         !product.shouldSkip(QuiltProduct.KEY_SKIP)
         !product.shouldSkip(QuiltProduct.KEY_META)
         product.shouldSkip(QuiltProduct.KEY_README)
 
         !makeProduct('?readme=now').shouldSkip()
+    }
+
+    void 'addSessionMeta is false if no config'() {
+        given:
+        QuiltProduct product = makeConfigProduct()
+        expect:
+        product.addSessionMeta() == false
     }
 
     @IgnoreIf({ System.getProperty('os.name').toLowerCase().contains('windows') })
