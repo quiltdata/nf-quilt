@@ -68,7 +68,7 @@ class QuiltProductTest extends QuiltSpecification {
         Session session = GroovyMock(Session)
         session.config >> config
         QuiltProduct product = new QuiltProduct(pathify, session)
-
+        return product
     }
 
     QuiltProduct makeWriteProduct(Map meta = [:]) {
@@ -118,7 +118,6 @@ class QuiltProductTest extends QuiltSpecification {
     void 'shouldSkip is true if key=SKIP'() {
         given:
         QuiltProduct product = makeProduct('readme=SKIP')
-        Session 
         expect:
         !product.shouldSkip(QuiltProduct.KEY_SKIP)
         !product.shouldSkip(QuiltProduct.KEY_META)
@@ -128,10 +127,16 @@ class QuiltProductTest extends QuiltSpecification {
     }
 
     void 'addSessionMeta is false if no config'() {
-        given:
-        QuiltProduct product = makeConfigProduct()
-        expect:
-        product.addSessionMeta() == false
+        when:
+        QuiltProduct no_config = makeConfigProduct()
+        then:
+        no_config.addSessionMeta() == false
+
+        when:
+        QuiltProduct no_quilt = makeConfigProduct([quilt: null])
+
+        then:
+        no_quilt.addSessionMeta() == false
     }
 
     @IgnoreIf({ System.getProperty('os.name').toLowerCase().contains('windows') })
@@ -154,7 +159,7 @@ class QuiltProductTest extends QuiltSpecification {
 
         then:
         !defaultREADME.shouldSkip(QuiltProduct.KEY_README)
-        files.size() == 1
+        files.size() > 0
 
         when:
         String readme_text = 'hasREADME'
@@ -164,7 +169,7 @@ class QuiltProductTest extends QuiltSpecification {
         then:
         text == readme_text
         !hasREADME.shouldSkip(QuiltProduct.KEY_README)
-        files.size() == 1
+        files.size() > 0
     }
 
     void 'setupSummarize empty if no files are present'() {

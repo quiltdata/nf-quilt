@@ -178,17 +178,18 @@ ${nextflow}
         Map<String, Map<String,Object>> cf = session.config
         println("addSessionMeta.cf: ${cf}")
         if (cf == null) {
-            log.error("addSessionMeta: no config found", pkg.meta)
+            log.error('addSessionMeta: no config found', pkg.meta)
             return false
         }
+        Map<String, Object> qf = cf.navigate('quilt') as Map<String, Object> ?: [:]
+        qf['package_id'] = pkg.toString()
+        qf['uri'] = path.toUriString()
+        println("addSessionMeta.qf: ${qf}")
+        Map<String, Object> cmeta = qf.navigate('meta') as Map<String, Object>
+        qf.remove('meta')
+        println("addSessionMeta.cmeta: ${cmeta}")
+
         try {
-            Map qf = cf.navigate('quilt') as Map<String, Object>
-            qf['package_id'] = pkg.toString()
-            qf['uri'] = path.toUriString()
-            println("addSessionMeta.qf: ${qf}")
-            Map<String, Object> cmeta = qf.navigate('meta') as Map<String, Object>
-            qf.remove('meta')
-            println("addSessionMeta.cmeta: ${cmeta}")
             Map smeta = getMetadata(cf)
             // println("addSessionMeta.smeta: ${smeta}")
             smeta['quilt'] = qf
