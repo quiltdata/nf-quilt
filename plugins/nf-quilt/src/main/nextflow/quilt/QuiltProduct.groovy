@@ -207,8 +207,12 @@ ${nextflow}
 
     String writeNextflowMetadata(Map map, String suffix) {
         String filename = "nf-quilt/${suffix}.json"
-        // log.debug("writeNextflowMetadata[$suffix]: ${filename}")
-        writeString(QuiltPackage.toJson(map), pkg, filename)
+        log.debug("writeNextflowMetadata[$suffix]: ${filename}")
+        try {
+            writeString(QuiltPackage.toJson(map), pkg, filename)
+        } catch (Exception e) {
+            log.error("writeNextflowMetadata.toJson failed: ${e.getMessage()}", map)
+        }
         return filename
     }
 
@@ -227,7 +231,7 @@ ${nextflow}
             writeNextflowMetadata(params, 'params')
             params.remove('genomes')
             params.remove('test_data')
-        // printMap(params, 'params')
+            printMap(params, 'params')
         }
         Map wf = session.getWorkflowMetadata().toMap()
         String start = wf['start']
@@ -241,7 +245,7 @@ ${nextflow}
             wf.remove('complete')
             wf.remove('workflowStats')
             wf.remove('commandLine')
-            // printMap(wf, 'workflow')
+            printMap(wf, 'workflow')
             log.info("\npublishing: ${wf['runName']}")
         }
 
@@ -264,7 +268,7 @@ ${nextflow}
             log.error("setupReadme failed: ${e.getMessage()}\n{$e}", pkg.meta)
         }
         if (text != null && text.length() > 0) {
-            //log.debug("setupReadme: ${text.length()} bytes")
+            log.debug("setupReadme: ${text.length()} bytes")
             writeString(text, pkg, README_FILE)
         }
         return text
@@ -342,8 +346,13 @@ ${nextflow}
             }
         }
 
-        String qs_json = JsonOutput.toJson(quilt_summarize)
-        writeString(qs_json, pkg, SUMMARY_FILE)
+        try {
+            String qs_json = JsonOutput.toJson(quilt_summarize)
+            writeString(qs_json, pkg, SUMMARY_FILE)
+        }
+        catch (Exception e) {
+            log.error("setupSummarize.toJson failed: ${e.getMessage()}\n{$e}", SUMMARY_FILE)
+        }
         return quilt_summarize
     }
 
