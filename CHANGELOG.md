@@ -8,6 +8,10 @@
 - Improve handling of dynamically-specified URIs
 - Rewrite README.md, splitting out developer documentation to README_DEV.md
 
+## [0.8.11] 2024-11-5 UNPUBLISHED
+
+- Catch *all* toJson errors
+
 ## [0.8.10] 2024-11-4 UNPUBLISHED
 
 - Ignore publish to 'home'
