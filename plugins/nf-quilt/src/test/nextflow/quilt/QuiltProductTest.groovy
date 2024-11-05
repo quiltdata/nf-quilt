@@ -103,7 +103,7 @@ class QuiltProductTest extends QuiltSpecification {
         !now.contains(' ')
     }
 
-    void 'should create from session'() {
+    void 'should create QuiltProduct from session'() {
         given:
         QuiltProduct product = makeProduct()
         expect:
@@ -113,6 +113,19 @@ class QuiltProductTest extends QuiltSpecification {
         !product.shouldSkip(QuiltProduct.KEY_SKIP)
         !product.shouldSkip(QuiltProduct.KEY_README)
         !product.shouldSkip(QuiltProduct.KEY_META)
+    }
+
+    void 'shouldSkip if key is false'() {
+        given:
+        Map config = [:]
+        config[QuiltProduct.KEY_META] = false
+        config[QuiltProduct.KEY_README] = false
+        println("config: ${config}")
+        QuiltProduct product = makeConfigProduct(config)
+
+        expect:
+        product.shouldSkip(QuiltProduct.KEY_META)
+        product.shouldSkip(QuiltProduct.KEY_README)
     }
 
     void 'shouldSkip is true if key=SKIP'() {

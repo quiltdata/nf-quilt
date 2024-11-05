@@ -113,7 +113,7 @@ Note that you need to quote the URIs to prevent the shell from interpreting the 
 There are a number of additional parameters you can set in order to customize
 the behavior of the plugin:
 
-* **catalog**: specify the DNS hostname of the Quilt catalog to use (default: `open.quiltdata.com`)
+* **catalog**: specify the DNS hostname of the Quilt catalog to use (default: None)
 * **force**: completely replace the existing package, rather than updating it (default: `false`)
 * **meta**: specify a map of metadata to add to the package (default: `{}`)
 * **msg**: specify the commit message template to use when saving the package
@@ -122,7 +122,9 @@ the behavior of the plugin:
 * **workflow**: specify the name of a Quilt workflow on that bucket to use for metadata validation (default: None)
 
 NOTE: These configurations were previously specified as part of the Quilt+ URI.
-That functionality has been deprecated, and may be removed in a future release.
+That functionality has mostly been removed.
+The Quilt+ URI fragment (`#`) is now only used to specify the package and (optionally) the path and workflow.
+You may continue to use the query string (`?`) to specify metadata, including the `catalog`.
 
 ### Template Strings
 
