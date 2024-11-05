@@ -8,6 +8,11 @@
 - Improve handling of dynamically-specified URIs
 - Rewrite README.md, splitting out developer documentation to README_DEV.md
 
+## [0.8.10] 2024-11-4 UNPUBLISHED
+
+- Ignore publish to 'home'
+- Fix: Cannot set property 'package_id' on null object
+
 ## [0.8.9] 2024-10-31 UNPUBLISHED
 
 - Handle multiple/internal publishDir calls

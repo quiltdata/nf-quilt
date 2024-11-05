@@ -156,6 +156,11 @@ class QuiltPathify  {
     }
 
     boolean isBucketAccessible() {
+        // ignore internal publishing from work dir
+        if (path.getBucket() == 'home') {
+            log.warn('isBucketAccessible: ignoring `home` bucket')
+            return false
+        }
         return pkg.isBucketAccessible()
     }
 

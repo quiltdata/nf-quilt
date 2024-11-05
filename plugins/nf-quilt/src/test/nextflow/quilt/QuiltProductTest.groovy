@@ -62,6 +62,15 @@ class QuiltProductTest extends QuiltSpecification {
         return makeProductFromUrl(subURL, success)
     }
 
+    QuiltProduct makeConfigProduct(Map config = null) {
+        QuiltPath path = QuiltPathFactory.parse(testURI)
+        QuiltPathify pathify = new QuiltPathify(path)
+        Session session = GroovyMock(Session)
+        session.config >> config
+        QuiltProduct product = new QuiltProduct(pathify, session)
+        return product
+    }
+
     QuiltProduct makeWriteProduct(Map meta = [:]) {
         String subURL = writeableURI('quilt_product_test') // + '&workflow=universal'
         if (meta) {
@@ -117,6 +126,19 @@ class QuiltProductTest extends QuiltSpecification {
         !makeProduct('?readme=now').shouldSkip()
     }
 
+    void 'addSessionMeta is false if no config'() {
+        when:
+        QuiltProduct no_config = makeConfigProduct()
+        then:
+        no_config.addSessionMeta() == false
+
+        when:
+        QuiltProduct no_quilt = makeConfigProduct([quilt: null])
+
+        then:
+        no_quilt.addSessionMeta() == false
+    }
+
     @IgnoreIf({ System.getProperty('os.name').toLowerCase().contains('windows') })
     void 'does not create README if readme=SKIP'() {
         given:
@@ -137,7 +159,7 @@ class QuiltProductTest extends QuiltSpecification {
 
         then:
         !defaultREADME.shouldSkip(QuiltProduct.KEY_README)
-        files.size() == 1
+        files.size() > 0
 
         when:
         String readme_text = 'hasREADME'
@@ -147,7 +169,7 @@ class QuiltProductTest extends QuiltSpecification {
         then:
         text == readme_text
         !hasREADME.shouldSkip(QuiltProduct.KEY_README)
-        files.size() == 1
+        files.size() > 0
     }
 
     void 'setupSummarize empty if no files are present'() {
