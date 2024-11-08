@@ -47,9 +47,8 @@ class QuiltProduct {
     public final static String README_FILE = 'README_NF_QUILT.md'
     public final static String SUMMARY_FILE = 'quilt_summarize.json'
 
-    private final static String KEY_META = 'metadata'
+    private final static String KEY_META = 'meta'
     private final static String KEY_README = 'readme'
-    private final static String KEY_SKIP = 'SKIP'
     private final static String KEY_SUMMARIZE = 'summarize'
 
     /* groovylint-disable-next-line GStringExpressionWithinString */
@@ -125,6 +124,9 @@ ${nextflow}
     private final QuiltPath path
     private final QuiltPackage pkg
     private final Session session
+    private final Map<String, Map<String,Object>> config = session.config
+
+    private String catalog
     private String msg
     private Map meta
 
@@ -162,11 +164,13 @@ ${nextflow}
             /* groovylint-disable-next-line ThrowRuntimeException */
             throw new RuntimeException(e)
         }
-        print("SUCCESS: $pkg\n")
+        String id = catalog ? pkg.toCatalogURL(catalog) : pkg.toUriString()
+        print("\nSUCCESS: $id\n")
     }
 
-    boolean shouldSkip(key) {
-        return pkg.meta.containsKey(key) && pkg.meta[key] == KEY_SKIP
+    boolean shouldSkip(String key) {
+        println("shouldSkip[$key]: ${config}")
+        return config != null && config.get(key) == false
     }
 
     boolean addSessionMeta() {
@@ -175,27 +179,29 @@ ${nextflow}
             return false
         }
 
-        Map<String, Map<String,Object>> cf = session.config
-        println("addSessionMeta.cf: ${cf}")
-        if (cf == null) {
+        println("addSessionMeta.config: ${config}")
+        if (config == null) {
             log.error('addSessionMeta: no config found', pkg.meta)
             return false
         }
-        Map<String, Object> qf = cf.navigate('quilt') as Map<String, Object> ?: [:]
+        Map<String, Object> qf = config.navigate('quilt') as Map<String, Object> ?: [:]
         qf['package_id'] = pkg.toString()
         qf['uri'] = path.toUriString()
         println("addSessionMeta.qf: ${qf}")
+        if (qf.get('catalog') != null) {
+            catalog = qf['catalog']
+        }
         Map<String, Object> cmeta = qf.navigate('meta') as Map<String, Object>
         qf.remove('meta')
         println("addSessionMeta.cmeta: ${cmeta}")
 
         try {
-            Map smeta = getMetadata(cf)
+            Map smeta = getMetadata()
             // println("addSessionMeta.smeta: ${smeta}")
             smeta['quilt'] = qf
             smeta.remove('config')
             meta += smeta + cmeta
-            msg = "${cf.get('runName')}: ${meta['cmd']}"
+            msg = "${config.get('runName')}: ${meta['cmd']}"
         } catch (Exception e) {
             println("addSessionMeta.getMetadata failed: $e")
             log.error("addSessionMeta.getMetadata failed: ${e.getMessage()}", pkg.meta)
@@ -216,15 +222,15 @@ ${nextflow}
         return filename
     }
 
-    Map getMetadata(Map cf) {
+    Map getMetadata() {
         // add metadata from quilt and URI
-        if (cf != null) {
-            cf.remove('executor')
-            cf.remove('params')
-            cf.remove('session')
-            writeNextflowMetadata(cf, 'config')
-            cf.remove('process')
-            printMap(cf, 'config')
+        if (config != null) {
+            config.remove('executor')
+            config.remove('params')
+            config.remove('session')
+            writeNextflowMetadata(config, 'config')
+            config.remove('process')
+            printMap(config, 'config')
         }
         Map params = session.getParams()
         if (params != null) {
@@ -251,7 +257,7 @@ ${nextflow}
 
         return [
             cmd: cmd,
-            config: cf,
+            config: config,
             params: params,
             time_start: start,
             time_complete: complete,

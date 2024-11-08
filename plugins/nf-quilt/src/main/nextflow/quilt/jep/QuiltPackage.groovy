@@ -349,6 +349,10 @@ class QuiltPackage {
         return parsed.toUriString()
     }
 
+    String toCatalogURL(String catalog) {
+        return "https://${catalog}/b/${bucket}/packages/${packageName}" //.replace("%2f", "/")
+    }
+
     String toKey() {
         return parsed.toPackageString(true)
     }
