@@ -135,28 +135,25 @@ class QuiltProductTest extends QuiltSpecification {
         ]
     }
 
-    void 'addSessionMeta is false if no config'() {
-        when:
-        QuiltProduct no_config = makeConfigProduct()
-        then:
-        no_config.addSessionMeta() == false
-
-        when:
-        QuiltProduct no_quilt = makeConfigProduct([quilt: null])
-
-        then:
-        no_quilt.addSessionMeta() == false
-    }
-
     void 'overrides config meta with query string'() {
-        given:
+        when:
+        println('\nOVERRIDE CONFIG META\n')
         QuiltProduct product = makeProduct('cfkey=overriden&newkey=newval')
-        Map quilt_meta = product.getMetadata()
+        Map base_meta = product.getMetadata()
 
-        expect:
-        quilt_meta != null
-        quilt_meta.config.quilt.meta.newkey == 'newval'
-        quilt_meta.config.quilt.meta.cfkey == 'overriden'
+        then:
+        base_meta != null
+        base_meta.config.quilt.meta.cfkey == 'overriden'
+        !base_meta.config.quilt.meta.contains('newkey')
+
+        when:
+        product.concatMetadata()
+        Map full_meta = product.getMetadata()
+
+        then:
+        full_meta != null
+        full_meta.config.quilt.meta.cfkey == 'overriden'
+        full_meta.config.quilt.meta.newkey == 'newval'
     }
 
     void 'overrides config force with query string'() {
@@ -324,7 +321,7 @@ class QuiltProductTest extends QuiltSpecification {
         Files.exists(Paths.get(sumPkg.packageDest().toString(), QuiltProduct.SUMMARY_FILE))
     }
 
-    void 'should addSessionMeta from session'() {
+    void 'should concatMetadata from session'() {
         when:
         QuiltProduct product = makeProduct('a=b&c=d')
         Map start_meta = product.meta
@@ -333,7 +330,7 @@ class QuiltProductTest extends QuiltSpecification {
         start_meta != null
         start_meta.size() == 4
         start_meta.a == 'b'
-        product.addSessionMeta()
+        product.concatMetadata()
 
         when:
         Map end_meta = product.meta

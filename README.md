@@ -126,9 +126,10 @@ the behavior of the plugin:
 * **force**: completely replace the existing package, rather than updating it
   (default: `false`)
 * **meta**: specify a map of metadata to add to the package (default: `{}`)
-* **msg**: specify the commit message template to use when saving the package
-* **pkg**: specify the name of the package to read or write, when using an S3
-  URI (default: the first two path components)
+* **message**: specify the commit message template to use when saving the
+  package
+* **package**: specify the name of the package to read or write, when using an
+  S3 URI (default: the first two path components)
 * **readme**: specify a template string for the package README_NF_QUILT.md file
 * **summarize**: which files to display on the "front page" of the package via
   `quilt_summarize.json`  (default:

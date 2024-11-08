@@ -31,8 +31,8 @@ import java.nio.file.SimpleFileVisitor
 import java.time.LocalDateTime
 
 import groovy.transform.CompileStatic
-import groovy.util.logging.Slf4j
 import groovy.text.GStringTemplateEngine
+import groovy.util.logging.Slf4j
 import groovy.json.JsonOutput
 
 /**
@@ -47,11 +47,21 @@ class QuiltProduct {
     public final static String README_FILE = 'README_NF_QUILT.md'
     public final static String SUMMARY_FILE = 'quilt_summarize.json'
 
+    private final static String KEY_CATALOG = 'catalog'
+    private final static String KEY_FORCE = 'force'
     private final static String KEY_META = 'meta'
+    private final static String KEY_MSG = 'message'
+    private final static String KEY_PKG = 'package'
+    private final static String KEY_QUILT = 'quilt'
     private final static String KEY_README = 'readme'
     private final static String KEY_SUMMARIZE = 'summarize'
 
-    /* groovylint-disable-next-line GStringExpressionWithinString */
+/* groovylint-disable-next-line GStringExpressionWithinString */
+    private final static String DEFAULT_MSG = '''
+${config.get('runName')}: ${meta.get('cmd')}
+'''
+
+/* groovylint-disable-next-line GStringExpressionWithinString */
     private final static String DEFAULT_README = '''
 # ${pkg}
 
@@ -79,6 +89,7 @@ ${nextflow}
 
 `${meta['workflow']?.get('stats')?.getAt('processes')}`
 '''
+
     private final static String DEFAULT_SUMMARIZE = '*.md,*.html,*.?sv,*.pdf,igv.json,**/multiqc_report.html'
 
     private final static String[] BIG_KEYS = [
@@ -124,128 +135,71 @@ ${nextflow}
     private final QuiltPath path
     private final QuiltPackage pkg
     private final Session session
-    private final Map<String, Map<String,Object>> config = session.config
+    private final Map<String, Map<String,Object>> config
 
-    private String catalog
-    private String msg
-    private Map meta
+    private final Map metadata
+    private final Expando flags = new Expando([
+        catalog: false,
+        force: false,
+        message: DEFAULT_MSG,
+        readme: DEFAULT_README,
+        summarize: DEFAULT_SUMMARIZE,
+        workflow: false,
+    ])
 
     QuiltProduct(QuiltPathify pathify, Session session) {
+        this.session = session
+        this.config = session.config ?: [:]
         this.path = pathify.path
         this.pkg = pathify.pkg
-        this.msg =  pkg.toString()
-        this.meta = pkg.meta + [pkg: msg, time_start: now()]
-        this.session = session
-        println("QuiltProduct: ${pkg.toUriString()}")
-        println("\tQuiltProduct.pkg: ${pkg}")
-        println("\tQuiltProduct.path: ${path}")
-
-        if (session.isSuccess() || pkg.is_force()) {
+        println("QuiltProduct.pkg: ${pkg.toUriString()}")
+        this.metadata = getMetadata()
+        println("QuiltProduct.metadata: ${metadata}")
+        println("QuiltProduct.flags: ${flags}")
+        if (session.isSuccess() || flags.getProperty(KEY_FORCE)) {
             publish()
         } else {
             log.info("not publishing: ${pkg} [unsuccessful session]")
         }
     }
 
-    void publish() {
-        log.debug("publish($msg)")
-        addSessionMeta()
-        setupReadme()
-        setupSummarize()
-        try {
-            log.info("publish.pushing: ${pkg}")
-            def m = pkg.push(msg, meta)
-            log.info("publish.pushed: ${m}")
-        }
-        catch (Exception e) {
-            log.error("Exception: ${e}")
-            print("FAILED: $pkg\n")
-            e.printStackTrace()
-            /* groovylint-disable-next-line ThrowRuntimeException */
-            throw new RuntimeException(e)
-        }
-        String id = catalog ? pkg.toCatalogURL(catalog) : pkg.toUriString()
-        print("\nSUCCESS: $id\n")
-    }
-
-    boolean shouldSkip(String key) {
-        println("shouldSkip[$key]: ${config}")
-        return config?.get('quilt')?.get(key) == false
-    }
-
-    boolean addSessionMeta() {
-        println("addSessionMeta.meta: ${meta}")
-        if (shouldSkip(KEY_META)) {
-            return false
-        }
-
-        println("addSessionMeta.config: ${config}")
-        if (config == null) {
-            log.error('addSessionMeta: no config found', pkg.meta)
-            return false
-        }
-        Map<String, Object> qf = config.navigate('quilt') as Map<String, Object> ?: [:]
-        qf['package_id'] = pkg.toString()
-        qf['uri'] = path.toUriString()
-        println("addSessionMeta.qf: ${qf}")
-        if (qf.get('catalog') != null) {
-            catalog = qf['catalog']
-        }
-        Map<String, Object> cmeta = qf.navigate('meta') as Map<String, Object>
-        qf.remove('meta')
-        println("addSessionMeta.cmeta: ${cmeta}")
-
-        try {
-            Map smeta = getMetadata()
-            println("addSessionMeta.smeta: ${smeta}")
-            smeta['quilt'] = qf
-            smeta.remove('config')
-            meta += smeta + cmeta
-            msg = "${config.get('runName')}: ${meta['cmd']}"
-        } catch (Exception e) {
-            println("addSessionMeta.getMetadata failed: $e")
-            log.error("addSessionMeta.getMetadata failed: ${e.getMessage()}", pkg.meta)
-            return false
-        }
-        writeNextflowMetadata(meta, 'metadata')
-        return true
-    }
-
-    String writeNextflowMetadata(Map map, String suffix) {
-        String filename = "nf-quilt/${suffix}.json"
-        log.debug("writeNextflowMetadata[$suffix]: ${filename}")
-        try {
-            writeString(QuiltPackage.toJson(map), pkg, filename)
-        } catch (Exception e) {
-            log.error("writeNextflowMetadata.toJson failed: ${e.getMessage()}", map)
-        }
-        return filename
-    }
-
     Map getMetadata() {
-        // add metadata from quilt and URI
-        if (config != null) {
-            config.remove('executor')
-            config.remove('params')
-            config.remove('session')
-            writeNextflowMetadata(config, 'config')
-            config.remove('process')
-            printMap(config, 'config')
+        if (shouldSkip(KEY_META)) {
+            log.info("SKIP: metadata for ${pkg}")
+            return [:]
         }
+        println("getMetadata.config: ${config}")
+        config.remove('executor')
+        config.remove('params')
+        config.remove('session')
+        writeMapToPackage(config, 'config')
+        config.remove('process')
+        printMap(config, 'config')
+
+        Map<String, Object> quilt_cf = config.navigate(KEY_QUILT) as Map<String, Object> ?: [:]
+        config.remove(KEY_QUILT)
+
+        Map<String, Object> cf_meta = quilt_cf.navigate(KEY_META) as Map<String, Object> ?: [:]
+        quilt_cf.remove(KEY_META)
+        Map pkg_meta = pkg.meta
+        updateFlags(pkg_meta, quilt_cf)
+
         Map params = session.getParams()
+        println("getMetadata.params: ${params}")
         if (params != null) {
-            writeNextflowMetadata(params, 'params')
+            writeMapToPackage(params, 'params')
             params.remove('genomes')
             params.remove('test_data')
             printMap(params, 'params')
         }
-        Map wf = session.getWorkflowMetadata().toMap()
-        String start = wf['start']
-        String complete = wf['complete']
-        String cmd = wf['commandLine']
+        Map wf = session.getWorkflowMetadata()?.toMap()
+        println("getMetadata.wf: ${wf}")
+        String start = wf?.get('start')
+        String complete = wf?.get('complete')
+        String cmd = wf?.get('commandLine')
         if (wf != null) {
             BIG_KEYS.each { k -> wf[k] = "${wf[k]}" }
-            writeNextflowMetadata(wf, 'workflow')
+            writeMapToPackage(wf, 'workflow')
             wf.remove('container')
             wf.remove('start')
             wf.remove('complete')
@@ -255,56 +209,136 @@ ${nextflow}
             log.info("\npublishing: ${wf['runName']}")
         }
 
-        return [
+        Map base_meta = cf_meta + pkg_meta
+        log.debug("getMetadata.base_meta: ${base_meta}")
+        return base_meta + [
             cmd: cmd,
-            config: config,
+            now: now(),
             params: params,
+            quilt: quilt_cf,
             time_start: start,
             time_complete: complete,
+            uri: path.toUriString(),
             workflow: wf,
         ]
     }
 
-    String setupReadme() {
-        String text = 'Stub README'
-        try {
-            text = makeReadme()
-        }
-        catch (Exception e) {
-            log.error("setupReadme failed: ${e.getMessage()}\n{$e}", pkg.meta)
-        }
-        if (text != null && text.length() > 0) {
-            log.debug("setupReadme: ${text.length()} bytes")
-            writeString(text, pkg, README_FILE)
-        }
-        return text
+    Map getParams() {
+        Map params = [
+            cmd: metadata.get('cmd'),
+            meta: metadata,
+            now: metadata.get('now'),
+            pkg: flags.getProperty(KEY_PKG)
+        ]
+        return params
     }
 
-    String makeReadme() {
+    boolean shouldSkip(String key) {
+        return flags.getProperty(key) == false
+    }
+
+    /**
+     * Update flags from default values
+     * Use metadata if available, otherwise use config
+     *
+        * @param meta Map of package metadata
+        * @param cf Map of config (from nextflow.config)
+     */
+    void updateFlags(Map meta, Map cf) {
+        flags.each { String key, value ->
+            if (meta.containsKey(key)) {
+                flags.setProperty(key, meta[key])
+            } else if (cf.containsKey(key)) {
+                flags.setProperty(key, cf[key])
+            }
+        }
+        // FIXME: should this only work for names inferred from S3 URIs?
+        String pkgName = cf.containsKey(KEY_PKG) ? cf[KEY_PKG] : pkg.packageName
+        flags.setProperty(KEY_PKG, pkgName)
+    }
+
+    String writeMapToPackage(Map map, String prefix) {
+        String filename = "nf-quilt/${prefix}.json"
+        log.debug("writeMapToPackage[$prefix]: ${filename}")
+        try {
+            writeString(QuiltPackage.toJson(map), pkg, filename)
+        } catch (Exception e) {
+            log.error("writeMapToPackage.toJson failed: ${e.getMessage()}", map)
+        }
+        return filename
+    }
+
+/*
+ * Publish the package to the Quilt catalog
+ */
+
+    void publish() {
+        log.info("publish.pushing: ${pkg}")
+        try {
+            String message = compileMessage()
+            writeReadme(message)
+            writeSummarize()
+            def rc = pkg.push(message, metadata)
+            log.info("publish.pushed: ${rc}")
+        }
+        catch (Exception e) {
+            log.error("Exception: ${e}")
+            print("publish.FAILED: $pkg\n")
+            e.printStackTrace()
+            return
+        }
+        print("\nSUCCESS: ${displayName()}\n")
+    }
+
+    String displayName() {
+        Object catalog = flags.getProperty(KEY_CATALOG)
+        return catalog ? pkg.toCatalogURL(catalog.toString()) : pkg.toUriString()
+    }
+
+    String compileMessage() {
+        String msg = flags.getProperty(KEY_MSG)
+        GStringTemplateEngine engine = new GStringTemplateEngine()
+        String output = engine.createTemplate(msg).make(getParams())
+        log.debug("compileMessage.output: ${output}")
+        return output
+    }
+
+    String compileReadme(String msg) {
         if (shouldSkip(KEY_README)) {
             log.info("SKIP: readme for ${pkg}")
             return null
         }
-        GStringTemplateEngine engine = new GStringTemplateEngine()
-        String raw_readme = pkg.meta_overrides(KEY_README, DEFAULT_README)
-        String cmd = "${meta['cmd']}".replace(' -', ' \\\n  -')
-        String nf = meta['workflow']?['nextflow']
+        String raw_readme = flags.getProperty(KEY_README)
+        String nf = metadata['workflow']?['nextflow']
         String nextflow = nf?.replace(', ', '```\n  - **')\
             ?.replace('nextflow.NextflowMeta(', '  - **')\
             ?.replace(')', '```')
             ?.replace(':', '**: ```')
-        Map params = [
-            cmd: cmd,
-            meta: meta,
+        Map params = getParams()
+        params += [
             msg: msg,
             nextflow: nextflow,
-            now: now(),
-            pkg: pkg.packageName,
         ]
-        log.debug("makeReadme.params: ${params}")
-        String template = engine.createTemplate(raw_readme).make(params)
-        log.debug("makeReadme.template: ${template}")
-        return template
+        log.debug("compileReadme.params: ${params}")
+        GStringTemplateEngine engine = new GStringTemplateEngine()
+        String output = engine.createTemplate(raw_readme).make(params)
+        log.debug("compileReadme.output: ${output}")
+        return output
+    }
+
+    String writeReadme(String message) {
+        String text = 'Stub README'
+        try {
+            text = compileReadme(message)
+        }
+        catch (Exception e) {
+            log.error("writeReadme failed: ${e.getMessage()}\n{$e}", flags)
+        }
+        if (text != null && text.length() > 0) {
+            log.debug("writeReadme: ${text.length()} bytes")
+            writeString(text, pkg, README_FILE)
+        }
+        return text
     }
 
     List<Path> match(String glob) throws IOException {
@@ -336,12 +370,12 @@ ${nextflow}
         return matches
     }
 
-    List<Map> setupSummarize() {
+    List<Map> writeSummarize() {
         List<Map> quilt_summarize = []
         if (shouldSkip(KEY_SUMMARIZE)) {
             return quilt_summarize
         }
-        String summarize = pkg.meta_overrides(KEY_SUMMARIZE, DEFAULT_SUMMARIZE)
+        String summarize = flags.getProperty(KEY_SUMMARIZE)
         String[] wildcards = summarize.split(',')
         wildcards.each { wildcard ->
             List<Path> paths = match(wildcard)
@@ -357,7 +391,7 @@ ${nextflow}
             writeString(qs_json, pkg, SUMMARY_FILE)
         }
         catch (Exception e) {
-            log.error("setupSummarize.toJson failed: ${e.getMessage()}\n{$e}", SUMMARY_FILE)
+            log.error("writeSummarize.toJson failed: ${e.getMessage()}\n{$e}", SUMMARY_FILE)
         }
         return quilt_summarize
     }
