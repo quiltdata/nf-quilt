@@ -36,7 +36,8 @@ metadata from that run.
 
 ## Use nextflow.config to configure the plugin
 
-To avoid having to manually specify the plugin, you can add it to your `nextflow.config` file:
+To avoid having to manually specify the plugin, you can add it to your
+`nextflow.config` file:
 
 ```groovy
 plugins {
@@ -49,7 +50,8 @@ This also works with Nextflow Tower, where you can add the plugin to the
 
 ![Example Tower Configuration](./images/tower-config.png)
 
-As of v0.9+, you can also add a `quilt` section to your `nextflow.config` file to specify the metadata and other plugin behaviors:
+As of v0.9, you can also add a `quilt` section to your `nextflow.config` file
+to specify the metadata and other plugin behaviors:
 
 ```groovy
 quilt {
@@ -73,19 +75,23 @@ quilt+s3://$WRITE_BUCKET#package=nf_quilt/rnaseq
 
 ### Input URIs
 
-Versioned Quilt+ URIs can be used as input URIs in your Nextflow pipeline, to ensure you know precisely which data you are using. For example, this is a specific version of the output from `nf-core/sarek`:
+Versioned Quilt+ URIs can be used as input URIs in your Nextflow pipeline, to
+ensure you know precisely which data you are using. For example, this is a
+specific version of the output from `nf-core/sarek`:
 
 ```shell
 quilt+s3://$READ_BUCKET#package=nf-core/sarek@8a2164f48be8e0d6385f64b76b74a8543e9fb1b12a8eff6daeaffa653d52fcf7
 ```
 
-If are using the Quilt Platform, you can find the Quilt+ URI for a package in the `<> CODE | URI` section at the top of the package page.
+If are using the Quilt Platform, you can find the Quilt+ URI for a package in
+the `<> CODE | URI` section at the top of the package page.
 
 ![Example Quilt+ URI](./images/quilt-uri.png)
 
 ### Output URIs
 
-You can specify a Quilt+ URI as the `--outdir` parameter in your Nextflow pipeline if you want to specify the package name and metadata for the output,
+You can specify a Quilt+ URI as the `--outdir` parameter in your Nextflow
+pipeline if you want to specify the package name and metadata for the output,
 but don't care about the precise location in S3. For example:
 
 ```shell
@@ -100,36 +106,47 @@ metadata to be present before a package can be created.
 
 ### CLI Usage
 
-If your workflow supports `--input` and `--outdir` parameters, you can use them to specify the Quilt+ URIs. For example:
+If your workflow supports `--input` and `--outdir` parameters, you can use them
+to specify the Quilt+ URIs. For example:
 
 ```shell
 nextflow run main.nf --input "quilt+s3://$READ_BUCKET#package=nf-core/sarek@8a2164f48be8e0d6385f64b76b74a8543e9fb1b12a8eff6daeaffa653d52fcf7" --outdir "quilt+s3://$WRITE_BUCKET?key=value#package=test/my-sarek-processor"
 ```
 
-Note that you need to quote the URIs to prevent the shell from interpreting the `?` and `#` characters.
+Note that you need to quote the URIs to prevent the shell from interpreting the
+`?` and `#` characters.
 
 ## Configurations
 
 There are a number of additional parameters you can set in order to customize
 the behavior of the plugin:
 
-* **catalog**: specify the DNS hostname of the Quilt catalog to use (default: None)
-* **force**: completely replace the existing package, rather than updating it (default: `false`)
+* **catalog**: specify the DNS hostname of the Quilt catalog to use (default:
+  None)
+* **force**: completely replace the existing package, rather than updating it
+  (default: `false`)
 * **meta**: specify a map of metadata to add to the package (default: `{}`)
 * **msg**: specify the commit message template to use when saving the package
-* **pkg**: specify the name of the package to read or write, when using an S3 URI (default: the first two path components)
+* **pkg**: specify the name of the package to read or write, when using an S3
+  URI (default: the first two path components)
 * **readme**: specify a template string for the package README_NF_QUILT.md file
-* **workflow**: specify the name of a Quilt workflow on that bucket to use for metadata validation (default: None)
+* **summarize**: which files to display on the "front page" of the package via
+  `quilt_summarize.json`  (default:
+  `*.md,*.html,*.?sv,*.pdf,igv.json,**/multiqc_report.html`); use `false` to
+  disable.
+* **workflow**: specify the name of a Quilt workflow on that bucket to use for
+  metadata validation (default: None)
 
 NOTE: These configurations were previously specified as part of the Quilt+ URI.
-That functionality has mostly been removed.
-The Quilt+ URI fragment (`#`) is now only used to specify the package and (optionally) the path and workflow.
-You may continue to use the query string (`?`) to specify metadata, including the `catalog`.
+That functionality has mostly been removed. The Quilt+ URI fragment (`#`) is now
+only used to specify the package and (optionally) the path and workflow. You may
+continue to use the query string (`?`) to specify metadata, including the
+`catalog`.
 
 ### Template Strings
 
-Version 0.3.4 and later allow you to customize both the `msg`
-and `readme` via template strings that use these `${variables}`:
+You can customize both the `msg` and `readme` via template strings that use
+these `${variables}`:
 
 * `cmd`: the current command line
 * `meta`: the complete metadata

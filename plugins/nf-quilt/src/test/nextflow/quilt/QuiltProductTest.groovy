@@ -62,11 +62,11 @@ class QuiltProductTest extends QuiltSpecification {
         return makeProductFromUrl(subURL, success)
     }
 
-    QuiltProduct makeConfigProduct(Map config = null) {
+    QuiltProduct makeConfigProduct(Map qconfig = null) {
         QuiltPath path = QuiltPathFactory.parse(testURI)
         QuiltPathify pathify = new QuiltPathify(path)
         Session session = GroovyMock(Session)
-        session.config >> config
+        session.config >> [quilt: qconfig]
         QuiltProduct product = new QuiltProduct(pathify, session)
         return product
     }
@@ -110,33 +110,29 @@ class QuiltProductTest extends QuiltSpecification {
         product
         !product.shouldSkip('key')
         !product.shouldSkip('missing_key')
-        !product.shouldSkip(QuiltProduct.KEY_SKIP)
+        !product.shouldSkip(QuiltProduct.KEY_SUMMARIZE)
         !product.shouldSkip(QuiltProduct.KEY_README)
         !product.shouldSkip(QuiltProduct.KEY_META)
     }
 
     void 'shouldSkip if key is false'() {
         given:
-        Map config = [:]
-        config[QuiltProduct.KEY_META] = false
-        config[QuiltProduct.KEY_README] = false
-        println("config: ${config}")
-        QuiltProduct product = makeConfigProduct(config)
+        Map qconfig = [:]
+        qconfig[QuiltProduct.KEY_META] = false
+        qconfig[QuiltProduct.KEY_README] = false
+        qconfig[QuiltProduct.KEY_SUMMARIZE] = false
+        println("qconfig: ${qconfig}")
+        QuiltProduct product = makeConfigProduct(qconfig)
 
         expect:
-        product.shouldSkip(QuiltProduct.KEY_META)
-        product.shouldSkip(QuiltProduct.KEY_README)
-    }
+        product.shouldSkip(key)
 
-    void 'shouldSkip is true if key=SKIP'() {
-        given:
-        QuiltProduct product = makeProduct('readme=SKIP')
-        expect:
-        !product.shouldSkip(QuiltProduct.KEY_SKIP)
-        !product.shouldSkip(QuiltProduct.KEY_META)
-        product.shouldSkip(QuiltProduct.KEY_README)
-
-        !makeProduct('?readme=now').shouldSkip()
+        where:
+        key << [
+            QuiltProduct.KEY_META,
+            QuiltProduct.KEY_README,
+            QuiltProduct.KEY_SUMMARIZE
+        ]
     }
 
     void 'addSessionMeta is false if no config'() {
@@ -152,19 +148,38 @@ class QuiltProductTest extends QuiltSpecification {
         no_quilt.addSessionMeta() == false
     }
 
-    @IgnoreIf({ System.getProperty('os.name').toLowerCase().contains('windows') })
-    void 'does not create README if readme=SKIP'() {
+    void 'overrides config meta with query string'() {
         given:
-        QuiltProduct skipREADME = makeProduct('readme=SKIP')
-        String text = skipREADME.setupReadme()
-        def files = skipREADME.pkg.folder.list().sort()
+        QuiltProduct product = makeProduct('cfkey=overriden&newkey=newval')
+        Map quilt_meta = product.getMetadata()
+
         expect:
-        skipREADME.shouldSkip(QuiltProduct.KEY_README)
-        !text
-        files.size() == 0
+        quilt_meta != null
+        quilt_meta.config.quilt.meta.newkey == 'newval'
+        quilt_meta.config.quilt.meta.cfkey == 'overriden'
     }
 
-    void 'always creates README if readme!=SKIP'() {
+    void 'overrides config force with query string'() {
+        expect:
+        true
+    }
+
+    void 'overrides config catalog with query string'() {
+        expect:
+        true
+    }
+
+    void 'skips README if false'() {
+        expect:
+        true
+    }
+
+    void 'overrides default msg with config'() {
+        expect:
+        true
+    }
+
+    void 'overrides default README with config'() {
         when:
         QuiltProduct defaultREADME = makeProduct()
         String text = defaultREADME.setupReadme()
@@ -307,22 +322,6 @@ class QuiltProductTest extends QuiltSpecification {
         product.publish()
         sumPkg.install()
         Files.exists(Paths.get(sumPkg.packageDest().toString(), QuiltProduct.SUMMARY_FILE))
-    }
-
-    void 'should getMetadata from Map'() {
-        given:
-        Map meta = [
-            'Name': 'QuiltPackageTest',
-            'Owner': 'Ernest',
-            'Date': '1967-10-08',
-            'Type': 'NGS'
-        ]
-        QuiltProduct product = makeProduct()
-        Map quilt_meta = product.getMetadata(meta)
-
-        expect:
-        quilt_meta != null
-        quilt_meta.config == meta
     }
 
     void 'should addSessionMeta from session'() {

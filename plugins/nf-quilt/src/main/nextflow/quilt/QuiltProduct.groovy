@@ -170,11 +170,11 @@ ${nextflow}
 
     boolean shouldSkip(String key) {
         println("shouldSkip[$key]: ${config}")
-        return config != null && config.get(key) == false
+        return config?.get('quilt')?.get(key) == false
     }
 
     boolean addSessionMeta() {
-        println("addSessionMeta: ${session}")
+        println("addSessionMeta.meta: ${meta}")
         if (shouldSkip(KEY_META)) {
             return false
         }
@@ -197,7 +197,7 @@ ${nextflow}
 
         try {
             Map smeta = getMetadata()
-            // println("addSessionMeta.smeta: ${smeta}")
+            println("addSessionMeta.smeta: ${smeta}")
             smeta['quilt'] = qf
             smeta.remove('config')
             meta += smeta + cmeta
@@ -282,7 +282,7 @@ ${nextflow}
 
     String makeReadme() {
         if (shouldSkip(KEY_README)) {
-            log.info("readme=SKIP for ${pkg}")
+            log.info("SKIP: readme for ${pkg}")
             return null
         }
         GStringTemplateEngine engine = new GStringTemplateEngine()
