@@ -110,7 +110,7 @@ ${nextflow}
             Files.write(path, text.bytes)
         }
         catch (Exception e) {
-            log.error("writeString: cannot write `$text` to `$path` for `${pkg}`")
+            log.error("writeString: cannot write `$text` to `$path` for `${pkg}`\n$e")
         }
     }
 
@@ -121,7 +121,7 @@ ${nextflow}
             Files.copy(source, dest)
         }
         catch (Exception e) {
-            log.error("writeString: cannot write `$source` to `$dest` in `${destRoot}`")
+            log.error("writeString: cannot write `$source` to `$dest` in `${destRoot}`\n$e.message()")
         }
     }
 
@@ -182,7 +182,7 @@ ${nextflow}
         Map<String, Object> cf_meta = quilt_cf.navigate(KEY_META) as Map<String, Object> ?: [:]
         quilt_cf.remove(KEY_META)
         // println("getMetadata.cf_meta: ${cf_meta}")
-        Map pkg_meta = pkg.meta
+        Map pkg_meta = pkg.getMetadata()
         updateFlags(pkg_meta, quilt_cf)
 
         Map params = session.getParams()

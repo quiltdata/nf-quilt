@@ -49,8 +49,8 @@ class QuiltPackage {
     private static final String INSTALL_PREFIX = 'QuiltPackage'
     static final Path INSTALL_ROOT = Files.createTempDirectory(INSTALL_PREFIX)
 
+    public final String packageName
     private final String bucket
-    private final String packageName
     private final QuiltParser parsed
     private final String hash
     private final Path folder
@@ -218,6 +218,10 @@ class QuiltPackage {
 
     Path packageDest() {
         return folder
+    }
+
+    Map getMetadata() {
+        return this.meta
     }
 
     /*

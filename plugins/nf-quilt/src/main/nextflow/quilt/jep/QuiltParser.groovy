@@ -92,20 +92,21 @@ class QuiltParser {
     static Map<String, Object> parseQuery(String query) {
         if (!query) { return [:] } // skip for urls without query params
         def params = query.split('&')
-        def result = [:]
+        Map<String,List<String>> result = [:]
         params.each { param ->
             def keyValue = param.split('=')
             if (keyValue.size() == 2) {
                 String key = decode(keyValue[0])
                 String value = decode(keyValue[1])
                 if (result.containsKey(key)) {
-                    if (result[key] instanceof List) {
-                        result[key] += value
+                    List<String> listVal = result[key]
+                    if (listVal instanceof List) {
+                        listVal << value
                     } else {
-                        result[key] = [result[key], value]
+                        result[key] = [listVal, value] as List<String>
                     }
                 } else {
-                    result[key] = value
+                    result[key] = value as List<String>
                 }
             }
         }
