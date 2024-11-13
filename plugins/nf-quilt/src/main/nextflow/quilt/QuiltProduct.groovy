@@ -245,7 +245,7 @@ ${nextflow}
         * @param cf Map of config (from nextflow.config)
      */
     void updateFlags(Map meta, Map cf) {
-        flags.each { String key, value ->
+        for (String key : flags.properties.keySet()) {
             if (meta.containsKey(key)) {
                 flags.setProperty(key, meta[key])
             } else if (cf.containsKey(key)) {
