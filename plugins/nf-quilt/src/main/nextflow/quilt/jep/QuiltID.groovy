@@ -15,9 +15,6 @@
  */
 package nextflow.quilt.jep
 
-/* groovylint-disable-next-line ImportFromSamePackage */
-import nextflow.quilt.jep.QuiltParser
-
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 

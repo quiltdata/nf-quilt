@@ -22,6 +22,7 @@ import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import java.nio.file.FileSystems
 import java.nio.file.Files
+import java.nio.file.NoSuchFileException
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.nio.file.SimpleFileVisitor
@@ -48,8 +49,8 @@ class QuiltPackage {
     private static final String INSTALL_PREFIX = 'QuiltPackage'
     static final Path INSTALL_ROOT = Files.createTempDirectory(INSTALL_PREFIX)
 
+    public final String packageName
     private final String bucket
-    private final String packageName
     private final QuiltParser parsed
     private final String hash
     private final Path folder
@@ -97,11 +98,6 @@ class QuiltPackage {
         PKGS.clear()
     }
 
-    static QuiltPackage forUriString(String uri) {
-        QuiltParser parsed = QuiltParser.forUriString(uri)
-        return forParsed(parsed)
-    }
-
     static QuiltPackage forParsed(QuiltParser parsed) {
         println("QuiltPackage.forParsed: $parsed")
         boolean isNull = parsed.hasNullBucket()
@@ -123,13 +119,6 @@ class QuiltPackage {
         return PKGS.containsKey(pkgKey)
     }
 
-    static QuiltPackage forKey(String pkgKey) {
-        if (hasKey(pkgKey)) {
-            return PKGS.get(pkgKey)
-        }
-        return null
-    }
-
     static List<Path> listDirectory(Path rootPath) {
         return Files.walk(rootPath).sorted(Comparator.reverseOrder()).collect(Collectors.toList())
     }
@@ -147,8 +136,8 @@ class QuiltPackage {
                 Files.deleteIfExists(path)
             }
         }
-        catch (java.nio.file.NoSuchFileException e) {
-            log.debug 'deleteDirectory: ignore non-existent files'
+        catch (NoSuchFileException e) {
+            log.debug "deleteDirectory: ignore non-existent files\n$e"
         }
         return true
     }
@@ -205,7 +194,7 @@ class QuiltPackage {
     }
 
     boolean is_force() {
-        return parsed.options[QuiltParser.P_FORCE]
+        return parsed.getOptions(QuiltParser.P_FORCE)
     }
 
     boolean isNull() {
@@ -229,6 +218,10 @@ class QuiltPackage {
 
     Path packageDest() {
         return folder
+    }
+
+    Map getMetadata() {
+        return this.meta
     }
 
     /*
@@ -315,7 +308,7 @@ class QuiltPackage {
             LocalPhysicalKey physicalKey = new LocalPhysicalKey(f)
             long size = Files.size(f)
             builder.addEntry(logicalKey, new Entry(physicalKey, size, null, null))
-        });
+        })
 
         Map<String, Object> fullMeta = [
             'version': Manifest.VERSION,
@@ -337,7 +330,7 @@ class QuiltPackage {
             /* groovylint-disable-next-line ThrowRuntimeException */
             throw new RuntimeException(e)
         }
-        return m
+        // return m
     }
 
     @Override
@@ -355,11 +348,6 @@ class QuiltPackage {
 
     String toKey() {
         return parsed.toPackageString(true)
-    }
-
-    String meta_overrides(String key, Serializable baseline = null) {
-        Object temp = meta[key] ? meta[key] : baseline
-        return temp.toString()
     }
 
 }

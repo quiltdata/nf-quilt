@@ -30,19 +30,19 @@ class QuiltParser {
     static final int MIN_SIZE = 2
     static final String NULL_BUCKET = 'nf-quilt-dev-null'
 
-    static final String P_CAT = 'catalog'
-    static final String P_DEST = 'dest'
-    static final String P_DREG = 'dest-registry'
-    static final String P_DIR = 'dir'
-    static final String P_FORCE = 'force'
-    static final String P_HASH = 'top-hash'
-    static final String P_PATH = 'path'
-    static final String P_PKG = 'package'
-    static final String P_PROP = 'property'
-    static final String P_REG = 'registry'
-    static final String P_WORK = 'workflow'
-    static final String[] INSTALL_KEYS = [P_REG, P_DEST, P_DREG, P_HASH, P_PATH]
-    static final String[] PUSH_KEYS = [P_REG, P_DIR, P_WORK, P_FORCE]
+    public static final String P_CAT = 'catalog'
+    // static final String P_DEST = 'dest'
+    // static final String P_DREG = 'dest-registry'
+    // static final String P_DIR = 'dir'
+    public static final String P_FORCE = 'force'
+    // static final String P_HASH = 'top-hash'
+    public static final String P_PATH = 'path'
+    public static final String P_PKG = 'package'
+    public static final String P_PROP = 'property'
+    // static final String P_REG = 'registry'
+    public static final String P_WORK = 'workflow'
+    // static final String[] INSTALL_KEYS = [P_REG, P_DEST, P_DREG, P_HASH, P_PATH]
+    // static final String[] PUSH_KEYS = [P_REG, P_DIR, P_WORK, P_FORCE]
 
     private final String bucket
     private final String packageName
@@ -52,11 +52,11 @@ class QuiltParser {
     private String[] paths
     private String hash
     private String tag
-    private final Map<String,Object> options
-    private final Map<String,Object> metadata
+    protected final Map<String,Object> options
+    protected final Map<String,Object> metadata
 
     static QuiltParser forBarePath(String path) {
-        return QuiltParser.forUriString(PREFIX + path)
+        return forUriString(PREFIX + path)
     }
 
     static QuiltParser forNullBucket() {
@@ -65,7 +65,7 @@ class QuiltParser {
 
     static QuiltParser forUriString(String uriString) {
         URI uri = new URI(uriString)
-        return QuiltParser.forURI(uri)
+        return forURI(uri)
     }
 
     static QuiltParser forURI(URI uri) {
@@ -92,37 +92,38 @@ class QuiltParser {
     static Map<String, Object> parseQuery(String query) {
         if (!query) { return [:] } // skip for urls without query params
         def params = query.split('&')
-        def result = [:]
+        Map<String, Object> result = [:]
         params.each { param ->
             def keyValue = param.split('=')
             if (keyValue.size() == 2) {
                 String key = decode(keyValue[0])
                 String value = decode(keyValue[1])
                 if (result.containsKey(key)) {
-                    if (result[key] instanceof List) {
-                        result[key].add(value)
+                    Object listVal = result[key]
+                    if (listVal instanceof List<String>) {
+                        listVal << value
                     } else {
-                        result[key] = [result[key], value]
+                        result[key] = [listVal, value]
                     }
                 } else {
                     result[key] = value
                 }
             }
         }
-        return result
+        return result as Map<String, Object>
     }
 
     static String encodePair(String key, String value) {
-        return "${QuiltParser.encode(key)}=${QuiltParser.encode(value)}"
+        return "${encode(key)}=${encode(value)}"
     }
 
     static String unparseQuery(Map<String,Object> query) {
         if (!query) { return '' } // skip for urls without query params
         List<String> params = query.collect {  key, value ->
             if (value instanceof List) {
-                value.collect { QuiltParser.encodePair(key, it.toString()) }.join('&')
+                value.collect { encodePair(key, it.toString()) }.join('&')
             } else {
-                QuiltParser.encodePair(key, value.toString())
+                encodePair(key, value.toString())
             }
         }
         return params.join('&')
@@ -278,7 +279,7 @@ class QuiltParser {
     }
 
     String getOptions(String key) {
-        return options?.get(key)
+        return options?.get(key) as String
     }
 
     String toPackageString(boolean forKey = false) {

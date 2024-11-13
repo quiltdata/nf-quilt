@@ -16,6 +16,7 @@
 package nextflow.quilt
 
 import nextflow.quilt.jep.QuiltPackage
+import nextflow.quilt.jep.QuiltParser
 import nextflow.quilt.nio.QuiltPath
 import nextflow.Session
 
@@ -47,14 +48,11 @@ class QuiltProduct {
     public final static String README_FILE = 'README_NF_QUILT.md'
     public final static String SUMMARY_FILE = 'quilt_summarize.json'
 
-    private final static String KEY_CATALOG = 'catalog'
-    private final static String KEY_FORCE = 'force'
-    private final static String KEY_META = 'meta'
-    private final static String KEY_MSG = 'message'
-    private final static String KEY_PKG = 'package'
-    private final static String KEY_QUILT = 'quilt'
-    private final static String KEY_README = 'readme'
-    private final static String KEY_SUMMARIZE = 'summarize'
+    public final static String KEY_META = 'meta'
+    public final static String KEY_MSG = 'message'
+    public final static String KEY_QUILT = 'quilt'
+    public final static String KEY_README = 'readme'
+    public final static String KEY_SUMMARIZE = 'summarize'
 
 /* groovylint-disable-next-line GStringExpressionWithinString */
     private final static String DEFAULT_MSG = '''
@@ -112,7 +110,7 @@ ${nextflow}
             Files.write(path, text.bytes)
         }
         catch (Exception e) {
-            log.error("writeString: cannot write `$text` to `$path` for `${pkg}`")
+            log.error("writeString: cannot write `$text` to `$path` for `${pkg}`\n$e")
         }
     }
 
@@ -123,7 +121,7 @@ ${nextflow}
             Files.copy(source, dest)
         }
         catch (Exception e) {
-            log.error("writeString: cannot write `$source` to `$dest` in `${destRoot}`")
+            log.error("writeString: cannot write `$source` to `$dest` in `${destRoot}`\n$e.message()")
         }
     }
 
@@ -148,15 +146,17 @@ ${nextflow}
     ])
 
     QuiltProduct(QuiltPathify pathify, Session session) {
+        println("Creating QuiltProduct: ${pathify}")
         this.session = session
         this.config = session.config ?: [:]
         this.path = pathify.path
+        println('QuiltProduct.path')
         this.pkg = pathify.pkg
-        println("QuiltProduct.pkg: ${pkg.toUriString()}")
+        println('QuiltProduct.pkg')
         this.metadata = getMetadata()
-        println("QuiltProduct.metadata: ${metadata}")
-        println("QuiltProduct.flags: ${flags}")
-        if (session.isSuccess() || flags.getProperty(KEY_FORCE)) {
+        println('QuiltProduct.metadata')
+        // println("QuiltProduct.flags: ${flags}")
+        if (session.isSuccess() || flags.getProperty(QuiltParser.P_FORCE) == true) {
             publish()
         } else {
             log.info("not publishing: ${pkg} [unsuccessful session]")
@@ -168,7 +168,7 @@ ${nextflow}
             log.info("SKIP: metadata for ${pkg}")
             return [:]
         }
-        println("getMetadata.config: ${config}")
+        // println("getMetadata.config: ${config}")
         config.remove('executor')
         config.remove('params')
         config.remove('session')
@@ -181,11 +181,12 @@ ${nextflow}
 
         Map<String, Object> cf_meta = quilt_cf.navigate(KEY_META) as Map<String, Object> ?: [:]
         quilt_cf.remove(KEY_META)
-        Map pkg_meta = pkg.meta
+        // println("getMetadata.cf_meta: ${cf_meta}")
+        Map pkg_meta = pkg.getMetadata()
         updateFlags(pkg_meta, quilt_cf)
 
         Map params = session.getParams()
-        println("getMetadata.params: ${params}")
+        // println("getMetadata.params: ${params}")
         if (params != null) {
             writeMapToPackage(params, 'params')
             params.remove('genomes')
@@ -193,7 +194,7 @@ ${nextflow}
             printMap(params, 'params')
         }
         Map wf = session.getWorkflowMetadata()?.toMap()
-        println("getMetadata.wf: ${wf}")
+        // println("getMetadata.wf: ${wf}")
         String start = wf?.get('start')
         String complete = wf?.get('complete')
         String cmd = wf?.get('commandLine')
@@ -209,8 +210,9 @@ ${nextflow}
             log.info("\npublishing: ${wf['runName']}")
         }
 
+        println("getMetadata.pkg_meta: ${pkg_meta}")
         Map base_meta = cf_meta + pkg_meta
-        log.debug("getMetadata.base_meta: ${base_meta}")
+        log.info("getMetadata.base_meta: ${base_meta}")
         return base_meta + [
             cmd: cmd,
             now: now(),
@@ -228,7 +230,7 @@ ${nextflow}
             cmd: metadata.get('cmd'),
             meta: metadata,
             now: metadata.get('now'),
-            pkg: flags.getProperty(KEY_PKG)
+            pkg: flags.getProperty(QuiltParser.P_PKG)
         ]
         return params
     }
@@ -245,7 +247,8 @@ ${nextflow}
         * @param cf Map of config (from nextflow.config)
      */
     void updateFlags(Map meta, Map cf) {
-        for (String key : flags.properties.keySet()) {
+        //println("updateFlags.meta: ${meta}")
+        for (String key : flags.getProperties().keySet()) {
             if (meta.containsKey(key)) {
                 flags.setProperty(key, meta[key])
             } else if (cf.containsKey(key)) {
@@ -253,8 +256,8 @@ ${nextflow}
             }
         }
         // FIXME: should this only work for names inferred from S3 URIs?
-        String pkgName = cf.containsKey(KEY_PKG) ? cf[KEY_PKG] : pkg.packageName
-        flags.setProperty(KEY_PKG, pkgName)
+        String pkgName = cf.containsKey(QuiltParser.P_PKG) ? cf[QuiltParser.P_PKG] : pkg.packageName
+        flags.setProperty(QuiltParser.P_PKG, pkgName)
     }
 
     String writeMapToPackage(Map map, String prefix) {
@@ -291,16 +294,23 @@ ${nextflow}
     }
 
     String displayName() {
-        Object catalog = flags.getProperty(KEY_CATALOG)
+        Object catalog = flags.getProperty(QuiltParser.P_CAT)
         return catalog ? pkg.toCatalogURL(catalog.toString()) : pkg.toUriString()
     }
 
     String compileMessage() {
         String msg = flags.getProperty(KEY_MSG)
         GStringTemplateEngine engine = new GStringTemplateEngine()
-        String output = engine.createTemplate(msg).make(getParams())
-        log.debug("compileMessage.output: ${output}")
-        return output
+        println("compileMessage: ${msg}")
+        try {
+            String output = engine.createTemplate(msg).make(getParams())
+            log.debug("compileMessage.output: ${output}")
+            return output
+        }
+        catch (Exception e) {
+            log.error("compileMessage failed: ${e.getMessage()}\n{$e}", flags)
+        }
+        return "compileMessage.FAILED\n$msg"
     }
 
     String compileReadme(String msg) {
@@ -320,10 +330,16 @@ ${nextflow}
             nextflow: nextflow,
         ]
         log.debug("compileReadme.params: ${params}")
-        GStringTemplateEngine engine = new GStringTemplateEngine()
-        String output = engine.createTemplate(raw_readme).make(params)
-        log.debug("compileReadme.output: ${output}")
-        return output
+        try {
+            GStringTemplateEngine engine = new GStringTemplateEngine()
+            String output = engine.createTemplate(raw_readme).make(params)
+            log.debug("compileReadme.output: ${output}")
+            return output
+        }
+        catch (Exception e) {
+            log.error("compileReadme failed: ${e.getMessage()}\n{$e}", flags)
+        }
+        return "compileReadme.FAILED\n$raw_readme"
     }
 
     String writeReadme(String message) {
@@ -373,12 +389,14 @@ ${nextflow}
     List<Map> writeSummarize() {
         List<Map> quilt_summarize = []
         if (shouldSkip(KEY_SUMMARIZE)) {
+            log.info("SKIP: summarize for ${flags}")
             return quilt_summarize
         }
         String summarize = flags.getProperty(KEY_SUMMARIZE)
         String[] wildcards = summarize.split(',')
         wildcards.each { wildcard ->
             List<Path> paths = match(wildcard)
+            println("writeSummarize: ${paths.size()} matches for ${wildcard}")
             paths.each { path ->
                 String filename = path.getFileName()
                 Map entry = ['path': path.toString(), 'title': filename]
