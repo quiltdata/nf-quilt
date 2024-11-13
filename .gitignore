@@ -13,6 +13,7 @@ work
 out
 results
 bin
+/bin/
 plugins/nf-quilt/bin
 
 # Ignore Gradle GUI config
