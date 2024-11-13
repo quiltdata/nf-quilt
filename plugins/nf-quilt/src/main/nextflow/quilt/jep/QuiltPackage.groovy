@@ -209,7 +209,7 @@ class QuiltPackage {
         S3PhysicalKey key = new S3PhysicalKey(bucket, '', null)
         try {
             key.listRecursively()
-        } catch (Exception e) {
+        } catch (IOException e) {
             log.error("isBucketAccessible: failed to check $bucket", e)
             return false
         }
