@@ -80,8 +80,8 @@ class QuiltPackage {
     static String toJson(Map dict) {
         List<String> entries = dict.collect { key, value ->
             String prefix = JsonOutput.toJson(key)
-            String suffix = "toJson.error: ${value}"
-            log.debug("QuiltPackage.toJson: ${prefix} [${suffix.length()}]")
+            log.debug("toJson.${key}: ${value.size()}")
+            String suffix = "toJson.error[${value.size()}]"
             try {
                 suffix = JsonOutput.toJson(value)
             }
