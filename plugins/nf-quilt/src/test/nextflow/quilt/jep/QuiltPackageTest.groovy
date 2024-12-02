@@ -40,8 +40,8 @@ class QuiltPackageTest extends QuiltSpecification {
 
     private final static String PACKAGE_URL = 'quilt+s3://quilt-example#package=examples%2fsmart-report@d68a7e9'
     private final static String TEST_URL = PACKAGE_URL + '&path=README.md'
-    private final static PKG = 'aics_minst'
-    private final static String READONLY_URL = "quilt+s3://allencell#package=aics%2${PKG}&path=${PKG}.ipynb"
+    private final static PKG = 'aics_mnist'
+    private final static String READONLY_URL = "quilt+s3://allencell#package=aics%2f${PKG}&path=${PKG}.ipynb"
 
     private QuiltPathFactory factory
     private QuiltPath qpath
@@ -196,7 +196,7 @@ class QuiltPackageTest extends QuiltSpecification {
         def qout = QuiltPathFactory.parse(READONLY_URL)
         def opkg = qout.pkg()
         opkg.install()
-        def outPath = Paths.get(opkg.packageDest().toString(), "$PKG.ipynb")
+        def outPath = Paths.get(opkg.packageDest().toString(), "${PKG}.ipynb")
         Files.writeString(outPath, "Time: ${timestamp}")
         expect:
         Files.exists(outPath)
