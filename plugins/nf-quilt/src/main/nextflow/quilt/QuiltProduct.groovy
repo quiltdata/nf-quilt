@@ -225,9 +225,10 @@ ${nextflow}
         ]
     }
 
-    Map getParams() {
+    Map getTemplateArgs() {
         Map params = [
             cmd: metadata.get('cmd'),
+            config: config,
             meta: metadata,
             now: metadata.get('now'),
             pkg: flags.getProperty(QuiltParser.P_PKG)
@@ -303,7 +304,7 @@ ${nextflow}
         GStringTemplateEngine engine = new GStringTemplateEngine()
         println("compileMessage: ${msg}")
         try {
-            String output = engine.createTemplate(msg).make(getParams())
+            String output = engine.createTemplate(msg).make(getTemplateArgs())
             log.debug("compileMessage.output: ${output}")
             return output
         }
@@ -324,7 +325,7 @@ ${nextflow}
             ?.replace('nextflow.NextflowMeta(', '  - **')\
             ?.replace(')', '```')
             ?.replace(':', '**: ```')
-        Map params = getParams()
+        Map params = getTemplateArgs()
         params += [
             msg: msg,
             nextflow: nextflow,
