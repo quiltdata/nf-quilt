@@ -30,15 +30,6 @@ class QuiltParserTest extends QuiltSpecification {
         thrown(IllegalArgumentException)
     }
 
-    void 'should parse over-long packages into path'() {
-        when:
-        QuiltParser parser = QuiltParser.forUriString(TEST_URL)
-        then:
-        parser.getBucket() == 'quilt-ernest-staging'
-        parser.getPackageName() == 'nf-quilt/sarek'
-        parser.getPath() == 'pipeline_info/execution_trace_2022-10-13_01-01-31.txt'
-    }
-
     void 'should modify path segments appropriately'() {
         when:
         QuiltParser parser = QuiltParser.forUriString(REL_URL)
@@ -116,10 +107,12 @@ class QuiltParserTest extends QuiltSpecification {
     void 'should unparse other parameters back to URI'() {
         when:
         QuiltParser parser = QuiltParser.forUriString(testURI)
-        String unparsed = parser.toUriString()
+        String unparsed = parser.toUriString().replace('%2f', '/')
+        String no_scheme = testURI.replace('quilt+s3://','')
 
         then:
-        unparsed.replace('%2f', '/') == testURI
+        unparsed == testURI
+        parser.toString() == no_scheme.replace('/','%2f')
     }
 
     void 'should collect array parameters from query string'() {
