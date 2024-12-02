@@ -56,6 +56,7 @@ class QuiltObserverTest extends QuiltSpecification {
         observer.onFlowCreate(mockSession(false))
         observer.onFilePublish(badPath)
         observer.onFlowComplete()
+        observer.countPublishedPaths() > 0
         then:
         true
     }

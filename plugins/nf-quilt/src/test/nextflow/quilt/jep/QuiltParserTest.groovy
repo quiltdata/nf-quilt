@@ -106,7 +106,6 @@ class QuiltParserTest extends QuiltSpecification {
         parser.getBucket() == 'bkt'
         parser.getPackageName() == 'pre/suf'
         parser.getPath() == 'p/t'
-        parser.getPropertyName() == 'prop'
         parser.getWorkflowName() == 'wf'
         parser.getCatalogName() == 'quiltdata.com'
         meta

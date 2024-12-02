@@ -61,10 +61,6 @@ class QuiltPackage {
         return FileSystems.getDefault().getSeparator()
     }
 
-    static String osJoin(String... parts) {
-        return parts.join(osSep())
-    }
-
     static String osConvert(String path) {
         return path.replace('/', FileSystems.getDefault().getSeparator())
     }
@@ -113,10 +109,6 @@ class QuiltPackage {
         pkg = new QuiltPackage(parsed)
         PKGS[pkgKey] = pkg
         return pkg
-    }
-
-    static boolean hasKey(String pkgKey) {
-        return PKGS.containsKey(pkgKey)
     }
 
     static List<Path> listDirectory(Path rootPath) {

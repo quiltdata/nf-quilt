@@ -38,7 +38,7 @@ class QuiltParser {
     // static final String P_HASH = 'top-hash'
     public static final String P_PATH = 'path'
     public static final String P_PKG = 'package'
-    public static final String P_PROP = 'property'
+    // public static final String P_PROP = 'property'
     // static final String P_REG = 'registry'
     public static final String P_WORK = 'workflow'
     // static final String[] INSTALL_KEYS = [P_REG, P_DEST, P_DREG, P_HASH, P_PATH]
@@ -46,7 +46,7 @@ class QuiltParser {
 
     private final String bucket
     private final String packageName
-    private final String propertyName
+    // private final String propertyName
     private final String workflowName
     private final String catalogName
     private String[] paths
@@ -139,7 +139,7 @@ class QuiltParser {
         this.bucket = bucket
         this.paths = path ? path.split(SEP) : [] as String[]
         this.packageName = parsePkg(pkg)
-        this.propertyName = options.get(P_PROP)
+        // this.propertyName = options.get(P_PROP)
         this.workflowName = options.get(P_WORK)
         this.catalogName = options.get(P_CAT)
         this.options = options
@@ -233,10 +233,6 @@ class QuiltParser {
         return packageName
     }
 
-    String getPropertyName() {
-        return propertyName
-    }
-
     String getWorkflowName() {
         return workflowName
     }
@@ -301,9 +297,6 @@ class QuiltParser {
         if (!hasPath()) { return str }
         str += (packageName) ? '&' : '#'
         str += "path=${getPath().replace('/', '%2f')}"
-        if (propertyName) {
-            str += "&property=${propertyName}"
-        }
         if (workflowName) {
             str += "&workflow=${workflowName}"
         }
