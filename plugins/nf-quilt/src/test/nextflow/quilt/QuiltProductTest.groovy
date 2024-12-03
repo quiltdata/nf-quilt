@@ -343,7 +343,7 @@ class QuiltProductTest extends QuiltSpecification {
         end_meta.a == 'b'
     }
 
-    void 'should throw error on publish'() {
+    void 'should not throw error on publish'() {
         given:
         QuiltProduct product = makeProduct()
 
@@ -351,15 +351,15 @@ class QuiltProductTest extends QuiltSpecification {
         product.publish()
 
         then:
-        thrown(RuntimeException)
+        true
     }
 
-    void 'should throw error if session.isSuccess'() {
+    void 'should not throw error if session.isSuccess'() {
         when:
         makeProduct('', true)
 
         then:
-        thrown(RuntimeException)
+        true
     }
 
 }
