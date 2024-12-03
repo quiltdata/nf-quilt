@@ -96,12 +96,17 @@ ${nextflow}
     ]
 
     static void printMap(Map map, String title) {
-        log.info("\n\n\n# $title")
+        log.info("\n\n\n# $title ${map.keySet()}")
         map.each {
             key, value -> log.info("\n## ${key}: ${value}")
         }
     }
 
+    static Map<String, Object> extractMap(Map map, String key) {
+        def child = map.remove(key)
+        return (child instanceof Map) ? child : [:]
+    }
+    
     static void writeString(String text, QuiltPackage pkg, String filepath) {
         String dir = pkg.packageDest()
         Path path  = Paths.get(dir, filepath.split('/') as String[])
@@ -140,6 +145,7 @@ ${nextflow}
         catalog: false,
         force: false,
         message: DEFAULT_MSG,
+        meta: true,
         readme: DEFAULT_README,
         summarize: DEFAULT_SUMMARIZE,
         workflow: false,
@@ -168,7 +174,7 @@ ${nextflow}
             log.info("SKIP: metadata for ${pkg}")
             return [:]
         }
-        // println("getMetadata.config: ${config}")
+        println("getMetadata.config: ${config}")
         config.remove('executor')
         config.remove('params')
         config.remove('session')
@@ -176,25 +182,23 @@ ${nextflow}
         config.remove('process')
         printMap(config, 'config')
 
-        Map<String, Object> quilt_cf = config.navigate(KEY_QUILT) as Map<String, Object> ?: [:]
-        config.remove(KEY_QUILT)
+        Map<String, Object> quilt_cf = extractMap(config, KEY_QUILT)
+        Map<String, Object> cf_meta = extractMap(quilt_cf, KEY_META)
 
-        Map<String, Object> cf_meta = quilt_cf.navigate(KEY_META) as Map<String, Object> ?: [:]
-        quilt_cf.remove(KEY_META)
-        // println("getMetadata.cf_meta: ${cf_meta}")
-        Map pkg_meta = pkg.getMetadata()
+        println("getMetadata.cf_meta: ${cf_meta}")
+        Map<String, Object> pkg_meta = pkg.getMetadata()
         updateFlags(pkg_meta, quilt_cf)
 
-        Map params = session.getParams()
-        // println("getMetadata.params: ${params}")
+        Map<String, Object> params = session.getParams()
+        println("getMetadata.params: ${params}")
         if (params != null) {
             writeMapToPackage(params, 'params')
             params.remove('genomes')
             params.remove('test_data')
             printMap(params, 'params')
         }
-        Map wf = session.getWorkflowMetadata()?.toMap()
-        // println("getMetadata.wf: ${wf}")
+        Map<String, Object> wf = session.getWorkflowMetadata()?.toMap()
+        println("getMetadata.wf: ${wf}")
         String start = wf?.get('start')
         String complete = wf?.get('complete')
         String cmd = wf?.get('commandLine')
