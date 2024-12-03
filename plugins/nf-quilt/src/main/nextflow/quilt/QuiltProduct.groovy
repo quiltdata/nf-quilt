@@ -106,7 +106,7 @@ ${nextflow}
         def child = map.remove(key)
         return (child instanceof Map) ? child : [:]
     }
-    
+
     static void writeString(String text, QuiltPackage pkg, String filepath) {
         String dir = pkg.packageDest()
         Path path  = Paths.get(dir, filepath.split('/') as String[])
@@ -135,9 +135,9 @@ ${nextflow}
         return time.toString().replace(':', '-').replace('T', 't')
     }
 
-    private final QuiltPath path
-    private final QuiltPackage pkg
-    private final Session session
+    protected final QuiltPath path
+    protected final QuiltPackage pkg
+    protected final Session session
     private final Map<String, Map<String,Object>> config
 
     private final Map metadata

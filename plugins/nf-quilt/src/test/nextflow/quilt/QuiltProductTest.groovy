@@ -51,7 +51,7 @@ class QuiltProductTest extends QuiltSpecification {
             getWorkflowMetadata() >> wf_meta
             getParams() >> [outdir: url]
             isSuccess() >> success
-            config >> [quilt: [meta: [cfkey: 'cfval']]]
+            config >> [quilt: [meta: [cf_key: 'cf_val']]]
         }
         return new QuiltProduct(pathify, session)
     }
@@ -141,14 +141,21 @@ class QuiltProductTest extends QuiltSpecification {
     void 'overrides config meta with query string'() {
         when:
         println('\nOVERRIDE CONFIG META\n')
-        QuiltProduct product = makeProduct('cfkey=overriden&newkey=newval')
-        Map full_meta = product.metadata
-        println("full_meta: ${full_meta}")
+        QuiltProduct product = makeProduct()
 
         then:
-        full_meta != null
-        full_meta.config?.quilt?.meta?.cfkey == 'overriden'
-        full_meta.config?.quilt?.meta?.newkey == 'newval'
+        product.metadata
+        //product.metadata['cf_key'] == 'cf_val'
+        product.metadata['key'] == 'val'
+        product.metadata['key2'] == 'val2'
+
+        when:
+        QuiltProduct cf_product = makeProduct('cf_key=override&key3=another')
+
+        then:
+        cf_product.metadata
+        cf_product.metadata['cf_key'] == 'override'
+        cf_product.metadata['key3'] == 'another'
     }
 
     void 'overrides config force with query string'() {
@@ -175,7 +182,7 @@ class QuiltProductTest extends QuiltSpecification {
         when:
         QuiltProduct defaultREADME = makeProduct()
         String text = defaultREADME.compileReadme('msg')
-        def files = defaultREADME.pkg.folder.list().sort()
+        def files = defaultREADME.match('*')
 
         then:
         text.size() > 0
@@ -186,7 +193,7 @@ class QuiltProductTest extends QuiltSpecification {
         String readme_text = 'hasREADME'
         QuiltProduct hasREADME = makeProduct("readme=${readme_text}")
         text = hasREADME.compileReadme('msg')
-        files = hasREADME.pkg.folder.list().sort()
+        files = hasREADME.match('*')
         then:
         text == readme_text
         !hasREADME.shouldSkip(QuiltProduct.KEY_README)
@@ -219,8 +226,8 @@ class QuiltProductTest extends QuiltSpecification {
         QuiltProduct product = makeWriteProduct()
         String filename = 'test.md'
         String text = 'test'
-        Path src = Paths.get(product.pkg.folder.toString(), filename)
-        Path dest = Paths.get(product.pkg.folder.toString(), 'copy', filename)
+        Path src = Paths.get(product.pkg.packageDest().toString(), filename)
+        Path dest = Paths.get(product.pkg.packageDest().toString(), 'copy', filename)
         Files.writeString(src, text)
 
         when:
@@ -349,7 +356,7 @@ class QuiltProductTest extends QuiltSpecification {
 
     void 'should throw error if session.isSuccess'() {
         when:
-        makeProduct(query: null, success: true)
+        makeProduct('', true)
 
         then:
         thrown(RuntimeException)
