@@ -335,7 +335,7 @@ class QuiltPackage {
     }
 
     String toCatalogURL(String catalog) {
-        return "https://${catalog}/b/${bucket}/packages/${packageName}" //.replace("%2f", "/")
+        return "https://${catalog}/b/${bucket}/packages/${packageName}"
     }
 
     String toKey() {

@@ -31,22 +31,13 @@ class QuiltParser {
     static final String NULL_BUCKET = 'nf-quilt-dev-null'
 
     public static final String P_CAT = 'catalog'
-    // static final String P_DEST = 'dest'
-    // static final String P_DREG = 'dest-registry'
-    // static final String P_DIR = 'dir'
     public static final String P_FORCE = 'force'
-    // static final String P_HASH = 'top-hash'
     public static final String P_PATH = 'path'
     public static final String P_PKG = 'package'
-    // public static final String P_PROP = 'property'
-    // static final String P_REG = 'registry'
     public static final String P_WORK = 'workflow'
-    // static final String[] INSTALL_KEYS = [P_REG, P_DEST, P_DREG, P_HASH, P_PATH]
-    // static final String[] PUSH_KEYS = [P_REG, P_DIR, P_WORK, P_FORCE]
 
     private final String bucket
     private final String packageName
-    // private final String propertyName
     private final String workflowName
     private final String catalogName
     private String[] paths
@@ -139,12 +130,11 @@ class QuiltParser {
         this.bucket = bucket
         this.paths = path ? path.split(SEP) : [] as String[]
         this.packageName = parsePkg(pkg)
-        // this.propertyName = options.get(P_PROP)
         this.workflowName = options.get(P_WORK)
         this.catalogName = options.get(P_CAT)
         this.options = options
         this.metadata = metadata
-    // log.debug("QuiltParser[${bucket}] for ${packageName} in ${path}")
+        // log.debug("QuiltParser[${bucket}] for ${packageName} in ${path}")
     }
 
     String parsePkg(String pkg) {

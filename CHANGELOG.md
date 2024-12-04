@@ -8,6 +8,13 @@
 - Improve handling of dynamically-specified URIs
 - Rewrite README.md, splitting out developer documentation to README_DEV.md
 
+## [0.8.12] 2024-12-03 UNPUBLISHED
+
+- Extract flags and metadata from `nextflow.config`
+- Remove unused methods and keys
+- Remove support for propertyName
+- Use IntelliJ to fix types and lint
+
 ## [0.8.11] 2024-11-5 UNPUBLISHED
 
 - Catch *all* toJson errors
