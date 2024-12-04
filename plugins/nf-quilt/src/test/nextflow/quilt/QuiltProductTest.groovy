@@ -188,10 +188,19 @@ class QuiltProductTest extends QuiltSpecification {
         !product.match('temp.txt')
     }
 
+    void 'writeSummarize empty if no files are present'() {
+        given:
+        QuiltProduct product = makeProduct('readme=SKIP')
+        product.pkg.reset()
+        expect:
+        !product.match('*.md')
+        product.writeSummarize() == []
+    }
+
     void 'overrides default README with config'() {
         when:
         QuiltProduct defaultREADME = makeProduct()
-        String text = defaultREADME.compileReadme('msg')
+        String text = defaultREADME.writeReadme('msg')
         def files = defaultREADME.match('*')
 
         then:
@@ -202,7 +211,7 @@ class QuiltProductTest extends QuiltSpecification {
         when:
         String readme_text = 'hasREADME'
         QuiltProduct hasREADME = makeProduct("readme=${readme_text}")
-        text = hasREADME.compileReadme('msg')
+        text = hasREADME.writeReadme('msg')
         files = hasREADME.match('*')
         then:
         text == readme_text
@@ -210,19 +219,11 @@ class QuiltProductTest extends QuiltSpecification {
         files.size() > 0
     }
 
-    void 'writeSummarize empty if no files are present'() {
-        given:
-        QuiltProduct product = makeProduct('readme=SKIP')
-        product.pkg.reset()
-        expect:
-        !product.match('*.md')
-        product.writeSummarize() == []
-    }
 
     void 'should create summarize if files are present'() {
         String readme_text = 'hasREADME'
         QuiltProduct product = makeProduct("readme=${readme_text}")
-        product.compileReadme('msg')
+        product.writeReadme('msg')
         product.match('*.md')
         List<Map> quilt_summarize = product.writeSummarize()
         expect:
