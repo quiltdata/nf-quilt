@@ -95,6 +95,7 @@ class QuiltProductTest extends QuiltSpecification {
         product.metadata != null
         product.metadata.key == 'val'
         product.metadata.key2 == 'val2'
+        product.displayName().replace('%2f', '/') == testURI
     }
 
     void 'should generate solid string for timestamp from now'() {
@@ -116,6 +117,7 @@ class QuiltProductTest extends QuiltSpecification {
         !product.shouldSkip(QuiltProduct.KEY_SUMMARIZE)
         !product.shouldSkip(QuiltProduct.KEY_README)
         !product.shouldSkip(QuiltProduct.KEY_META)
+        product.compileReadme("msg")
     }
 
     void 'shouldSkip if key is false'() {
@@ -129,11 +131,12 @@ class QuiltProductTest extends QuiltSpecification {
 
         expect:
         product.shouldSkip(key)
+        product.compileReadme("test") == null
 
         where:
         key << [
-            // QuiltProduct.KEY_META,
-            // QuiltProduct.KEY_README,
+            QuiltProduct.KEY_META,
+            QuiltProduct.KEY_README,
             QuiltProduct.KEY_SUMMARIZE
         ]
     }
@@ -145,7 +148,7 @@ class QuiltProductTest extends QuiltSpecification {
 
         then:
         product.metadata
-        //product.metadata['cf_key'] == 'cf_val'
+        product.metadata['cf_key'] == 'cf_val'
         product.metadata['key'] == 'val'
         product.metadata['key2'] == 'val2'
 
