@@ -178,6 +178,16 @@ class QuiltProductTest extends QuiltSpecification {
         true
     }
 
+    void 'match files if present'() {
+        QuiltProduct product = makeProduct()
+        String filename = "text.txt"
+        QuiltProduct.writeString("test", product.pkg, filename)
+        expect:
+        product.match("*")[0].toString() == filename
+        product.match("*.txt")[0].toString() == filename
+        !product.match('temp.txt')
+    }
+
     void 'overrides default README with config'() {
         when:
         QuiltProduct defaultREADME = makeProduct()
