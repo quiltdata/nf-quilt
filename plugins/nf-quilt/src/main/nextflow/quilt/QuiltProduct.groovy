@@ -183,11 +183,9 @@ ${nextflow}
         printMap(config, 'config')
 
         Map<String, Object> quilt_cf = extractMap(config, KEY_QUILT)
-        Map<String, Object> cf_meta = extractMap(quilt_cf, KEY_META)
-
-        println("getMetadata.cf_meta: ${cf_meta}")
         Map<String, Object> pkg_meta = pkg.getMetadata()
         updateFlags(pkg_meta, quilt_cf)
+        Map<String, Object> cf_meta = extractMap(quilt_cf, KEY_META)  // remove after setting flags
 
         Map<String, Object> params = session.getParams()
         println("getMetadata.params: ${params}")
@@ -249,19 +247,20 @@ ${nextflow}
      * Use metadata if available, otherwise use config
      *
         * @param meta Map of package metadata
-        * @param cf Map of config (from nextflow.config)
+        * @param cf Map of config (from nextflow.config)`
      */
-    void updateFlags(Map meta, Map cf) {
-        //println("updateFlags.meta: ${meta}")
+    void updateFlags(Map pkg_meta, Map cf_meta) {
+        println("updateFlags.pkg_meta: ${pkg_meta}")
+        println("updateFlags.cf_meta: ${cf_meta}")
         for (String key : flags.getProperties().keySet()) {
-            if (meta.containsKey(key)) {
-                flags.setProperty(key, meta[key])
-            } else if (cf.containsKey(key)) {
-                flags.setProperty(key, cf[key])
+            if (pkg_meta.containsKey(key)) {
+                flags.setProperty(key, pkg_meta[key])
+            } else if (cf_meta.containsKey(key)) {
+                flags.setProperty(key, cf_meta[key])
             }
         }
-        // FIXME: should this only work for names inferred from S3 URIs?
-        String pkgName = cf.containsKey(QuiltParser.P_PKG) ? cf[QuiltParser.P_PKG] : pkg.packageName
+        // TODO: should this only work for names inferred from S3 URIs?
+        String pkgName = cf_meta.containsKey(QuiltParser.P_PKG) ? cf_meta[QuiltParser.P_PKG] : pkg.packageName
         flags.setProperty(QuiltParser.P_PKG, pkgName)
     }
 

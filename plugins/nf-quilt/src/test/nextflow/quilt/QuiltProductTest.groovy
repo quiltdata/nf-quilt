@@ -69,9 +69,7 @@ class QuiltProductTest extends QuiltSpecification {
         QuiltPathify pathify = new QuiltPathify(path)
         Session session = GroovyMock(Session)
         session.config >> [quilt: qconfig]
-        println("makeConfigProduct[$testURI]")
         QuiltProduct product = new QuiltProduct(pathify, session)
-        println('makeConfigProduct.done')
         return product
     }
 
