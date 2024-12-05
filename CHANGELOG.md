@@ -17,7 +17,7 @@
 
 ## [0.8.11] 2024-11-5 UNPUBLISHED
 
-- Catch *all* toJson errors
+- Catch _all_ toJson errors
 
 ## [0.8.10] 2024-11-4 UNPUBLISHED
 
@@ -34,8 +34,8 @@
 
 ## [0.8.7] 2024-10-23 UNPUBLISHED
 
-- Use package cache instead of `params` to find output URIs
-  (in order to support dynamic URIs set by, e.g. `main.nf`)
+- Use package cache instead of `params` to find output URIs (in order to support
+  dynamic URIs set by, e.g. `main.nf`)
 - Allow setting metadata from inside the workflow
 
 ## [0.8.6] 2024-09-11
@@ -59,7 +59,8 @@
 
 ## [0.8.2] 2024-09-07
 
-- Use copyFile rather than writeString for overlay files [requires NextFlow 23 or later]
+- Use copyFile rather than writeString for overlay files [requires NextFlow 23
+  or later]
 - Restore README and quilt_summarize to output
 
 ## [0.8.1] 2024-09-05
@@ -205,7 +206,8 @@ Beta release (not yet on nextflow-io/plugins)
 
 - Use `msg` fragment parameter as commit message when writing packages
 - Removed Benchling support (will add back in a future release)
-- Don't crash when writing to Quilt+ URIs with `&path=` fragments (by ignoring that part)
+- Don't crash when writing to Quilt+ URIs with `&path=` fragments (by ignoring
+  that part)
 
 ## [0.3.5] 2023-04-05
 
@@ -226,5 +228,6 @@ Beta release (not yet on nextflow-io/plugins)
 
 ## [0.3.2] 2023-02-24
 
-- First official release on [nextflow-io/plugins](https://github.com/nextflow-io/plugins/commits/main/plugins.json)
+- First official release on
+  [nextflow-io/plugins](https://github.com/nextflow-io/plugins/commits/main/plugins.json)
 - Read and write from Quilt+ URIs

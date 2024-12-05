@@ -34,3 +34,4 @@ params.yaml
 null
 # quilt+*
 # nextflow
+.aider*

@@ -17,7 +17,7 @@ env: # Comment env block if you do not want to apply fixes
   #APPLY_FIXES_MODE: pull_request # If APPLY_FIXES is used, defines if the fixes are directly committed (commit) or posted in a PR (pull_request)
   DISABLE_LINTERS: SPELL_CSPELL,COPYPASTE_JSCPD,REPOSITORY_GITLEAKS,GROOVY_NPM_GROOVY_LINT
   FILTER_REGEX_EXCLUDE: .*/.*gradle
- 
+
 concurrency:
   group: ${{ github.ref }}-${{ github.workflow }}
   cancel-in-progress: true
@@ -31,7 +31,7 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
         with:
-          token: ${{ secrets.GITHUB_TOKEN }} # secrets.PAT || 
+          token: ${{ secrets.GITHUB_TOKEN }} # secrets.PAT ||
           fetch-depth: 0 # If you use VALIDATE_ALL_CODEBASE = true, you can remove this line to improve performances
 
       # MegaLinter
