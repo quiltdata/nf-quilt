@@ -347,7 +347,7 @@ class QuiltProductTest extends QuiltSpecification {
         start_meta.a == 'b'
 
         when:
-        Map end_meta = product.metadata
+        Map end_meta = product.collectMetadata()
 
         then:
         end_meta != null

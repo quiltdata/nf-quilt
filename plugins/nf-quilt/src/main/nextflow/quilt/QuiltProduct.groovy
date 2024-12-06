@@ -138,10 +138,10 @@ ${nextflow}
     protected final QuiltPath path
     protected final QuiltPackage pkg
     protected final Session session
-    private final Map<String, Map<String,Object>> config
+    protected final Map<String, Map<String,Object>> config
 
-    private final Map metadata
-    private final Expando flags = new Expando([
+    protected final Map metadata
+    protected final Expando flags = new Expando([
         catalog: false,
         force: false,
         message: DEFAULT_MSG,
@@ -159,7 +159,7 @@ ${nextflow}
         println('QuiltProduct.path')
         this.pkg = pathify.pkg
         println('QuiltProduct.pkg')
-        this.metadata = getMetadata()
+        this.metadata = collectMetadata()
         println('QuiltProduct.metadata')
         // println("QuiltProduct.flags: ${flags}")
         if (session.isSuccess() || flags.getProperty(QuiltParser.P_FORCE) == true) {
@@ -169,12 +169,12 @@ ${nextflow}
         }
     }
 
-    Map getMetadata() {
+    Map collectMetadata() {
         if (shouldSkip(KEY_META)) {
             log.info("SKIP: metadata for ${pkg}")
             return [:]
         }
-        println("getMetadata.config: ${config}")
+        println("collectMetadata.config: ${config}")
         config.remove('executor')
         config.remove('params')
         config.remove('session')
@@ -183,12 +183,13 @@ ${nextflow}
         printMap(config, 'config')
 
         Map<String, Object> quilt_cf = extractMap(config, KEY_QUILT)
+        println("collectMetadata.quilt_cf: ${quilt_cf}")
         Map<String, Object> pkg_meta = pkg.getMetadata()
+        println("collectMetadata.pkg_meta: ${pkg_meta}")
         updateFlags(pkg_meta, quilt_cf)
-        Map<String, Object> cf_meta = extractMap(quilt_cf, KEY_META)  // remove after setting flags
 
         Map<String, Object> params = session.getParams()
-        println("getMetadata.params: ${params}")
+        println("collectMetadata.params: ${params}")
         if (params != null) {
             writeMapToPackage(params, 'params')
             params.remove('genomes')
@@ -196,7 +197,7 @@ ${nextflow}
             printMap(params, 'params')
         }
         Map<String, Object> wf = session.getWorkflowMetadata()?.toMap()
-        println("getMetadata.wf: ${wf}")
+        println("collectMetadata.wf: ${wf}")
         String start = wf?.get('start')
         String complete = wf?.get('complete')
         String cmd = wf?.get('commandLine')
@@ -212,7 +213,8 @@ ${nextflow}
             log.info("\npublishing: ${wf['runName']}")
         }
 
-        println("getMetadata.pkg_meta: ${pkg_meta}")
+        Map<String, Object> cf_meta = extractMap(quilt_cf, KEY_META)  // remove after setting flags
+        println("getMetadata.cf_meta: ${cf_meta}")
         Map base_meta = cf_meta + pkg_meta
         log.info("getMetadata.base_meta: ${base_meta}")
         return base_meta + [
