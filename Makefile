@@ -110,7 +110,7 @@ $(PIPELINE): $(NF_BIN) install
 	$(NF_BIN) run nf-core/$(PIPELINE) -profile test,docker -plugins $(PROJECT)@$(VERSION) --outdir "$(PIPE_OUT)"
 
 fetchngs: $(NF_GIT)
-	NXF_VER=$(NXF_VER) $(NF_GIT) run nf-core/fetchngs -profile test,docker --input wf/ids.csv --outdir "s3://$(WRITE_BUCKET)/nf-quilt/fetchngs"
+	NXF_VER=$(NXF_VER) $(NF_BIN) run quiltdata/fetchngs -r master -profile test,docker --input wf/ids.csv --outdir "s3://$(WRITE_BUCKET)/nf-quilt/fetchngs"
 
 nf-git-ver: $(NF_GIT)
 	NXF_VER=$(NXF_VER) $(NF_GIT) -v
