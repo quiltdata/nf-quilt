@@ -16,14 +16,13 @@
 
 plugins {
     id 'java'
-    id 'groovy'
     id 'io.nextflow.nf-build-plugin' version '1.0.1'
 }
 
-ext.github_organization = project.findProperty('github_organization') ?: 'nextflow-io'
-ext.github_username = project.findProperty('github_username') ?: 'pditommaso'
+ext.github_organization = project.findProperty('github_organization') ?: 'quiltdata'
+ext.github_username = project.findProperty('github_username') ?: 'drernie'
 ext.github_access_token = project.findProperty('github_access_token') ?: System.getenv('GITHUB_TOKEN')
-ext.github_commit_email = project.findProperty('github_commit_email') ?: 'paolo.ditommaso@gmail.com'
+ext.github_commit_email = project.findProperty('github_commit_email') ?: 'ernest@quiltdata.io'
 ext.github_index_url = "https://github.com/${github_organization}/plugins/main/plugins.json"
 
 jar.enabled = false
