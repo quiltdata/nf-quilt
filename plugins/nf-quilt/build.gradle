@@ -16,7 +16,7 @@
 
 plugins {
     // Apply the groovy plugin to add support for Groovy
-    id 'groovy' // io.nextflow.groovy-library-conventions?
+    id 'io.nextflow.groovy-library-conventions'
     id 'idea'
     id 'se.patrikerdes.use-latest-versions' version '0.2.18'
     id 'com.github.ben-manes.versions' version '0.51.0'
@@ -59,14 +59,15 @@ ext {
 
 
 dependencies {
-    implementation 'com.quiltdata:quiltcore:0.1.5'
-    implementation "org.apache.groovy:groovy-all:$groovyVer"
 
     // This dependency is exported to consumers, that is to say found on their compile classpath.
     compileOnly "io.nextflow:nextflow:$nextflowVersion"
     compileOnly 'org.slf4j:slf4j-api:1.7.10'
-    compileOnly 'org.pf4j:pf4j:3.4.1'
+    compileOnly 'org.pf4j:pf4j:3.10.0'
+
     // add here plugins depepencies
+    implementation 'com.quiltdata:quiltcore:0.1.5'
+    implementation "org.apache.groovy:groovy-all:$groovyVer"
 
     // test configuration
     testImplementation "org.apache.groovy:groovy:$groovyVer"
