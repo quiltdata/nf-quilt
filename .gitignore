@@ -13,6 +13,8 @@ work
 out
 results
 bin
+/bin/
+plugins/nf-quilt/bin
 
 # Ignore Gradle GUI config
 gradle-app.setting
@@ -32,3 +34,4 @@ params.yaml
 null
 # quilt+*
 # nextflow
+.aider*
