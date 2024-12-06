@@ -25,6 +25,8 @@ import java.nio.file.Path
 
 import groovy.transform.CompileDynamic
 
+import java.util.jar.Manifest
+
 /**
  *
  * @author Ernest Prabhakar <ernest@quiltdata.io>
@@ -41,8 +43,7 @@ class QuiltPkgTest extends QuiltSpecification {
 
     private static QuiltPackage GetPackage(String suffix) {
         String baseURI = SpecURI().replace('source', suffix)
-        QuiltPathFactory factory = new QuiltPathFactory()
-        QuiltPath qpath = factory.parseUri(baseURI)
+        QuiltPath qpath = QuiltPathFactory.parse(baseURI)
         QuiltPackage pkg = qpath.pkg()
         return pkg
     }
@@ -50,7 +51,7 @@ class QuiltPkgTest extends QuiltSpecification {
     static String manifestVersion() {
         String subPath = 'src/resources/META-INF/MANIFEST.MF'
         File manifestFile = new File(subPath)
-        def manifest = new java.util.jar.Manifest(new FileInputStream(manifestFile))
+        def manifest = new Manifest(new FileInputStream(manifestFile))
         def attrs = manifest.getMainAttributes()
         String version = attrs.getValue('Plugin-Version')
         return version
