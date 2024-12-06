@@ -34,7 +34,6 @@ import java.nio.file.NoSuchFileException
 import java.nio.file.OpenOption
 import java.nio.file.Path
 import java.nio.file.Paths
-import java.nio.file.StandardOpenOption
 import java.nio.file.attribute.BasicFileAttributeView
 import java.nio.file.attribute.BasicFileAttributes
 import java.nio.file.attribute.FileAttribute
@@ -94,12 +93,12 @@ class QuiltFileSystemProvider extends FileSystemProvider implements FileSystemTr
 
     boolean canUpload(Path source, Path target) {
         log.debug "QuiltFileSystemProvider.canUpload: ${source} -> ${target}"
-        return FileSystems.getDefault().equals(source.getFileSystem()) && target instanceof QuiltPath
+        return FileSystems.getDefault() == source.getFileSystem() && target instanceof QuiltPath
     }
 
     boolean canDownload(Path source, Path target) {
         log.debug "QuiltFileSystemProvider.canDownload: ${source} -> ${target}"
-        return source instanceof QuiltPath && FileSystems.getDefault().equals(target.getFileSystem())
+        return source instanceof QuiltPath && FileSystems.getDefault() == target.getFileSystem()
     }
 
     void download(Path remoteFile, Path localDestination, CopyOption... options) throws IOException {
@@ -161,7 +160,7 @@ class QuiltFileSystemProvider extends FileSystemProvider implements FileSystemTr
         return QuiltParser.SCHEME
     }
 
-    String getQuiltIDS(URI uri) {
+    static String getQuiltIDS(URI uri) {
         assert uri
         QuiltParser parsed = QuiltParser.forURI(uri)
         return parsed.quiltID().toString()
@@ -213,6 +212,7 @@ class QuiltFileSystemProvider extends FileSystemProvider implements FileSystemTr
 
     /* groovylint-disable-next-line UnusedMethodParameter */
     QuiltFileSystem newFileSystem(String quiltIDS, Map<String, ?> env) throws IOException {
+        log.debug("newFileSystem $env")
         final fs = new QuiltFileSystem(quiltIDS, this)
         fileSystems[quiltIDS] = fs
         return fs
@@ -301,7 +301,7 @@ class QuiltFileSystemProvider extends FileSystemProvider implements FileSystemTr
         return new QuiltPath(fs, parsed)
     }
 
-    void checkRoot(Path path) {
+    static void checkRoot(Path path) {
         if (path == Paths.get('/')) {
             throw new UnsupportedOperationException("Operation 'checkRoot' not supported on root path")
         }
@@ -316,7 +316,7 @@ class QuiltFileSystemProvider extends FileSystemProvider implements FileSystemTr
     * @return
     * @throws IOException
     */
-    void notifyFilePublish(QuiltPath destination) { //, Path source=null) {
+    static void notifyFilePublish(QuiltPath destination) { //, Path source=null) {
         final sess = Global.session
         /* groovylint-disable-next-line Instanceof */
         if (sess instanceof Session) {
@@ -345,12 +345,13 @@ class QuiltFileSystemProvider extends FileSystemProvider implements FileSystemTr
             FileChannel channel = FileChannel.open(installedPath, options)
             return channel
         }
-        catch (java.nio.file.NoSuchFileException e) {
-            log.error("Failed `FileChannel.open`: ${installedPath} <- ${options}")
+        catch (NoSuchFileException e) {
+            log.error("Failed `FileChannel.open`: ${installedPath} <- ${options}\n$e")
         }
+        return null
       }
 
-    DirectoryStream<Path> emptyStream() throws IOException {
+    static DirectoryStream<Path> emptyStream() throws IOException {
         return new DirectoryStream<Path>() {
 
             @Override
@@ -450,32 +451,32 @@ class QuiltFileSystemProvider extends FileSystemProvider implements FileSystemTr
     }
 
     @Override
-    def <V extends FileAttributeView> V getFileAttributeView(Path path, Class<V> type, LinkOption... options) {
+    <V extends FileAttributeView> V getFileAttributeView(Path path, Class<V> type, LinkOption... options) {
         // log.debug("Calling `getFileAttributeView`: ${path}")
         checkRoot(path)
         if (type == BasicFileAttributeView || type == QuiltFileAttributesView) {
             QuiltPath qPath = asQuiltPath(path)
-            QuiltFileSystem fs = qPath.filesystem
+            QuiltFileSystem fs = qPath.getFileSystem() as QuiltFileSystem
             return (V)fs.getFileAttributeView(qPath)
         }
         throw new UnsupportedOperationException("Operation 'getFileAttributeView' is not supported for type $type")
     }
 
     @Override
-    def <A extends BasicFileAttributes> A readAttributes(Path path, Class<A> type, LinkOption... options)
+    <A extends BasicFileAttributes> A readAttributes(Path path, Class<A> type, LinkOption... options)
          throws IOException {
         log.debug '<A>BasicFileAttributes QuiltFileSystemProvider.readAttributes()'
         def attr = attributesCache.get(path)
         if (attr) {
-            return attr
+            return attr as A
         }
         if (type == BasicFileAttributes || type == QuiltFileAttributes) {
             QuiltPath qPath = asQuiltPath(path)
-            QuiltFileSystem fs = qPath.filesystem
+            QuiltFileSystem fs = qPath.getFileSystem() as QuiltFileSystem
             def result = (A)fs.readAttributes(qPath)
             if (result) {
                 attributesCache[path] = result
-                return result
+                return result as A
             }
             log.debug("readAttributes: File ${qPath.localPath()} not found")
             if (!qPath.isNull()) {
@@ -484,7 +485,7 @@ class QuiltFileSystemProvider extends FileSystemProvider implements FileSystemTr
             log.warn("readAttributes: Ignore ${qPath} for null bucket")
         }
         throw new UnsupportedOperationException("Not a valid Quilt Storage file attribute type: $type")
-         }
+    }
 
     @Override
     Map<String, Object> readAttributes(Path path, String attributes, LinkOption... options) throws IOException {

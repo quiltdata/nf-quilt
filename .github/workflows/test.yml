@@ -25,49 +25,48 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-    # Git Checkout
-    - name: Checkout Code
-      uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-        fetch-depth: 0
+      # Git Checkout
+      - name: Checkout Code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
 
-    - name: Configure AWS Credentials
-      uses: aws-actions/configure-aws-credentials@v4
-      with:
-        role-to-assume: arn:aws:iam::712023778557:role/github/GitHub-Testing-NF-Quilt
-        aws-region: us-east-1
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::712023778557:role/github/GitHub-Testing-NF-Quilt
+          aws-region: us-east-1
 
-    - name: Setup Java ${{matrix.java_version}}
-      uses: actions/setup-java@v4
-      with:
-        java-version: ${{matrix.java_version}}
-        distribution: 'temurin'
-        architecture: x64
-        cache: gradle
-       
-    - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@v4
+      - name: Setup Java ${{matrix.java_version}}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{matrix.java_version}}
+          distribution: "temurin"
+          architecture: x64
+          cache: gradle
 
-    - name: Run Gradle Tests
-      run: make test
-      env:
-        LOG4J_DEBUG: true
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
 
-    - name: Archive production artifacts (Windows only)
-      uses: actions/upload-artifact@v4
-      if: ${{ always() && matrix.os  == 'windows-latest' }}
-      with:
-        name: nf-quilt-test-reports-${{ matrix.os }}-${{ matrix.java_version }}
-        path: |
+      - name: Run Gradle Tests
+        run: make test
+        env:
+          LOG4J_DEBUG: true
+
+      - name: Archive production artifacts (Windows only)
+        uses: actions/upload-artifact@v4
+        if: ${{ always() && matrix.os  == 'windows-latest' }}
+        with:
+          name: nf-quilt-test-reports-${{ matrix.os }}-${{ matrix.java_version }}
+          path: |
             D:\a\nf-quilt\nf-quilt\plugins\nf-quilt\build\reports\
-        overwrite: true
-    - name: Archive production artifacts (Linux and MacOS)
-      uses: actions/upload-artifact@v4
-      if: ${{ always() && matrix.os != 'windows-latest' }} 
-      with:
-        name: nf-quilt-test-reports-${{ matrix.os }}-${{ matrix.java_version }}
-        path: |
+          overwrite: true
+      - name: Archive production artifacts (Linux and MacOS)
+        uses: actions/upload-artifact@v4
+        if: ${{ always() && matrix.os != 'windows-latest' }}
+        with:
+          name: nf-quilt-test-reports-${{ matrix.os }}-${{ matrix.java_version }}
+          path: |
             ${{ github.workspace }}/plugins/nf-quilt/build/reports/
-        overwrite: true
-
+          overwrite: true

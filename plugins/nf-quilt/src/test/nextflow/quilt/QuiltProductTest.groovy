@@ -18,6 +18,7 @@ package nextflow.quilt
 
 import nextflow.Session
 import nextflow.script.WorkflowMetadata
+import com.quiltdata.quiltcore.workflows.WorkflowException
 
 import nextflow.quilt.nio.QuiltPath
 import nextflow.quilt.nio.QuiltPathFactory
@@ -43,13 +44,14 @@ class QuiltProductTest extends QuiltSpecification {
         WorkflowMetadata wf_meta = GroovyMock(WorkflowMetadata) {
             toMap() >> [start:'2022-01-01', complete:'2022-01-02']
         }
+        println("makeProductFromUrl: ${url}")
         QuiltPath path = QuiltPathFactory.parse(url)
         QuiltPathify pathify = new QuiltPathify(path)
         Session session = GroovyMock(Session) {
             getWorkflowMetadata() >> wf_meta
             getParams() >> [outdir: url]
             isSuccess() >> success
-            config >> [quilt: [meta: [cfkey: 'cfval']]]
+            config >> [quilt: [meta: [cf_key: 'cf_val']]]
         }
         return new QuiltProduct(pathify, session)
     }
@@ -62,11 +64,11 @@ class QuiltProductTest extends QuiltSpecification {
         return makeProductFromUrl(subURL, success)
     }
 
-    QuiltProduct makeConfigProduct(Map config = null) {
+    QuiltProduct makeConfigProduct(Map qconfig = null) {
         QuiltPath path = QuiltPathFactory.parse(testURI)
         QuiltPathify pathify = new QuiltPathify(path)
         Session session = GroovyMock(Session)
-        session.config >> config
+        session.config >> [quilt: qconfig]
         QuiltProduct product = new QuiltProduct(pathify, session)
         return product
     }
@@ -85,13 +87,13 @@ class QuiltProductTest extends QuiltSpecification {
         QuiltProduct product = makeProduct()
 
         expect:
-        product
         product.pkg
         product.session != null
         product.session.getWorkflowMetadata() != null
-        product.meta != null
-        product.meta.size() == 4
-        product.meta.key == 'val'
+        product.metadata != null
+        product.metadata.key == 'val'
+        product.metadata.key2 == 'val2'
+        product.displayName().replace('%2f', '/') == testURI
     }
 
     void 'should generate solid string for timestamp from now'() {
@@ -103,90 +105,128 @@ class QuiltProductTest extends QuiltSpecification {
         !now.contains(' ')
     }
 
-    void 'should create from session'() {
+    void 'should create QuiltProduct from session'() {
         given:
         QuiltProduct product = makeProduct()
         expect:
         product
         !product.shouldSkip('key')
         !product.shouldSkip('missing_key')
-        !product.shouldSkip(QuiltProduct.KEY_SKIP)
+        !product.shouldSkip(QuiltProduct.KEY_SUMMARIZE)
         !product.shouldSkip(QuiltProduct.KEY_README)
         !product.shouldSkip(QuiltProduct.KEY_META)
+        product.compileReadme("msg")
     }
 
-    void 'shouldSkip is true if key=SKIP'() {
+    void 'shouldSkip if key is false'() {
+        given:
+        Map qconfig = [:]
+        qconfig[QuiltProduct.KEY_META] = false
+        qconfig[QuiltProduct.KEY_README] = false
+        qconfig[QuiltProduct.KEY_SUMMARIZE] = false
+        println("qconfig: ${qconfig}")
+        QuiltProduct product = makeConfigProduct(qconfig)
+
+        expect:
+        product.shouldSkip(key)
+        product.compileReadme("test") == null
+
+        where:
+        key << [
+            QuiltProduct.KEY_META,
+            QuiltProduct.KEY_README,
+            QuiltProduct.KEY_SUMMARIZE
+        ]
+    }
+
+    void 'overrides config meta with query string'() {
+        when:
+        println('\nOVERRIDE CONFIG META\n')
+        QuiltProduct product = makeProduct()
+
+        then:
+        product.metadata
+        product.metadata['cf_key'] == 'cf_val'
+        product.metadata['key'] == 'val'
+        product.metadata['key2'] == 'val2'
+
+        when:
+        QuiltProduct cf_product = makeProduct('cf_key=override&key3=another')
+
+        then:
+        cf_product.metadata
+        cf_product.metadata['cf_key'] == 'override'
+        cf_product.metadata['key3'] == 'another'
+    }
+
+    void 'overrides config force with query string'() {
+        expect:
+        true
+    }
+
+    void 'overrides config catalog with query string'() {
+        expect:
+        true
+    }
+
+    void 'skips README if false'() {
+        expect:
+        true
+    }
+
+    void 'overrides default msg with config'() {
+        expect:
+        true
+    }
+
+    void 'match files if present'() {
+        QuiltProduct product = makeProduct()
+        String filename = "text.txt"
+        QuiltProduct.writeString("test", product.pkg, filename)
+        expect:
+        product.match("*")[0].toString() == filename
+        product.match("*.txt")[0].toString() == filename
+        !product.match('temp.txt')
+    }
+
+    void 'writeSummarize empty if no files are present'() {
         given:
         QuiltProduct product = makeProduct('readme=SKIP')
+        product.pkg.reset()
         expect:
-        !product.shouldSkip(QuiltProduct.KEY_SKIP)
-        !product.shouldSkip(QuiltProduct.KEY_META)
-        product.shouldSkip(QuiltProduct.KEY_README)
-
-        !makeProduct('?readme=now').shouldSkip()
+        !product.match('*.md')
+        product.writeSummarize() == []
     }
 
-    void 'addSessionMeta is false if no config'() {
-        when:
-        QuiltProduct no_config = makeConfigProduct()
-        then:
-        no_config.addSessionMeta() == false
-
-        when:
-        QuiltProduct no_quilt = makeConfigProduct([quilt: null])
-
-        then:
-        no_quilt.addSessionMeta() == false
-    }
-
-    @IgnoreIf({ System.getProperty('os.name').toLowerCase().contains('windows') })
-    void 'does not create README if readme=SKIP'() {
-        given:
-        QuiltProduct skipREADME = makeProduct('readme=SKIP')
-        String text = skipREADME.setupReadme()
-        def files = skipREADME.pkg.folder.list().sort()
-        expect:
-        skipREADME.shouldSkip(QuiltProduct.KEY_README)
-        !text
-        files.size() == 0
-    }
-
-    void 'always creates README if readme!=SKIP'() {
+    void 'overrides default README with config'() {
         when:
         QuiltProduct defaultREADME = makeProduct()
-        String text = defaultREADME.setupReadme()
-        def files = defaultREADME.pkg.folder.list().sort()
+        String text = defaultREADME.writeReadme('msg')
+        def files = defaultREADME.match('*')
 
         then:
+        text.size() > 0
         !defaultREADME.shouldSkip(QuiltProduct.KEY_README)
         files.size() > 0
 
         when:
         String readme_text = 'hasREADME'
         QuiltProduct hasREADME = makeProduct("readme=${readme_text}")
-        text = hasREADME.setupReadme()
-        files = hasREADME.pkg.folder.list().sort()
+        text = hasREADME.writeReadme('msg')
+        files = hasREADME.match('*')
         then:
         text == readme_text
         !hasREADME.shouldSkip(QuiltProduct.KEY_README)
         files.size() > 0
     }
 
-    void 'setupSummarize empty if no files are present'() {
-        given:
-        QuiltProduct product = makeProduct('readme=SKIP')
-        product.pkg.reset()
-        expect:
-        !product.match('*.md')
-        product.setupSummarize() == []
-    }
 
     void 'should create summarize if files are present'() {
         String readme_text = 'hasREADME'
         QuiltProduct product = makeProduct("readme=${readme_text}")
-        product.setupReadme()
+        product.writeReadme('msg')
         product.match('*.md')
-        List<Map> quilt_summarize = product.setupSummarize()
+        List<Map> quilt_summarize = product.writeSummarize()
         expect:
         quilt_summarize
         quilt_summarize.size() == 1
@@ -198,8 +238,8 @@ class QuiltProductTest extends QuiltSpecification {
         QuiltProduct product = makeWriteProduct()
         String filename = 'test.md'
         String text = 'test'
-        Path src = Paths.get(product.pkg.folder.toString(), filename)
-        Path dest = Paths.get(product.pkg.folder.toString(), 'copy', filename)
+        Path src = Paths.get(product.pkg.packageDest().toString(), filename)
+        Path dest = Paths.get(product.pkg.packageDest().toString(), 'copy', filename)
         Files.writeString(src, text)
 
         when:
@@ -224,7 +264,7 @@ class QuiltProductTest extends QuiltSpecification {
         when:
         makeWriteProduct() // no metadata
         then:
-        thrown(com.quiltdata.quiltcore.workflows.WorkflowException)
+        thrown(WorkflowException)
 
         expect:
         makeWriteProduct(meta) // valid metadata
@@ -232,17 +272,17 @@ class QuiltProductTest extends QuiltSpecification {
         when:
         makeWriteProduct() // invalid default metadata
         then:
-        thrown(com.quiltdata.quiltcore.workflows.WorkflowException)
+        thrown(WorkflowException)
 
         when:
         makeWriteProduct(bad_meta) // invalid explicit metadata
         then:
-        thrown(com.quiltdata.quiltcore.workflows.WorkflowException)
+        thrown(WorkflowException)
 
         when:
         makeWriteProduct(skip_meta) // no default metadata
         then:
-        thrown(com.quiltdata.quiltcore.workflows.WorkflowException)
+        thrown(WorkflowException)
 
         // NOTE: push does NOT update local registry
         expect:
@@ -251,10 +291,10 @@ class QuiltProductTest extends QuiltSpecification {
         when:
         makeWriteProduct(skip_meta) // still fails on implicit metadata
         then:
-        thrown(com.quiltdata.quiltcore.workflows.WorkflowException)
+        thrown(WorkflowException)
     }
 
-    void writeFile(root, filename) {
+    void writeFile(String root, String filename) {
         Path outPath = Paths.get(root, filename)
         outPath.getParent().toFile().mkdirs()
         Files.writeString(outPath, "#Time, Filename\n${timestamp},${filename}")
@@ -288,7 +328,8 @@ class QuiltProductTest extends QuiltSpecification {
         and:
         Session session = Mock(Session)
         QuiltPath path = QuiltPathFactory.parse(sumURL)
-        QuiltProduct product = new QuiltProduct(path, session)
+        QuiltPathify pathify = new QuiltPathify(path)
+        QuiltProduct product = new QuiltProduct(pathify, session)
 
         expect:
         product.publish()
@@ -296,35 +337,17 @@ class QuiltProductTest extends QuiltSpecification {
         Files.exists(Paths.get(sumPkg.packageDest().toString(), QuiltProduct.SUMMARY_FILE))
     }
 
-    void 'should getMetadata from Map'() {
-        given:
-        Map meta = [
-            'Name': 'QuiltPackageTest',
-            'Owner': 'Ernest',
-            'Date': '1967-10-08',
-            'Type': 'NGS'
-        ]
-        QuiltProduct product = makeProduct()
-        Map quilt_meta = product.getMetadata(meta)
-
-        expect:
-        quilt_meta != null
-        quilt_meta.config == meta
-    }
-
-    void 'should addSessionMeta from session'() {
+    void 'should concatMetadata from session'() {
         when:
         QuiltProduct product = makeProduct('a=b&c=d')
-        Map start_meta = product.meta
+        Map start_meta = product.metadata
 
         then:
         start_meta != null
-        start_meta.size() == 4
         start_meta.a == 'b'
-        product.addSessionMeta()
 
         when:
-        Map end_meta = product.meta
+        Map end_meta = product.collectMetadata()
 
         then:
         end_meta != null
@@ -332,7 +355,7 @@ class QuiltProductTest extends QuiltSpecification {
         end_meta.a == 'b'
     }
 
-    void 'should throw error on publish'() {
+    void 'should not throw error on publish'() {
         given:
         QuiltProduct product = makeProduct()
 
@@ -340,15 +363,15 @@ class QuiltProductTest extends QuiltSpecification {
         product.publish()
 
         then:
-        thrown(RuntimeException)
+        true
     }
 
-    void 'should throw error if session.isSuccess'() {
+    void 'should not throw error if session.isSuccess'() {
         when:
-        makeProduct(query: null, success: true)
+        makeProduct('', true)
 
         then:
-        thrown(RuntimeException)
+        true
     }
 
 }

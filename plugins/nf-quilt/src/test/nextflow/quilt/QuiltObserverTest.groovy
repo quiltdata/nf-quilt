@@ -56,6 +56,7 @@ class QuiltObserverTest extends QuiltSpecification {
         observer.onFlowCreate(mockSession(false))
         observer.onFilePublish(badPath)
         observer.onFlowComplete()
+        observer.countPublishedPaths() > 0
         then:
         true
     }
@@ -69,8 +70,8 @@ class QuiltObserverTest extends QuiltSpecification {
         // uninitialized
         observer.onFilePublish(validPath, validPath.localPath())
         then:
-        validPath.pkg().isBucketAccessible() == true
-        observer.publishedPaths.size() == 0
+        validPath.pkg().isBucketAccessible()
+        observer.countPublishedPaths() == 0
     }
 
     void 'should only add publishedPaths if valid path'() {
@@ -85,27 +86,27 @@ class QuiltObserverTest extends QuiltSpecification {
         observer.onFlowCreate(mockSession(false))
         observer.onFilePublish(badPath, badPath.localPath())
         then:
-        observer.publishedPaths.size() == 0
+        observer.countPublishedPaths() == 0
 
         when:
         // no source
         observer.onFilePublish(badPath)
         then:
-        observer.publishedPaths.size() == 0
+        observer.countPublishedPaths() == 0
 
         when:
         // local path (treated as overlay)
         observer.onFilePublish(localPath)
         then:
-        observer.publishedPaths.size() == 0
+        observer.countPublishedPaths() == 0
 
         when:
         // valid bucket
         observer.onFilePublish(validPath, validPath.localPath())
         observer.onFlowComplete()
         then:
-        validPath.pkg().isBucketAccessible() == true
-        observer.publishedPaths.size() == 1
+        validPath.pkg().isBucketAccessible()
+        observer.countPublishedPaths() == 1
     }
 
 }

@@ -21,6 +21,7 @@ import nextflow.quilt.jep.QuiltParser
 import java.nio.file.Files
 import java.nio.file.FileSystem
 import java.nio.file.LinkOption
+import java.nio.file.NoSuchFileException
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.nio.file.ProviderMismatchException
@@ -112,10 +113,11 @@ final class QuiltPath implements Path, Comparable {
         log.debug("QuiltPath.deinstall: $path")
         try {
             Files.delete(path)
-        } catch (java.nio.file.NoSuchFileException e) {
+        } catch (NoSuchFileException e) {
             // Handle the exception here
             log.error("Failed to delete path: $path", e)
         }
+        return false
     }
 
     @Override

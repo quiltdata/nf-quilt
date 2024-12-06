@@ -58,11 +58,11 @@ final class QuiltFileSystem extends FileSystem implements Closeable {
         return quiltIDS
     }
 
-    void copy(QuiltPath source, QuiltPath target) {
+    static void copy(QuiltPath source, QuiltPath target) {
         throw new UnsupportedOperationException("NOT Implemented 'QuiltFileSystem.copy' `$source` -> `$target`")
     }
 
-    void delete(QuiltPath path) {
+    static void delete(QuiltPath path) {
         //log.debug("QuiltFileSystem.delete: $path")
         path.deinstall()
     //throw new UnsupportedOperationException("Operation 'delete' is not supported by QuiltFileSystem")
@@ -93,7 +93,7 @@ final class QuiltFileSystem extends FileSystem implements Closeable {
         return QuiltParser.SEP
     }
 
-    QuiltFileAttributesView getFileAttributeView(QuiltPath path) {
+    static QuiltFileAttributesView getFileAttributeView(QuiltPath path) {
         //log.debug("QuiltFileAttributesView QuiltFileSystem.getFileAttributeView($path)")
         String pathString = path.toUriString()
         try {
@@ -105,7 +105,7 @@ final class QuiltFileSystem extends FileSystem implements Closeable {
         }
     }
 
-    QuiltFileAttributes readAttributes(QuiltPath path)  {
+    static QuiltFileAttributes readAttributes(QuiltPath path)  {
         log.debug("QuiltFileAttributes QuiltFileSystem.readAttributes($path)")
         Path installedPath = path.localPath()
         try {
@@ -113,12 +113,12 @@ final class QuiltFileSystem extends FileSystem implements Closeable {
             return new QuiltFileAttributes(path, path.toString(), attrs)
         }
         catch (NoSuchFileException e) {
-            log.debug("No attributes yet for: ${installedPath}")
+            log.debug("No attributes yet for: ${installedPath}\n$e")
         }
         return null
     }
 
-    boolean exists(QuiltPath path) {
+    static boolean exists(QuiltPath path) {
         return path.pkg().isInstalled()
     }
 
@@ -145,15 +145,15 @@ final class QuiltFileSystem extends FileSystem implements Closeable {
         return new QuiltPath(this, p)
     }
 
-    String toUriString(Path path) {
+    static String toUriString(Path path) {
         return path in QuiltPath ? ((QuiltPath)path).toUriString() : null
     }
 
-    String getBashLib(Path path) {
+    static String getBashLib(Path path) {
         return path in QuiltPath ? QuiltBashLib.script() : null
     }
 
-    String getUploadCmd(String source, Path target) {
+    static String getUploadCmd(String source, Path target) {
         return target in QuiltPath ?  QuiltFileCopyStrategy.uploadCmd(source, target) : null
     }
 
