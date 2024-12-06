@@ -65,7 +65,7 @@ class QuiltSpecification extends Specification {
         // this need to be set *before* the plugin manager class is created
         testURI = 'quilt+s3://bkt?key=val&key2=val2' +
                   '#package=pre/suf@abcdef314159265'+
-                  '&path=p/t&property=prop&workflow=wf&catalog=quiltdata.com'
+                  '&path=p/t&workflow=wf&catalog=quiltdata.com'
         pluginsMode = System.getProperty('pf4j.mode')
         timestamp = System.currentTimeMillis()
         writeBucket =  System.getenv('WRITE_BUCKET')

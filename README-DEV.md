@@ -2,10 +2,14 @@
 
 ## Using Pre-Release Versions
 
-Occasionally we will release beta versions of the plugin that are not yet available in the Nextflow plugin registry. You can help test these versions as follows:
+Occasionally we will release beta versions of the plugin that are not yet
+available in the Nextflow plugin registry. You can help test these versions as
+follows:
 
-- Set the `NXF_PLUGINS_TEST_REPOSITORY` environment variable to the URL of the plugin's metadata file
-- Specify the plugin version in the `plugins` section of your `nextflow.config` file
+- Set the `NXF_PLUGINS_TEST_REPOSITORY` environment variable to the URL of the
+  plugin's metadata file
+- Specify the plugin version in the `plugins` section of your `nextflow.config`
+  file
 
 From the command-line, do, e.g.:
 
@@ -51,7 +55,7 @@ To quickly run `nf-quilt` from this GitHub repository:
 # install and compiles dependencies, then test
 make test-all 
 # create "test/hurdat" package on s3://$WRITE_BUCKET
-make pkg-test WRITE_BUCKET=your-writeablebucket 
+make pkg-test WRITE_BUCKET=your-writeablebucket
 ```
 
 This ensures you have properly installed Nextflow and configured your local
@@ -77,7 +81,7 @@ file (be sure to rename the `outdir` parameter if you use different convention).
 For example:
 
 ```bash
-   ./launch.sh run ./main.nf -profile standard -plugins $(PROJECT) --outdir "quilt+s3://bucket#package=test/hurdat"
+./launch.sh run ./main.nf -profile standard -plugins $(PROJECT) --outdir "quilt+s3://bucket#package=test/hurdat"
 ```
 
 ### Unit Testing
