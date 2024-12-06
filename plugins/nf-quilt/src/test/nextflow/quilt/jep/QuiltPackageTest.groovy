@@ -40,8 +40,8 @@ class QuiltPackageTest extends QuiltSpecification {
 
     private final static String PACKAGE_URL = 'quilt+s3://quilt-example#package=examples%2fsmart-report@d68a7e9'
     private final static String TEST_URL = PACKAGE_URL + '&path=README.md'
-    private final static String RO_FILE='&path=aics_mnist.ipynb'
-    private final static String READONLY_URL = "quilt+s3://allencell#package=aics/aics_mnist" + RO_FILE
+    private final static PKG = 'aics_mnist'
+    private final static String READONLY_URL = "quilt+s3://allencell#package=aics%2f${PKG}&path=${PKG}.ipynb"
 
     private QuiltPathFactory factory
     private QuiltPath qpath
@@ -49,7 +49,7 @@ class QuiltPackageTest extends QuiltSpecification {
 
     void setup() {
         factory = new QuiltPathFactory()
-        qpath = factory.parseUri(TEST_URL)
+        qpath = QuiltPathFactory.parse(TEST_URL)
         pkg = qpath.pkg()
     }
 
@@ -68,7 +68,7 @@ class QuiltPackageTest extends QuiltSpecification {
     void 'should distinguish Packages with same name in different Buckets '() {
         given:
         def url2 = TEST_URL.replace('quilt-', 'quilted-')
-        def qpath2 = factory.parseUri(url2)
+        def qpath2 = QuiltPathFactory.parse(url2)
         def pkg2 = qpath2.pkg()
 
         expect:
@@ -91,7 +91,7 @@ class QuiltPackageTest extends QuiltSpecification {
     void 'should get attributes for package folder'() {
         given:
         def root = qpath.getRoot()
-        def qroot = factory.parseUri(PACKAGE_URL)
+        def qroot = QuiltPathFactory.parse(PACKAGE_URL)
         expect:
         root == qroot
         qroot.isJustPackage()
@@ -102,7 +102,7 @@ class QuiltPackageTest extends QuiltSpecification {
     void 'should not raise error on null bucket'() {
         given:
         QuiltPackage.resetPackageCache()
-        def qpath = factory.parseUri('quilt+s3://./')
+        def qpath = QuiltPathFactory.parse('quilt+s3://./')
         def pkg = qpath.pkg()
         expect:
         pkg.isNull()
@@ -122,7 +122,7 @@ class QuiltPackageTest extends QuiltSpecification {
 
     void 'should download the specified path'() {
         given:
-        def qpath = factory.parseUri(TEST_URL)
+        def qpath = QuiltPathFactory.parse(TEST_URL)
         def qpkg = qpath.pkg()
         Path outputFolder = pkg.packageDest()
         Path readmeFile = outputFolder.resolve('README.md')
@@ -145,7 +145,7 @@ class QuiltPackageTest extends QuiltSpecification {
     void 'should return null on failed implicit install'() {
         given:
         def url2 = TEST_URL.replace('quilt-', 'quilted-')
-        def qpath2 = factory.parseUri(url2)
+        def qpath2 = QuiltPathFactory.parse(url2)
         def pkg2 = qpath2.pkg()
 
         expect:
@@ -155,7 +155,7 @@ class QuiltPackageTest extends QuiltSpecification {
     void 'should throw error on explict install'() {
         given:
         def url2 = TEST_URL.replace('quilt-', 'quilted-')
-        def qpath2 = factory.parseUri(url2)
+        def qpath2 = QuiltPathFactory.parse(url2)
         def pkg2 = qpath2.pkg()
 
         when:
@@ -181,7 +181,7 @@ class QuiltPackageTest extends QuiltSpecification {
     void 'should iterate over installed files '() {
         given:
         def root = qpath.getRoot()
-        def qroot = factory.parseUri(PACKAGE_URL)
+        def qroot = QuiltPathFactory.parse(PACKAGE_URL)
 
         expect:
         root
@@ -193,10 +193,10 @@ class QuiltPackageTest extends QuiltSpecification {
 
     void 'should fail pushing new files to read-only bucket '() {
         given:
-        def qout = factory.parseUri(READONLY_URL)
+        def qout = QuiltPathFactory.parse(READONLY_URL)
         def opkg = qout.pkg()
         opkg.install()
-        def outPath = Paths.get(opkg.packageDest().toString(), RO_FILE)
+        def outPath = Paths.get(opkg.packageDest().toString(), "${PKG}.ipynb")
         Files.writeString(outPath, "Time: ${timestamp}")
         expect:
         Files.exists(outPath)
@@ -213,7 +213,7 @@ class QuiltPackageTest extends QuiltSpecification {
         expect:
         opkg
         opkg.is_force()
-        opkg.bucket == writeBucket
+        opkg.bucketAccessible
         opkg.packageName.contains('test/observer')
     }
 
