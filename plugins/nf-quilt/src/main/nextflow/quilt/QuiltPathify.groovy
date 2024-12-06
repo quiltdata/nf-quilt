@@ -51,7 +51,7 @@ class QuiltPathify  {
             Files.copy(source, dest)
         }
         catch (Exception e) {
-            log.error("writeString: cannot write `$source` to `$dest` in `${destRoot}`\n$e")
+            println("writeString: cannot write `$source` to `$dest` in `${destRoot}`\n$e")
         }
     }
 
@@ -73,12 +73,12 @@ class QuiltPathify  {
      * - path: inputs/a_folder/THING_TWO.md
      */
     static String uriFromS3File(String s3path) {
-        log.debug("uriFromS3File: $s3path")
+        println("uriFromS3File: $s3path")
         String[] partsArray = s3path.split('/')
         List<String> parts = new ArrayList(partsArray.toList())
         // parts.eachWithIndex { p, i -> println("uriFromS3File.parts[$i]: $p") }
         if (parts.size() < 2) {
-            log.error("uriFromS3File: invalid path: $s3path")
+            println("uriFromS3File: invalid path: $s3path")
             return ''
         }
         parts.remove(0) // remove leading slash
@@ -90,7 +90,7 @@ class QuiltPathify  {
         String folder = parts.join('/')
         String sub_path = folder.length() > 0 ? folder + '/' + file : file
 
-        log.debug("uriFromS3File: $bucket/$prefix/$suffix/$sub_path")
+        // println("uriFromS3File: $bucket/$prefix/$suffix/$sub_path")
         String base = "quilt+s3://${bucket}#package=${prefix}%2f${suffix}"
         String uri = base + '&path=' + sub_path
         return uri
@@ -101,11 +101,11 @@ class QuiltPathify  {
         println("QuiltPathify: $path")
         if (path in QuiltPath) {
             this.path = (QuiltPath) path
-            println("\tQuiltPathify.QuiltPath: $this.path")
+            println("\tQuiltPathify.QuiltPath: ${this}.path")
             this.uri = this.path.toUriString()
-            println("\t\tQuiltPathify.QuiltPath.uri: $this.uri")
+            println("\t\tQuiltPathify.QuiltPath.uri: ${this}.uri")
             this.pkg = this.path.pkg()
-            println("\t\tQuiltPathify.QuiltPath.pkg: $this.pkg")
+            println("\t\tQuiltPathify.QuiltPath.pkg: ${this}.pkg")
         } else if (!findQuiltPath(path.getFileName().toString())) {
             makeQuiltPath(path.toString())
             this.isOverlay = true

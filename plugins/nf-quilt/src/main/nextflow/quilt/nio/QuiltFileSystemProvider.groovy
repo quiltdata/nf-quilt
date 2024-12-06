@@ -63,7 +63,7 @@ import nextflow.file.FileHelper
 @CompileStatic
 class QuiltFileSystemProvider extends FileSystemProvider implements FileSystemTransferAware {
 
-    private final Map<String,String> myEnv = new HashMap<>(System.getenv())
+    private final Map<String,String> myEnv = new HashMap<String,String>(System.getenv())
     private final Map<String,QuiltFileSystem> fileSystems = [:]
     private Map<Path,BasicFileAttributes> attributesCache = [:]
 

@@ -60,7 +60,7 @@ class QuiltParser {
     }
 
     static QuiltParser forURI(URI uri) {
-        log.debug("forURI[${uri.scheme}] for ${uri}")
+        println("forURI[${uri.scheme}] for ${uri}")
         if (uri.scheme != SCHEME) {
             String msg =  "Scheme[${uri}] URI:${uri.scheme}] != SCHEME:${SCHEME}"
             throw new IllegalArgumentException(msg)

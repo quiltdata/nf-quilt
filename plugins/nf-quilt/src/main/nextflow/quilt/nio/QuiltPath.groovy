@@ -55,11 +55,11 @@ final class QuiltPath implements Path, Comparable <Path> {
         }
         String base = filename
         if (n_package > 1) {
-            log.info("\tfindQuiltPath: multiple '#package' in $base")
+            println("\tfindQuiltPath: multiple '#package' in $base")
             println('\t\tTO MATCH')
             Matcher matches = (filename =~ /^([^#]+#package=.*)?(?:(?!%2f).)*#package=/)
             if (!matches) {
-                log.error("findQuiltPath: no match found for $filename")
+                println("findQuiltPath: no match found for $filename")
                 return null
             }
             println('\t\tDID MATCH')
@@ -67,7 +67,7 @@ final class QuiltPath implements Path, Comparable <Path> {
             List<String> parts = matches[0] as List<String>
             println("\tfindQuiltPath.parts: $parts")
             base = parts[1]
-            log.info("\tfindQuiltPath: trimmed to $base")
+            println("\tfindQuiltPath: trimmed to $base")
         }
         return base
     }

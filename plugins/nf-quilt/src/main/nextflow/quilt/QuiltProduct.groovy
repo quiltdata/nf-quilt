@@ -96,7 +96,7 @@ ${nextflow}
     ]
 
     static void printMap(Map map, String title) {
-        log.info("\n\n\n# $title ${map.keySet()}")
+        println("\n\n\n# $title ${map.keySet()}")
         map.each {
             key, value -> log.info("\n## ${key}: ${value}")
         }
@@ -115,7 +115,7 @@ ${nextflow}
             Files.write(path, text.bytes)
         }
         catch (Exception e) {
-            log.error("writeString: cannot write `$text` to `$path` for `${pkg}`\n$e")
+            println("writeString: cannot write `$text` to `$path` for `${pkg}`\n$e")
         }
     }
 
@@ -126,7 +126,7 @@ ${nextflow}
             Files.copy(source, dest)
         }
         catch (Exception e) {
-            log.error("writeString: cannot write `$source` to `$dest` in `${destRoot}`\n$e.message()")
+            println("writeString: cannot write `$source` to `$dest` in `${destRoot}`\n$e.message()")
         }
     }
 
@@ -325,11 +325,11 @@ ${nextflow}
             return null
         }
         String raw_readme = flags.getProperty(KEY_README)
-        String nf = metadata['workflow']?['nextflow']
-        String nextflow = nf?.replace(', ', '```\n  - **')\
-            ?.replace('nextflow.NextflowMeta(', '  - **')\
-            ?.replace(')', '```')
-            ?.replace(':', '**: ```')
+        String nf = metadata['workflow']?.get('nextflow')
+        String nextflow = nf != null ? nf.replace(', ', '```\n  - **')
+            .replace('nextflow.NextflowMeta(', '  - **')
+            .replace(')', '```')
+            .replace(':', '**: ```') : null
         Map params = getTemplateArgs()
         params += [
             msg: msg,

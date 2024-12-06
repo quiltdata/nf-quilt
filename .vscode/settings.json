@@ -1,4 +1,4 @@
 {
-  "java.compile.nullAnalysis.mode": "disabled",
-  "java.configuration.updateBuildConfiguration": "disabled"
+  "java.compile.nullAnalysis.mode": "enabled",
+  "java.configuration.updateBuildConfiguration": "enabled"
 }

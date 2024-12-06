@@ -31,18 +31,18 @@ class QuiltID {
 
     static QuiltID fetch(String bucket, String packageName) {
         if (!bucket) {
-            log.error("null == QuiltID.fetch($bucket, $packageName)")
+            println("null == QuiltID.fetch($bucket, $packageName)")
             return null
         }
         String pkgName = packageName
         if (!packageName || packageName.size() < QuiltParser.MIN_SIZE) {
             pkgName = DEFAULT_PACKAGE.join(QuiltParser.SEP)
-            log.warn("QuiltID.fetch: setting missing package to $pkgName")
+            println("QuiltID.fetch: setting missing package to $pkgName")
         }
         String[] split = pkgName.split(QuiltParser.SEP)
         if (split.size() < QuiltParser.MIN_SIZE || split[1].size() < QuiltParser.MIN_SIZE) {
             split += DEFAULT_PACKAGE[1] as String
-            log.warn("QuiltID.fetch: setting missing suffix to $split[1]")
+            println("QuiltID.fetch: setting missing suffix to $split[1]")
         }
         String key = "${bucket}/${split[0]}/${split[1]}"
         if (!QIDS.containsKey(key)) {

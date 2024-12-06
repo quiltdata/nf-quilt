@@ -78,12 +78,12 @@ class QuiltPackage {
         List<String> entries = dict.collect { key, value ->
             String prefix = JsonOutput.toJson(key)
             String suffix = "toJson.error: ${value}"
-            log.debug("QuiltPackage.toJson: ${prefix} [${suffix.length()}]")
+            println("QuiltPackage.toJson: ${prefix} [${suffix.length()}]")
             try {
                 suffix = JsonOutput.toJson(value)
             }
             catch (Exception e) {
-                log.error(suffix, e)
+                println("$suffix:\n$e")
             }
             return "${prefix}:${suffix}".toString()
         }
@@ -102,7 +102,7 @@ class QuiltPackage {
         }
 
         String pkgKey = parsed.toPackageString(true) // ignore metadata for Key
-        log.info("QuiltPackage.forParsed[${pkgKey}]")
+        println("QuiltPackage.forParsed[${pkgKey}]")
         def pkg = PKGS.get(pkgKey)
         if (pkg) { return pkg }
 
@@ -120,7 +120,7 @@ class QuiltPackage {
             if (!Files.exists(rootPath)) { return false }
         }
         catch (SecurityException e) {
-            log.warn("Cannnot verify whether `$rootPath` exists: $e")
+            println("Cannnot verify whether `$rootPath` exists: $e")
         }
         try {
             final List<Path> pathsToDelete = listDirectory(rootPath)
@@ -129,7 +129,7 @@ class QuiltPackage {
             }
         }
         catch (NoSuchFileException e) {
-            log.debug "deleteDirectory: ignore non-existent files\n$e"
+            println "deleteDirectory: ignore non-existent files\n$e"
         }
         return true
     }
@@ -233,9 +233,7 @@ class QuiltPackage {
             S3PhysicalKey registryPath = new S3PhysicalKey(bucket, '', null)
             Registry registry = new Registry(registryPath)
             Namespace namespace = registry.getNamespace(packageName)
-            String resolvedHash = (hash == 'latest' || hash == null || hash == 'null')
-              ? namespace.getHash('latest')
-              : hash
+            String resolvedHash = (hash == 'latest' || hash == null || hash == 'null') ? namespace.getHash('latest') : hash
             log.debug("hash: $hash -> $resolvedHash")
             Manifest manifest = namespace.getManifest(resolvedHash)
 
@@ -294,7 +292,7 @@ class QuiltPackage {
 
         Manifest.Builder builder = Manifest.builder()
 
-        Files.walk(packageDest()).filter(f -> Files.isRegularFile(f)).forEach(f -> {
+        Files.walk(packageDest()).filter({ f -> Files.isRegularFile(f) }).forEach({ f ->
             log.debug("push: ${f} -> ${packageDest()}")
             String logicalKey = packageDest().relativize(f)
             LocalPhysicalKey physicalKey = new LocalPhysicalKey(f)
