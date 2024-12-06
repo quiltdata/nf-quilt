@@ -65,15 +65,14 @@ dependencies {
     compileOnly 'org.slf4j:slf4j-api:1.7.10'
     compileOnly 'org.pf4j:pf4j:3.10.0'
 
-    // add here plugins depepencies
+    // add here plugins dependencies
     implementation 'com.quiltdata:quiltcore:0.1.5'
-    implementation "org.apache.groovy:groovy-all:$groovyVer"
 
     // test configuration
     testImplementation "org.apache.groovy:groovy:$groovyVer"
     testImplementation "org.apache.groovy:groovy-nio:$groovyVer"
     testImplementation "io.nextflow:nextflow:$nextflowVersion"
-    testImplementation ("org.apache.groovy:groovy-all:$groovyVer") { exclude group: 'org.apache.groovy' }
+    testImplementation ("org.apache.groovy:groovy-test:$groovyVer") { exclude group: 'org.apache.groovy' }
     testImplementation ("cglib:cglib-nodep:3.3.0")
     testImplementation ("org.objenesis:objenesis:3.1")
     testImplementation ("org.spockframework:spock-core:2.3-groovy-4.0") { exclude group: 'org.apache.groovy'; exclude group: 'net.bytebuddy' }
