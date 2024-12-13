@@ -38,8 +38,6 @@ import com.quiltdata.quiltcore.Manifest
 import com.quiltdata.quiltcore.key.LocalPhysicalKey
 import com.quiltdata.quiltcore.key.S3PhysicalKey
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.node.ObjectNode
 
 @Slf4j
 @CompileStatic
@@ -286,28 +284,9 @@ class QuiltPackage {
             return null
         }
         String pkgName = pkg ?: packageName
-        S3PhysicalKey registryPath = new S3PhysicalKey(bucket, '', null)
-        Registry registry = new Registry(registryPath)
-        Namespace namespace = registry.getNamespace(pkgName)
+        Namespace namespace = registry.CreateAtURI("s3://bucket", pkgName)
 
-        Manifest.Builder builder = Manifest.builder()
-
-        Files.walk(packageDest()).filter({ f -> Files.isRegularFile(f) }).forEach({ f ->
-            log.debug("push: ${f} -> ${packageDest()}")
-            String logicalKey = packageDest().relativize(f)
-            LocalPhysicalKey physicalKey = new LocalPhysicalKey(f)
-            long size = Files.size(f)
-            builder.addEntry(logicalKey, new Entry(physicalKey, size, null, null))
-        })
-
-        Map<String, Object> fullMeta = [
-            'version': Manifest.VERSION,
-            'user_meta': meta + this.meta,
-        ]
-        ObjectMapper mapper = new ObjectMapper()
-        builder.setMetadata((ObjectNode)mapper.valueToTree(fullMeta))
-
-        Manifest m = builder.build()
+        Manifest m = Manifest.BuildFromDir(packageDest(), meta+this.meta)
         log.debug("push[${pkgName}]: ${m}")
         try {
             Manifest manifest = m.push(namespace, "nf-quilt:${today()}-${msg}", parsed.workflowName)
