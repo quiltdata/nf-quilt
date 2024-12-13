@@ -54,7 +54,7 @@ sourceSets {
 
 ext {
     nextflowVersion = rootProject.file('VERSION').text.trim()
-    groovyVer = '4.0.18'
+    groovyVer = '4.0.24'
 }
 
 
@@ -62,22 +62,23 @@ dependencies {
 
     // This dependency is exported to consumers, that is to say found on their compile classpath.
     compileOnly "io.nextflow:nextflow:$nextflowVersion"
-    compileOnly 'org.slf4j:slf4j-api:1.7.10'
-    compileOnly 'org.pf4j:pf4j:3.10.0'
+    compileOnly 'org.slf4j:slf4j-api:2.0.9'
+    compileOnly 'org.pf4j:pf4j:3.12.0'
 
     // add here plugins dependencies
-    implementation 'com.quiltdata:quiltcore:0.1.5'
+    implementation 'com.quiltdata:quiltcore:0.1.6'
+    //implementation files("build/libs/quiltcore-0.1.6.jar")
 
     // test configuration
     testImplementation "org.apache.groovy:groovy:$groovyVer"
     testImplementation "org.apache.groovy:groovy-nio:$groovyVer"
     testImplementation "io.nextflow:nextflow:$nextflowVersion"
     testImplementation ("org.apache.groovy:groovy-test:$groovyVer") { exclude group: 'org.apache.groovy' }
-    testImplementation ("cglib:cglib-nodep:3.3.0")
-    testImplementation ("org.objenesis:objenesis:3.1")
-    testImplementation ("org.spockframework:spock-core:2.3-groovy-4.0") { exclude group: 'org.apache.groovy'; exclude group: 'net.bytebuddy' }
-    testImplementation ('org.spockframework:spock-junit4:2.3-groovy-4.0') { exclude group: 'org.apache.groovy'; exclude group: 'net.bytebuddy' }
-    testImplementation ('com.google.jimfs:jimfs:1.1')
+    testImplementation ("cglib:cglib-nodep:3.3.1")
+    testImplementation ("org.objenesis:objenesis:3.2")
+    testImplementation ("org.spockframework:spock-core:2.4-groovy-4.0") { exclude group: 'org.apache.groovy'; exclude group: 'net.bytebuddy' }
+    testImplementation ('org.spockframework:spock-junit4:2.4-groovy-4.0') { exclude group: 'org.apache.groovy'; exclude group: 'net.bytebuddy' }
+    testImplementation ('com.google.jimfs:jimfs:1.2')
 
     testImplementation(testFixtures("io.nextflow:nextflow:$nextflowVersion"))
     testImplementation(testFixtures("io.nextflow:nf-commons:$nextflowVersion"))
