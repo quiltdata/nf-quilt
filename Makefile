@@ -30,8 +30,14 @@ check-env:
 clean:
 	./gradlew clean
 	rm -rf null results work
-	rm -rf */*/build plugins/nf-quilt/bin
+	rm -rf build */build */*/build plugins/nf-quilt/bin
 	rm -f .nextflow.log* .launch*classpath
+
+clean-cache:
+	rm -rf .gradle
+	rm -rf .nextflow
+	rm -rf $(HOME)/.gradle
+	rm -rf $(HOME)/.nextflow
 
 compile:
 	./gradlew compileGroovy exportClasspath
