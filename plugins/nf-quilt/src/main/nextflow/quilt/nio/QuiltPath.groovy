@@ -41,7 +41,7 @@ import groovy.util.logging.Slf4j
 
 @Slf4j
 @CompileStatic
-final class QuiltPath implements Path, Comparable {
+final class QuiltPath implements Path {
 
     private final QuiltFileSystem filesystem
     private final QuiltParser parsed
