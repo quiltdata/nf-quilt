@@ -85,7 +85,7 @@ dependencies {
     compileOnly 'org.slf4j:slf4j-simple:2.1.0-alpha1'
     compileOnly 'black.ninia:jep:4.2.2'
     runtime 'black.ninia:jep:4.2.2'
-    runtimeOnly 'org.junit.platform:junit-platform-launcher:1.11.3'
+    runtimeOnly 'org.junit.platform:junit-platform-launcher:1.11.4'
     implementation 'commons-io:commons-io:2.18.0'
     implementation 'black.ninia:jep:4.2.2'
     testImplementation 'black.ninia:jep:4.2.2'
