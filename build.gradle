@@ -24,7 +24,7 @@ plugins {
 }
 
 // Add ability to test with upcoming versions of Groovy
-def groovyVer = System.getenv('CI_GROOVY_VERSION')
+def groovyVer = System.getenv('CI_GROOVY_VERSION') ?: '3.0.23'
 if (groovyVer) {
     def repo = groovyVer.startsWith('com.github.apache:') ? 'https://jitpack.io' : 'https://oss.jfrog.org/oss-snapshot-local/'
     logger.lifecycle "Overriden Groovy dependency to use $groovyVer - repository: $repo"
@@ -54,7 +54,12 @@ def projects(String...args) {
 }
 
 // group = 'io.nextflow'
-version = rootProject.file('VERSION').text.trim()
+
+ext {
+    nextflowVersion = rootProject.file('VERSION').text.trim()
+    groovyVersion = '3.0.23'
+}
+
 
 allprojects {
     apply plugin: 'java'
@@ -99,10 +104,7 @@ allprojects {
     dependencies {
         // see https://docs.gradle.org/4.1/userguide/dependency_management.html#sec:module_replacement
         implementation 'com.github.groovy-wslite:groovy-wslite:1.1.3'
-        implementation "org.codehaus.groovy:groovy-all:$groovyVer"
-        capabilities {
-            requireCapability 'org.codehaus.groovy:groovyApiElements', groovyVer
-        }
+        implementation "org.codehaus.groovy:groovy-all:$groovyVersion"
         implementation 'com.fasterxml.jackson.core:jackson-databind:2.18.2'
         implementation 'com.upplication:s3fs:2.2.2'
 
@@ -111,8 +113,8 @@ allprojects {
         }
         // Documentation required libraries
         groovyDoc 'org.fusesource.jansi:jansi:2.4.1'
-        groovyDoc "org.codehaus.groovy:groovy-groovydoc:$groovyVer"
-        groovyDoc "org.codehaus.groovy:groovy-ant:$groovyVer"
+        groovyDoc "org.codehaus.groovy:groovy-groovydoc:$groovyVersion"
+        groovyDoc "org.codehaus.groovy:groovy-ant:$groovyVersion"
     }
 
     test {
@@ -199,7 +201,7 @@ task exportClasspath {
     doLast {
         def all = getRuntimeConfigs()
         def libs = all.collect { File file -> file.canonicalPath;  }
-        ['nextflow', 'nf-commons', 'nf-httfs'].each { libs << file("modules/$it/build/libs/${it}-${version}.jar").canonicalPath }
+        ['nextflow', 'nf-commons', 'nf-httfs'].each { libs << file("modules/$it/build/libs/${it}-${nextflowVersion}.jar").canonicalPath }
         file('.launch.classpath').text = libs.unique().join(':')
     }
 }
