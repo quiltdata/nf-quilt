@@ -35,13 +35,17 @@ useLatestVersions {
     ]
 }
 
-group = 'io.nextflow'
+// group = 'io.nextflow'
 // DO NOT SET THE VERSION HERE
 // THE VERSION FOR PLUGINS IS DEFINED IN THE `/resources/META-INF/MANIFEST.NF` file
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(17)
     }
+}
+
+compileJava {
+    options.release = 17
 }
 
 idea {
@@ -79,6 +83,7 @@ dependencies {
 
     // This dependency is exported to consumers, that is to say found on their compile classpath.
     compileOnly "io.nextflow:nextflow:$nextflowVersion"
+    compileOnly "io.nextflow:nf-commons:$nextflowVersion"
     compileOnly 'org.slf4j:slf4j-api:2.1.0-alpha1'
     compileOnly 'org.pf4j:pf4j:3.13.0'
     // add here plugins depepencies
@@ -92,14 +97,23 @@ dependencies {
     //testImplementation(testFixtures('black.ninia:jep:4.0.3'))
 
     // test configuration
-    testImplementation 'org.codehaus.groovy:groovy:3.0.23'
-    testImplementation 'org.codehaus.groovy:groovy-nio:3.0.23'
+    testImplementation "org.codehaus.groovy:groovy:$groovyVer"
+    testImplementation "org.codehaus.groovy:groovy-nio:$groovyVer"
     testImplementation "io.nextflow:nextflow:$nextflowVersion"
-    testImplementation('org.codehaus.groovy:groovy-test:3.0.23') { exclude group: 'org.codehaus.groovy' }
+    testImplementation "io.nextflow:nf-commons:$nextflowVersion"
+    testImplementation("org.codehaus.groovy:groovy-test:$groovyVer") { 
+        exclude group: 'org.codehaus.groovy' 
+    }
     testImplementation('cglib:cglib-nodep:3.3.0')
     testImplementation('org.objenesis:objenesis:3.4')
-    testImplementation('org.spockframework:spock-core:2.3-groovy-3.0') { exclude group: 'org.codehaus.groovy'; exclude group: 'net.bytebuddy' }
-    testImplementation('org.spockframework:spock-junit4:2.3-groovy-3.0') { exclude group: 'org.codehaus.groovy'; exclude group: 'net.bytebuddy' }
+    testImplementation('org.spockframework:spock-core:2.3-groovy-3.0') { 
+        exclude group: 'org.codehaus.groovy'
+        exclude group: 'net.bytebuddy' 
+    }
+    testImplementation('org.spockframework:spock-junit4:2.3-groovy-3.0') { 
+        exclude group: 'org.codehaus.groovy'
+        exclude group: 'net.bytebuddy' 
+    }
     testImplementation('com.google.jimfs:jimfs:1.3.0')
 
     testImplementation(testFixtures("io.nextflow:nextflow:$nextflowVersion"))
@@ -107,7 +121,9 @@ dependencies {
 
     // see https://docs.gradle.org/4.1/userguide/dependency_management.html#sec:module_replacement
     modules {
-        module('commons-logging:commons-logging') { replacedBy('org.slf4j:jcl-over-slf4j') }
+        module('commons-logging:commons-logging') { 
+            replacedBy('org.slf4j:jcl-over-slf4j') 
+        }
     }
 }
 
