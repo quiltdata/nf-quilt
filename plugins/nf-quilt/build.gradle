@@ -60,11 +60,6 @@ sourceSets {
     test.resources.srcDirs = ['src/testResources']
 }
 
-ext {
-    nextflowVersion = rootProject.file('VERSION').text.trim()
-    groovyVersion = '3.0.14'
-}
-
 dependencies {
     // quiltcore
     implementation 'com.quiltdata:quiltcore:0.1.6'

@@ -24,7 +24,7 @@ plugins {
 }
 
 // Add ability to test with upcoming versions of Groovy
-def groovyVer = System.getenv('CI_GROOVY_VERSION') ?: '3.0.14'
+def groovyVer = System.getenv('CI_GROOVY_VERSION')
 if (groovyVer) {
     def repo = groovyVer.startsWith('com.github.apache:') ? 'https://jitpack.io' : 'https://oss.jfrog.org/oss-snapshot-local/'
     logger.lifecycle "Overriden Groovy dependency to use $groovyVer - repository: $repo"
@@ -51,12 +51,6 @@ if (groovyVer) {
 
 
 // group = 'io.nextflow'
-
-ext {
-    nextflowVersion = rootProject.file('VERSION').text.trim()
-    groovyVersion = '3.0.14'
-}
-
 
 allprojects {
     apply plugin: 'java'
