@@ -1,3 +1,11 @@
+import io.nextflow.gradle.tasks.GithubRepositoryPublisher
+import io.nextflow.gradle.tasks.GithubUploader
+import org.apache.commons.codec.digest.DigestUtils
+import org.codehaus.groovy.runtime.GStringImpl
+
+import java.time.OffsetDateTime
+import java.time.format.DateTimeFormatter
+
 /*
  * Copyright 2021-2022, Seqera Labs
  *
@@ -24,19 +32,19 @@ ext.github_organization = project.findProperty('github_organization') ?: 'nextfl
 ext.github_username = project.findProperty('github_username') ?: 'pditommaso'
 ext.github_access_token = project.findProperty('github_access_token') ?: System.getenv('GITHUB_TOKEN')
 ext.github_commit_email = project.findProperty('github_commit_email') ?: 'paolo.ditommaso@gmail.com'
-ext.github_index_url = "https://github.com/${github_organization}/plugins/main/plugins.json"
+ext.github_index_url = "https://github.com/${github_organization}/plugins/main/plugins.json" as GStringImpl
 
 jar.enabled = false
 
-String computeSha512(File file) {
+static String computeSha512(File file) {
     if (!file.exists()) {
         throw new GradleException("Missing file: $file -- cannot compute SHA-512")
     }
-    return org.apache.commons.codec.digest.DigestUtils.sha512Hex(file.bytes)
+    return DigestUtils.sha512Hex(file.bytes)
 }
 
-String now() {
-    "${java.time.OffsetDateTime.now().format(java.time.format.DateTimeFormatter.ISO_DATE_TIME)}"
+static String now() {
+    "${OffsetDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME)}"
 }
 
 List<String> allPlugins() {
@@ -71,14 +79,14 @@ subprojects {
 
     version = metaFromManifest('Plugin-Version', file('src/resources/META-INF/MANIFEST.MF'))
 
-    tasks.withType(Jar) {
+    tasks.withType(Jar).configureEach {
         duplicatesStrategy = DuplicatesStrategy.INCLUDE
     }
 
     /*
      * Creates plugin zip and json meta file in plugin `build/libs` directory
      */
-    task makeZip(type: Jar) {
+    tasks.register('makeZip', Jar) {
         into('classes') { with jar }
         into('lib') { from configurations.runtimeClasspath }
         manifest.from file('src/resources/META-INF/MANIFEST.MF')
@@ -106,7 +114,7 @@ subprojects {
     /*
      * Copy the plugin dependencies in the subproject `build/target/libs` directory
      */
-    task copyPluginLibs(type: Sync) {
+    tasks.register('copyPluginLibs', Sync) {
         from configurations.runtimeClasspath
         into 'build/target/libs'
         duplicatesStrategy 'exclude'
@@ -115,7 +123,8 @@ subprojects {
     /*
      * Copy the plugin in the project root build/plugins directory
      */
-    task copyPluginZip(type: Copy, dependsOn: project.tasks.findByName('makeZip')) {
+    tasks.register('copyPluginZip', Copy) {
+        dependsOn project.tasks.findByName('makeZip')
         from makeZip
         into "$rootProject.buildDir/plugins"
         outputs.file("$rootProject.buildDir/plugins/${project.name}-${project.version}.zip")
@@ -132,10 +141,10 @@ subprojects {
     */
     project.parent.tasks.getByName('assemble').dependsOn << copyPluginZip
 
-    task uploadPlugin(type: io.nextflow.gradle.tasks.GithubUploader, dependsOn: makeZip) {
+    task uploadPlugin(type: GithubUploader, dependsOn: makeZip) {
         assets = providers.provider { ["$buildDir/libs/${project.name }-${project.version }.zip",
-                                      "$buildDir/libs/${project.name}-${project.version}-meta.json" ]}
-        release = providers.provider { project.version }
+                                       "$buildDir/libs/${project.name}-${project.version}-meta.json" ]} as Provider<? extends Iterable<? extends String>>
+        release = providers.provider { project.version } as Provider<? extends String>
         repo = providers.provider { project.name }
         owner = github_organization
         userName = github_username
@@ -144,14 +153,14 @@ subprojects {
     }
 }
 
-task upload(dependsOn: [subprojects.uploadPlugin]) { }
+tasks.register('upload') { dependsOn[subprojects.uploadPlugin] }
 
 classes.dependsOn subprojects.copyPluginLibs
 
 /*
  * Merge and publish the plugins index file
  */
-task publishIndex(type: io.nextflow.gradle.tasks.GithubRepositoryPublisher) {
+tasks.register('publishIndex', GithubRepositoryPublisher) {
     indexUrl = github_index_url
     repos = allPlugins()
     owner = github_organization

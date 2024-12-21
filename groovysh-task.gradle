@@ -3,10 +3,10 @@ gradle.projectsLoaded {
         afterEvaluate { project ->
             if (!project.repositories.any { it.name == 'MavenRepo' }) {
                 project.repositories {
-                    // To be able to load org.apache.groovy:groovy-groovysh and dependencies
+                    // To be able to load org.codehaus.groovy:groovy-groovysh and dependencies
                     mavenCentral {
                         content {
-                            includeGroup 'org.apache.groovy'
+                            includeGroup 'org.codehaus.groovy'
                             includeGroup 'jline'
                             includeGroup 'com.github.javaparser'
                             includeGroup 'org.ow2.asm'
@@ -21,7 +21,7 @@ gradle.projectsLoaded {
             }
 
             project.dependencies {
-                groovyshdependencies 'org.apache.groovy:groovy-groovysh:4.0.24'
+                groovyshdependencies 'org.codehaus.groovy:groovy-groovysh:4.0.24'
             }
 
             project.tasks.register('groovysh') {
@@ -35,7 +35,7 @@ gradle.projectsLoaded {
 
                     def groovyshClass
                     def groovyShell
-                    groovyshClass = Class.forName('org.apache.groovy.groovysh.Groovysh', true, groovyshClassLoader)
+                    groovyshClass = Class.forName('org.codehaus.groovy.groovysh.Groovysh', true, groovyshClassLoader)
                     if (groovyshClass) {
                         groovyShell = groovyshClass.newInstance()
                         if (groovyShell) {

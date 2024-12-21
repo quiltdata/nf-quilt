@@ -33,9 +33,14 @@ if (groovyVer) {
             maven { url repo }
         }
 
-        configurations.all {
+        configurations.configureEach {
             resolutionStrategy.eachDependency { DependencyResolveDetails details ->
-                if (details.requested.group == 'org.codehaus.groovy') {
+                force 'cglib:cglib-nodep:3.3.0'
+                force 'org.objenesis:objenesis:3.4'
+
+                // (Optional) If transitive Groovy dependencies cause conflicts
+                force 'org.codehaus.groovy:groovy:3.0.19'
+                if ((details.requested.group == 'org.codehaus.groovy') && details.requested.version != groovyVer) {
                     if (groovyVer.contains(':')) {
                         details.useTarget(groovyVer)
                     }
@@ -49,12 +54,8 @@ if (groovyVer) {
     }
 }
 
-def projects(String...args) {
-    args.collect { project(it) }
-}
 
 group = 'io.nextflow'
-version = rootProject.file('VERSION').text.trim()
 
 allprojects {
     apply plugin: 'java'
@@ -65,17 +66,17 @@ allprojects {
 
     java {
         toolchain {
-            languageVersion = JavaLanguageVersion.of(17)
+            languageVersion = JavaLanguageVersion.of(javaLangVersion)
         }
     }
 
     compileJava {
-        options.release = 11
+        options.release = jdkVersion.toInteger()
     }
 
-    tasks.withType(GroovyCompile) {
-        sourceCompatibility = '1.8'
-        targetCompatibility = '1.8'
+    tasks.withType(GroovyCompile).configureEach {
+        sourceCompatibility = jdkVersion
+        targetCompatibility = jdkVersion
     }
 
     idea {
@@ -98,8 +99,8 @@ allprojects {
 
     dependencies {
         // see https://docs.gradle.org/4.1/userguide/dependency_management.html#sec:module_replacement
-        implementation 'com.github.groovy-wslite:groovy-wslite:1.1.3'
-        implementation 'org.codehaus.groovy:groovy-all:3.0.23'
+        // implementation 'com.github.groovy-wslite:groovy-wslite:1.1.3'
+        implementation "org.codehaus.groovy:groovy-all:$groovyVersion"
         implementation 'com.fasterxml.jackson.core:jackson-databind:2.18.2'
         implementation 'com.upplication:s3fs:2.2.2'
 
@@ -108,8 +109,8 @@ allprojects {
         }
         // Documentation required libraries
         groovyDoc 'org.fusesource.jansi:jansi:2.4.1'
-        groovyDoc 'org.codehaus.groovy:groovy-groovydoc:3.0.23'
-        groovyDoc 'org.codehaus.groovy:groovy-ant:3.0.23'
+        groovyDoc "org.codehaus.groovy:groovy-groovydoc:$groovyVersion"
+        groovyDoc "org.codehaus.groovy:groovy-ant:$groovyVersion"
     }
 
     test {
@@ -127,42 +128,44 @@ allprojects {
     // Disable strict javadoc checks
     // See http://blog.joda.org/2014/02/turning-off-doclint-in-jdk-8-javadoc.html
     if (JavaVersion.current().isJava8Compatible()) {
-        tasks.withType(Javadoc) {
+        tasks.withType(Javadoc).configureEach {
             options.addStringOption('Xdoclint:none', '-quiet')
         }
     }
 
-    tasks.withType(Jar) {
+    tasks.withType(Jar).configureEach {
         duplicatesStrategy = DuplicatesStrategy.INCLUDE
     }
 
     // patched as described here
     // http://forums.gradle.org/gradle/topics/gradle_task_groovydoc_failing_with_noclassdeffounderror
-    tasks.withType(Groovydoc) {
+    tasks.withType(Groovydoc).configureEach {
         groovyClasspath = project.configurations.groovyDoc
         includes = ['nextflow/**']
     }
 
     // Required to run tests on Java 9 and higher in compatibility mode
     if (JavaVersion.current() >= JavaVersion.VERSION_1_9) {
-        tasks.withType(Test) {
-            jvmArgs([
-                    '--add-opens=java.base/java.lang=ALL-UNNAMED',
-                    '--add-opens=java.base/java.io=ALL-UNNAMED',
-                    '--add-opens=java.base/java.nio=ALL-UNNAMED',
-                    '--add-opens=java.base/java.nio.file.spi=ALL-UNNAMED',
-                    '--add-opens=java.base/java.net=ALL-UNNAMED',
-                    '--add-opens=java.base/java.util=ALL-UNNAMED',
-                    '--add-opens=java.base/java.util.concurrent.locks=ALL-UNNAMED',
-                    '--add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED',
-                    '--add-opens=java.base/sun.nio.ch=ALL-UNNAMED',
-                    '--add-opens=java.base/sun.nio.fs=ALL-UNNAMED',
-                    '--add-opens=java.base/sun.net.www.protocol.http=ALL-UNNAMED',
-                    '--add-opens=java.base/sun.net.www.protocol.https=ALL-UNNAMED',
-                    '--add-opens=java.base/sun.net.www.protocol.ftp=ALL-UNNAMED',
-                    '--add-opens=java.base/sun.net.www.protocol.file=ALL-UNNAMED',
-                    '--add-opens=java.base/jdk.internal.misc=ALL-UNNAMED',
-            ])
+        tasks.withType(Test).tap {
+            configureEach {
+                jvmArgs([
+                        '--add-opens=java.base/java.lang=ALL-UNNAMED',
+                        '--add-opens=java.base/java.io=ALL-UNNAMED',
+                        '--add-opens=java.base/java.nio=ALL-UNNAMED',
+                        '--add-opens=java.base/java.nio.file.spi=ALL-UNNAMED',
+                        '--add-opens=java.base/java.net=ALL-UNNAMED',
+                        '--add-opens=java.base/java.util=ALL-UNNAMED',
+                        '--add-opens=java.base/java.util.concurrent.locks=ALL-UNNAMED',
+                        '--add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED',
+                        '--add-opens=java.base/sun.nio.ch=ALL-UNNAMED',
+                        '--add-opens=java.base/sun.nio.fs=ALL-UNNAMED',
+                        '--add-opens=java.base/sun.net.www.protocol.http=ALL-UNNAMED',
+                        '--add-opens=java.base/sun.net.www.protocol.https=ALL-UNNAMED',
+                        '--add-opens=java.base/sun.net.www.protocol.ftp=ALL-UNNAMED',
+                        '--add-opens=java.base/sun.net.www.protocol.file=ALL-UNNAMED',
+                        '--add-opens=java.base/jdk.internal.misc=ALL-UNNAMED',
+                ])
+            }
         }
     }
 }
@@ -195,8 +198,8 @@ task exportClasspath {
     dependsOn allprojects.jar
     doLast {
         def all = getRuntimeConfigs()
-        def libs = all.collect { File file -> file.canonicalPath;  }
-        ['nextflow', 'nf-commons', 'nf-httfs'].each { libs << file("modules/$it/build/libs/${it}-${version}.jar").canonicalPath }
+        def libs = all.collect { File file -> file.canonicalPath  }
+        ['nextflow', 'nf-commons', 'nf-httfs'].each { libs << file("modules/$it/build/libs/${it}-${nextflowVersion}.jar").canonicalPath }
         file('.launch.classpath').text = libs.unique().join(':')
     }
 }

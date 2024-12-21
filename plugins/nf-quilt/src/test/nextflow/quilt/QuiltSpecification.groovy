@@ -55,7 +55,7 @@ class QuiltSpecification extends Specification {
 
     @Shared String pluginsMode
 
-    @Shared Integer timestamp
+    @Shared Long timestamp
 
     @Shared String writeBucket
 
