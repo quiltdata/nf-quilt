@@ -14,12 +14,12 @@ repositories {
 
 ext {
     jdkVersion = '11'
-    javaLanguageVersion = JavaLanguageVersion.of(jdkVersion)
+    javaLangVersion = 19
 }
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(19) // from nf-schema
+        languageVersion = JavaLanguageVersion.of(javaLangVersion) // from nf-schema
     }
 }
 
@@ -28,8 +28,8 @@ compileJava {
 }
 
 tasks.withType(GroovyCompile) {
-    sourceCompatibility = javaLanguageVersion
-    targetCompatibility = javaLanguageVersion
+    sourceCompatibility = jdkVersion
+    targetCompatibility = jdkVersion
 }
 
 tasks.withType(Test) {
