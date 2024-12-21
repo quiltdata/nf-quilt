@@ -35,7 +35,7 @@ if (groovyVer) {
 
         configurations.all {
             resolutionStrategy.eachDependency { DependencyResolveDetails details ->
-                if (details.requested.group == 'org.apache.groovy' || details.requested.group == 'org.apache.groovy') {
+                if ((details.requested.group == 'org.apache.groovy' || details.requested.group == 'org.apache.groovy') && details.requested.version != groovyVer) {
                     if (groovyVer.contains(':')) {
                         details.useTarget(groovyVer)
                     }
