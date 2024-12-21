@@ -26,14 +26,14 @@ plugins {
 // Add ability to test with upcoming versions of Groovy
 def groovyVer = System.getenv('CI_GROOVY_VERSION') ?: '4.0.23'
 if (groovyVer) {
-    def repo = groovyVer.startsWith('com.github.apache:') ? 'https://jitpack.io' : 'https://oss.jfrog.org/oss-snapshot-local/'
+    def repo = 'https://jitpack.io' // groovyVer.startsWith('com.github.apache:') ? 'https://jitpack.io' : 'https://oss.jfrog.org/oss-snapshot-local/'
     logger.lifecycle "Overriden Groovy dependency to use $groovyVer - repository: $repo"
     allprojects {
         repositories {
             maven { url repo }
         }
 
-        configurations.all {
+        configurations.configureEach {
             resolutionStrategy.eachDependency { DependencyResolveDetails details ->
                 if ((details.requested.group == 'org.apache.groovy' || details.requested.group == 'org.apache.groovy') && details.requested.version != groovyVer) {
                     if (groovyVer.contains(':')) {
@@ -49,9 +49,6 @@ if (groovyVer) {
     }
 }
 
-def projects(String...args) {
-    args.collect { project(it) }
-}
 
 // group = 'io.nextflow'
 
@@ -78,7 +75,7 @@ allprojects {
         options.release = 21
     }
 
-    tasks.withType(GroovyCompile) {
+    tasks.withType(GroovyCompile).configureEach {
         sourceCompatibility = '1.8'
         targetCompatibility = '1.8'
     }
@@ -132,42 +129,44 @@ allprojects {
     // Disable strict javadoc checks
     // See http://blog.joda.org/2014/02/turning-off-doclint-in-jdk-8-javadoc.html
     if (JavaVersion.current().isJava8Compatible()) {
-        tasks.withType(Javadoc) {
+        tasks.withType(Javadoc).configureEach {
             options.addStringOption('Xdoclint:none', '-quiet')
         }
     }
 
-    tasks.withType(Jar) {
+    tasks.withType(Jar).configureEach {
         duplicatesStrategy = DuplicatesStrategy.INCLUDE
     }
 
     // patched as described here
     // http://forums.gradle.org/gradle/topics/gradle_task_groovydoc_failing_with_noclassdeffounderror
-    tasks.withType(Groovydoc) {
+    tasks.withType(Groovydoc).configureEach {
         groovyClasspath = project.configurations.groovyDoc
         includes = ['nextflow/**']
     }
 
     // Required to run tests on Java 9 and higher in compatibility mode
     if (JavaVersion.current() >= JavaVersion.VERSION_1_9) {
-        tasks.withType(Test) {
-            jvmArgs([
-                    '--add-opens=java.base/java.lang=ALL-UNNAMED',
-                    '--add-opens=java.base/java.io=ALL-UNNAMED',
-                    '--add-opens=java.base/java.nio=ALL-UNNAMED',
-                    '--add-opens=java.base/java.nio.file.spi=ALL-UNNAMED',
-                    '--add-opens=java.base/java.net=ALL-UNNAMED',
-                    '--add-opens=java.base/java.util=ALL-UNNAMED',
-                    '--add-opens=java.base/java.util.concurrent.locks=ALL-UNNAMED',
-                    '--add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED',
-                    '--add-opens=java.base/sun.nio.ch=ALL-UNNAMED',
-                    '--add-opens=java.base/sun.nio.fs=ALL-UNNAMED',
-                    '--add-opens=java.base/sun.net.www.protocol.http=ALL-UNNAMED',
-                    '--add-opens=java.base/sun.net.www.protocol.https=ALL-UNNAMED',
-                    '--add-opens=java.base/sun.net.www.protocol.ftp=ALL-UNNAMED',
-                    '--add-opens=java.base/sun.net.www.protocol.file=ALL-UNNAMED',
-                    '--add-opens=java.base/jdk.internal.misc=ALL-UNNAMED',
-            ])
+        tasks.withType(Test).tap {
+            configureEach {
+                jvmArgs([
+                        '--add-opens=java.base/java.lang=ALL-UNNAMED',
+                        '--add-opens=java.base/java.io=ALL-UNNAMED',
+                        '--add-opens=java.base/java.nio=ALL-UNNAMED',
+                        '--add-opens=java.base/java.nio.file.spi=ALL-UNNAMED',
+                        '--add-opens=java.base/java.net=ALL-UNNAMED',
+                        '--add-opens=java.base/java.util=ALL-UNNAMED',
+                        '--add-opens=java.base/java.util.concurrent.locks=ALL-UNNAMED',
+                        '--add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED',
+                        '--add-opens=java.base/sun.nio.ch=ALL-UNNAMED',
+                        '--add-opens=java.base/sun.nio.fs=ALL-UNNAMED',
+                        '--add-opens=java.base/sun.net.www.protocol.http=ALL-UNNAMED',
+                        '--add-opens=java.base/sun.net.www.protocol.https=ALL-UNNAMED',
+                        '--add-opens=java.base/sun.net.www.protocol.ftp=ALL-UNNAMED',
+                        '--add-opens=java.base/sun.net.www.protocol.file=ALL-UNNAMED',
+                        '--add-opens=java.base/jdk.internal.misc=ALL-UNNAMED',
+                ])
+            }
         }
     }
 }
@@ -200,7 +199,7 @@ task exportClasspath {
     dependsOn allprojects.jar
     doLast {
         def all = getRuntimeConfigs()
-        def libs = all.collect { File file -> file.canonicalPath;  }
+        def libs = all.collect { File file -> file.canonicalPath  }
         ['nextflow', 'nf-commons', 'nf-httfs'].each { libs << file("modules/$it/build/libs/${it}-${nextflowVersion}.jar").canonicalPath }
         file('.launch.classpath').text = libs.unique().join(':')
     }
