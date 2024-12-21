@@ -178,7 +178,7 @@ class QuiltFileSystemProviderTest extends QuiltSpecification {
         provider.copy(remoteFile, tempFile)
 
         then:
-        thrown org.codehaus.groovy.runtime.powerassert.PowerAssertionError
+        thrown org.apache.groovy.runtime.powerassert.PowerAssertionError
     }
 
     void 'should do nothing when copying a path to itself'() {
@@ -205,7 +205,7 @@ class QuiltFileSystemProviderTest extends QuiltSpecification {
         provider.move(remoteFile, tempFile)
 
         then:
-        thrown org.codehaus.groovy.runtime.powerassert.PowerAssertionError
+        thrown org.apache.groovy.runtime.powerassert.PowerAssertionError
     }
 
     void 'should recognize when path isHidden'() {
