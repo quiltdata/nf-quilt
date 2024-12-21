@@ -12,19 +12,24 @@ repositories {
     mavenCentral()
 }
 
+ext {
+    jdkVersion = '11'
+    javaLanguageVersion = JavaLanguageVersion.of(jdkVersion)
+}
+
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
+        languageVersion = JavaLanguageVersion.of(jdkVersion)
     }
 }
 
 compileJava {
-    options.release.set(17)
+    options.release = jdkVersion.toInteger()
 }
 
 tasks.withType(GroovyCompile) {
-    sourceCompatibility = '17'
-    targetCompatibility = '17'
+    sourceCompatibility = javaLanguageVersion
+    targetCompatibility = javaLanguageVersion
 }
 
 tasks.withType(Test) {

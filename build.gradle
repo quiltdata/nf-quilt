@@ -35,6 +35,11 @@ if (groovyVer) {
 
         configurations.configureEach {
             resolutionStrategy.eachDependency { DependencyResolveDetails details ->
+                force 'cglib:cglib-nodep:3.3.0'
+                force 'org.objenesis:objenesis:3.4'
+
+                // (Optional) If transitive Groovy dependencies cause conflicts
+                force 'org.codehaus.groovy:groovy:3.0.19'
                 if ((details.requested.group == 'org.codehaus.groovy') && details.requested.version != groovyVer) {
                     if (groovyVer.contains(':')) {
                         details.useTarget(groovyVer)
@@ -61,17 +66,17 @@ allprojects {
 
     java {
         toolchain {
-            languageVersion = JavaLanguageVersion.of(21)
+            languageVersion = JavaLanguageVersion.of(jdkVersion)
         }
     }
 
     compileJava {
-        options.release = 21
+        options.release = jdkVersion.toInteger()
     }
 
     tasks.withType(GroovyCompile).configureEach {
-        sourceCompatibility = '1.8'
-        targetCompatibility = '1.8'
+        sourceCompatibility = javaLangVersion
+        targetCompatibility = javaLangVersion
     }
 
     idea {
