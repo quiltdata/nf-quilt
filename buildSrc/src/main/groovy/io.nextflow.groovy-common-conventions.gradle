@@ -19,12 +19,12 @@ ext {
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(jdkVersion)
+        languageVersion = JavaLanguageVersion.of(19) // from nf-schema
     }
 }
 
 compileJava {
-    options.release = jdkVersion.toInteger()
+    options.release.set(jdkVersion.toInteger())
 }
 
 tasks.withType(GroovyCompile) {
