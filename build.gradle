@@ -24,7 +24,7 @@ plugins {
 }
 
 // Add ability to test with upcoming versions of Groovy
-def groovyVer = System.getenv('CI_GROOVY_VERSION') ?: '3.0.23'
+def groovyVer = System.getenv('CI_GROOVY_VERSION') ?: '4.0.23'
 if (groovyVer) {
     def repo = groovyVer.startsWith('com.github.apache:') ? 'https://jitpack.io' : 'https://oss.jfrog.org/oss-snapshot-local/'
     logger.lifecycle "Overriden Groovy dependency to use $groovyVer - repository: $repo"
@@ -57,7 +57,7 @@ def projects(String...args) {
 
 ext {
     nextflowVersion = rootProject.file('VERSION').text.trim()
-    groovyVersion = '3.0.23'
+    groovyVersion = '4.0.23'
 }
 
 
