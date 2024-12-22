@@ -28,6 +28,7 @@ import java.nio.file.Paths
 import java.nio.file.Path
 import java.nio.file.attribute.BasicFileAttributes
 import java.nio.file.spi.FileSystemProvider
+import java.util.jar.Manifest
 
 import nextflow.plugin.Plugins
 import nextflow.plugin.TestPluginDescriptorFinder
@@ -55,7 +56,7 @@ class QuiltSpecification extends Specification {
 
     @Shared String pluginsMode
 
-    @Shared Integer timestamp
+    @Shared Long timestamp
 
     @Shared String writeBucket
 
@@ -80,8 +81,16 @@ class QuiltSpecification extends Specification {
                 return new TestPluginDescriptorFinder(){
 
                     @Override
-                    protected Path getManifestPath(Path pluginPath) {
-                        return pluginPath.resolve('src/resources/META-INF/MANIFEST.MF')
+                    protected Manifest readManifestFromDirectory(Path pluginPath) {
+                        if ( !Files.isDirectory(pluginPath) )
+                            return null
+
+                        final manifestPath = pluginPath.resolve('src/resources/META-INF/MANIFEST.MF')
+                        if ( !Files.exists(manifestPath) )
+                            return null
+
+                        final input = Files.newInputStream(manifestPath)
+                        return new Manifest(input)
                     }
 
                 }

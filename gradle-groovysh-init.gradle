@@ -13,7 +13,7 @@ gradle.projectsLoaded {
             }
 
             project.dependencies {
-                groovyshdependencies("org.codehaus.groovy:groovy-groovysh:${GroovySystem.version}") {
+                groovyshdependencies("org.${groovySource}.groovy:groovy-groovysh:${GroovySystem.version}") {
                     exclude group: 'org.codehaus.groovy'
                 }
             }
@@ -31,7 +31,7 @@ gradle.projectsLoaded {
                         groovyObjectClassLoader.addURL(file.toURL())
                     }
                     Class.forName('jline.console.history.FileHistory', true, groovyObjectClassLoader)
-                    groovyshClass = Class.forName('org.codehaus.groovy.tools.shell.Groovysh', true, groovyObjectClassLoader)
+                    groovyshClass = Class.forName("org.${groovySource}.groovy.tools.shell.Groovysh", true, groovyObjectClassLoader)
 
                     if (groovyshClass) {
                         groovyShell = groovyshClass.newInstance()

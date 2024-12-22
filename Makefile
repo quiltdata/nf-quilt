@@ -3,11 +3,13 @@ PROJECT ?= nf-quilt
 WRITE_BUCKET ?= udp-spec
 FRAGMENT ?= &path=.
 NF_DIR ?= ../nextflow
+NF_GIT ?= $(NF_DIR)/nextflow
 NF_BIN ?= ./launch.sh
 PID ?= $$$$
 PIPELINE ?= sarek
 QUERY ?= ?Name=$(USER)&Owner=Kevin+Moore&Date=2023-03-07&Type=CRISPR&Notebook+URL=http%3A%2F%2Fexample.com
 VERSION ?= $(shell grep 'Plugin-Version' plugins/$(PROJECT)/src/resources/META-INF/MANIFEST.MF | awk '{ print $$2 }')
+NXF_VER ?= $(shell cat VERSION)
 TEST_URI ?= quilt+s3://$(WRITE_BUCKET)$(QUERY)\#package=nf-quilt/dest-$(VERSION)$(FRAGMENT)
 PIPE_OUT ?=  quilt+s3://$(WRITE_BUCKET)\#package=$(PROJECT)/$(PIPELINE)
 S3_BASE = s3://$(WRITE_BUCKET)/$(PROJECT)
@@ -30,8 +32,14 @@ check-env:
 clean:
 	./gradlew clean
 	rm -rf null results work
-	rm -rf */*/build plugins/nf-quilt/bin
+	rm -rf build */build */*/build plugins/nf-quilt/bin
 	rm -f .nextflow.log* .launch*classpath
+
+clean-all: clean
+	rm -rf .gradle buildSrc/.gradle
+
+rebuild:
+	./gradlew clean build --refresh-dependencies
 
 compile:
 	./gradlew compileGroovy exportClasspath
@@ -106,6 +114,12 @@ $(PIPELINE): $(NF_BIN) install
 	echo "Ensure you have docker running"
 	$(NF_BIN) pull nf-core/$(PIPELINE)
 	$(NF_BIN) run nf-core/$(PIPELINE) -profile test,docker -plugins $(PROJECT)@$(VERSION) --outdir "$(PIPE_OUT)"
+
+fetchngs: $(NF_GIT)
+	NXF_VER=$(NXF_VER) $(NF_BIN) run quiltdata/fetchngs -r master -profile test,docker --input wf/ids.csv --outdir "s3://$(WRITE_BUCKET)/nf-quilt/fetchngs"
+
+nf-git-ver: $(NF_GIT)
+	NXF_VER=$(NXF_VER) $(NF_GIT) -v
 
 #
 # Show dependencies
