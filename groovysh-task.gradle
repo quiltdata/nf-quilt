@@ -21,7 +21,9 @@ gradle.projectsLoaded {
             }
 
             project.dependencies {
-                groovyshdependencies 'org.codehaus.groovy:groovy-groovysh:4.0.24'
+                groovyshdependencies "org.${groovySource}.groovy:groovy-groovysh:$groovyVer" {
+                    exclude group: 'org.codehaus.groovy'
+                }
             }
 
             project.tasks.register('groovysh') {

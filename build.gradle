@@ -39,7 +39,7 @@ if (groovyVer) {
                 force 'org.objenesis:objenesis:3.4'
 
                 // (Optional) If transitive Groovy dependencies cause conflicts
-                force 'org.codehaus.groovy:groovy:3.0.19'
+                force "org.${groovySource}.groovy:groovy-all:$groovyVer"
                 if ((details.requested.group == 'org.codehaus.groovy') && details.requested.version != groovyVer) {
                     if (groovyVer.contains(':')) {
                         details.useTarget(groovyVer)
@@ -99,8 +99,7 @@ allprojects {
 
     dependencies {
         // see https://docs.gradle.org/4.1/userguide/dependency_management.html#sec:module_replacement
-        // implementation 'com.github.groovy-wslite:groovy-wslite:1.1.3'
-        implementation "org.codehaus.groovy:groovy-all:$groovyVersion"
+        implementation "org.${groovySource}.groovy:groovy-all:$groovyVersion"
         implementation 'com.fasterxml.jackson.core:jackson-databind:2.18.2'
         implementation 'com.upplication:s3fs:2.2.2'
 
@@ -109,8 +108,8 @@ allprojects {
         }
         // Documentation required libraries
         groovyDoc 'org.fusesource.jansi:jansi:2.4.1'
-        groovyDoc "org.codehaus.groovy:groovy-groovydoc:$groovyVersion"
-        groovyDoc "org.codehaus.groovy:groovy-ant:$groovyVersion"
+        groovyDoc "org.${groovySource}.groovy:groovy-groovydoc:$groovyVersion"
+        groovyDoc "org.${groovySource}.groovy:groovy-ant:$groovyVersion"
     }
 
     test {
