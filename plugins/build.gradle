@@ -117,7 +117,7 @@ subprojects {
     tasks.register('copyPluginLibs', Sync) {
         from configurations.runtimeClasspath
         into 'build/target/libs'
-        duplicatesStrategy 'exclude'
+        duplicatesStrategy = 'exclude'
     }
 
     /*
