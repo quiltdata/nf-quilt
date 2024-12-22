@@ -14,7 +14,7 @@ repositories {
 
 ext {
     jdkVersion = '11'
-    javaLangVersion = 19
+    javaLangVersion = 21
 }
 
 java {
