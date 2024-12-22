@@ -40,7 +40,7 @@ if (groovyVer) {
 
                 // (Optional) If transitive Groovy dependencies cause conflicts
                 force "org.${groovySource}.groovy:groovy-all:$groovyVer"
-                if ((details.requested.group == 'org.codehaus.groovy') && details.requested.version != groovyVer) {
+                if ((details.requested.group == "org.${groovySource}.groovy") && details.requested.version != groovyVer) {
                     if (groovyVer.contains(':')) {
                         details.useTarget(groovyVer)
                     }
@@ -91,6 +91,8 @@ allprojects {
         // see https://docs.gradle.org/4.1/userguide/dependency_management.html#sub:exclude_transitive_dependencies
         all*.exclude group: 'org.codehaus.groovy', module: 'groovy-all'
         all*.exclude group: 'org.codehaus.groovy', module: 'groovy-cli-picocli'
+        all*.exclude group: 'org.apache.groovy', module: 'groovy-all'
+        all*.exclude group: 'org.apache.groovy', module: 'groovy-cli-picocli'
         // groovydoc libs
         groovyDoc.extendsFrom runtime
     }
