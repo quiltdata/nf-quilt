@@ -34,7 +34,6 @@ import java.time.LocalDateTime
 import groovy.transform.CompileStatic
 import groovy.text.GStringTemplateEngine
 import groovy.util.logging.Slf4j
-import groovy.json.JsonOutput
 
 /**
  * Plugin observer of workflow events
@@ -411,7 +410,7 @@ ${nextflow}
         }
 
         try {
-            String qs_json = JsonOutput.toJson(quilt_summarize)
+            String qs_json = QuiltPackage.arrayToJson(quilt_summarize)
             writeString(qs_json, pkg, SUMMARY_FILE)
         }
         catch (Exception e) {

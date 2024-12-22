@@ -74,6 +74,13 @@ class QuiltPackage {
         return str.replace('\'', '_')
     }
 
+    static String arrayToJson(List<Map> array) {
+        List<String> entries = array.collect { dict ->
+            return toJson(dict)
+        }
+        return "[${entries.join(',')}]".toString()
+    }
+
     static String toJson(Map dict) {
         List<String> entries = dict.collect { key, value ->
             String prefix = JsonOutput.toJson(key)
