@@ -17,7 +17,6 @@
 // https://medium.com/geekculture/how-to-execute-python-modules-from-java-2384041a3d6d
 package nextflow.quilt.jep
 
-import groovy.json.JsonOutput
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import java.nio.file.FileSystems
@@ -52,7 +51,7 @@ class QuiltPackage {
     private static final String INSTALL_PREFIX = 'QuiltPackage'
     static final Path INSTALL_ROOT = Files.createTempDirectory(INSTALL_PREFIX)
 
-    public final String packageName
+    private final String packageName
     private final String bucket
     private final QuiltParser parsed
     private final String hash
@@ -220,6 +219,10 @@ class QuiltPackage {
 
     Path packageDest() {
         return folder
+    }
+
+    String getPackageName() {
+        return packageName
     }
 
     Map getMetadata() {

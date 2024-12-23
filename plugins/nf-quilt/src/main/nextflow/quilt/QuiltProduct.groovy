@@ -261,7 +261,7 @@ ${nextflow}
             }
         }
         // TODO: should this only work for names inferred from S3 URIs?
-        String pkgName = cf_meta.containsKey(QuiltParser.P_PKG) ? cf_meta[QuiltParser.P_PKG] : pkg.packageName
+        String pkgName = cf_meta.containsKey(QuiltParser.P_PKG) ? cf_meta[QuiltParser.P_PKG] : pkg.getPackageName()
         flags.setProperty(QuiltParser.P_PKG, pkgName)
     }
 

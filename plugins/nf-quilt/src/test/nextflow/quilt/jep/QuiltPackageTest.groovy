@@ -214,7 +214,7 @@ class QuiltPackageTest extends QuiltSpecification {
         opkg
         opkg.is_force()
         opkg.bucketAccessible
-        opkg.packageName.contains('test/observer')
+        opkg.getPackageName().contains('test/observer')
     }
 
     @IgnoreIf({ env.WRITE_BUCKET ==  null })
