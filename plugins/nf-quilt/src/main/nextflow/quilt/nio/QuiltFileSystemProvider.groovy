@@ -106,10 +106,10 @@ class QuiltFileSystemProvider extends FileSystemProvider implements FileSystemTr
         QuiltPath qPath = asQuiltPath(remoteFile)
         Path cachedFile = qPath.localPath()
         QuiltPackage pkg = qPath.pkg()
-        log.info "download Quilt package: ${pkg} installed? ${pkg.installed}"
+        log.debug "download Quilt package: ${pkg} installed? ${pkg.installed}"
         if (!pkg.installed) {
             Path dest = pkg.install()
-            log.info "download.installed Quilt package to: $dest"
+            log.debug "download.installed Quilt package to: $dest"
         }
 
         final CopyOptions opts = CopyOptions.parse(options)

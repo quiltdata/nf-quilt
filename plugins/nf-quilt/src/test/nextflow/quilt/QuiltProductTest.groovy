@@ -44,7 +44,6 @@ class QuiltProductTest extends QuiltSpecification {
         WorkflowMetadata wf_meta = GroovyMock(WorkflowMetadata) {
             toMap() >> [start:'2022-01-01', complete:'2022-01-02']
         }
-        println("makeProductFromUrl: ${url}")
         QuiltPath path = QuiltPathFactory.parse(url)
         QuiltPathify pathify = new QuiltPathify(path)
         Session session = GroovyMock(Session) {

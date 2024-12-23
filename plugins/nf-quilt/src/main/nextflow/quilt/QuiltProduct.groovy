@@ -95,7 +95,7 @@ ${nextflow}
     ]
 
     static void printMap(Map map, String title) {
-        log.info("\n\n\n# $title ${map.keySet()}")
+        log.debug("\n\n\n# $title ${map.keySet()}")
         map.each {
             key, value -> log.info("\n## ${key}: ${value}")
         }
@@ -151,29 +151,24 @@ ${nextflow}
     ])
 
     QuiltProduct(QuiltPathify pathify, Session session) {
-        println("Creating QuiltProduct: ${pathify}")
+        log.debug("Creating QuiltProduct: ${pathify}")
         this.session = session
         this.config = session.config ?: [:]
         this.path = pathify.path
-        println('QuiltProduct.path')
         this.pkg = pathify.pkg
-        println('QuiltProduct.pkg')
         this.metadata = collectMetadata()
-        println('QuiltProduct.metadata')
-        // println("QuiltProduct.flags: ${flags}")
         if (session.isSuccess() || flags.getProperty(QuiltParser.P_FORCE) == true) {
             publish()
         } else {
-            log.info("not publishing: ${pkg} [unsuccessful session]")
+            log.warn("not publishing: ${pkg} [unsuccessful session]")
         }
     }
 
     Map collectMetadata() {
         if (shouldSkip(KEY_META)) {
-            log.info("SKIP: metadata for ${pkg}")
+            log.debug("SKIP: metadata for ${pkg}")
             return [:]
         }
-        println("collectMetadata.config: ${config}")
         config.remove('executor')
         config.remove('params')
         config.remove('session')
@@ -182,13 +177,10 @@ ${nextflow}
         printMap(config, 'config')
 
         Map<String, Object> quilt_cf = extractMap(config, KEY_QUILT)
-        println("collectMetadata.quilt_cf: ${quilt_cf}")
         Map<String, Object> pkg_meta = pkg.getMetadata()
-        println("collectMetadata.pkg_meta: ${pkg_meta}")
         updateFlags(pkg_meta, quilt_cf)
 
         Map<String, Object> params = session.getParams()
-        println("collectMetadata.params: ${params}")
         if (params != null) {
             writeMapToPackage(params, 'params')
             params.remove('genomes')
@@ -196,7 +188,6 @@ ${nextflow}
             printMap(params, 'params')
         }
         Map<String, Object> wf = session.getWorkflowMetadata()?.toMap()
-        println("collectMetadata.wf: ${wf}")
         String start = wf?.get('start')
         String complete = wf?.get('complete')
         String cmd = wf?.get('commandLine')
@@ -213,9 +204,8 @@ ${nextflow}
         }
 
         Map<String, Object> cf_meta = extractMap(quilt_cf, KEY_META)  // remove after setting flags
-        println("getMetadata.cf_meta: ${cf_meta}")
         Map base_meta = cf_meta + pkg_meta
-        log.info("getMetadata.base_meta: ${base_meta}")
+        log.debug("getMetadata.base_meta: ${base_meta}")
         return base_meta + [
             cmd: cmd,
             now: now(),
@@ -251,8 +241,6 @@ ${nextflow}
         * @param cf Map of config (from nextflow.config)`
      */
     void updateFlags(Map pkg_meta, Map cf_meta) {
-        println("updateFlags.pkg_meta: ${pkg_meta}")
-        println("updateFlags.cf_meta: ${cf_meta}")
         for (String key : flags.getProperties().keySet()) {
             if (pkg_meta.containsKey(key)) {
                 flags.setProperty(key, pkg_meta[key])
@@ -281,13 +269,13 @@ ${nextflow}
  */
 
     void publish() {
-        log.info("publish.pushing: ${pkg}")
+        log.debug("publish.pushing: ${pkg}")
         try {
             String message = compileMessage()
             writeReadme(message)
             writeSummarize()
             def rc = pkg.push(message, metadata)
-            log.info("publish.pushed: ${rc}")
+            log.debug("publish.pushed: ${rc}")
         }
         catch (Exception e) {
             log.error("Exception: ${e}")
@@ -306,7 +294,6 @@ ${nextflow}
     String compileMessage() {
         String msg = flags.getProperty(KEY_MSG)
         GStringTemplateEngine engine = new GStringTemplateEngine()
-        println("compileMessage: ${msg}")
         try {
             String output = engine.createTemplate(msg).make(getTemplateArgs())
             log.debug("compileMessage.output: ${output}")
@@ -320,7 +307,7 @@ ${nextflow}
 
     String compileReadme(String msg) {
         if (shouldSkip(KEY_README)) {
-            log.info("SKIP: readme for ${pkg}")
+            log.debug("SKIP: readme for ${pkg}")
             return null
         }
         String raw_readme = flags.getProperty(KEY_README)
@@ -394,14 +381,14 @@ ${nextflow}
     List<Map> writeSummarize() {
         List<Map> quilt_summarize = []
         if (shouldSkip(KEY_SUMMARIZE)) {
-            log.info("SKIP: summarize for ${flags}")
+            log.debug("SKIP: summarize for ${flags}")
             return quilt_summarize
         }
         String summarize = flags.getProperty(KEY_SUMMARIZE)
         String[] wildcards = summarize.split(',')
         wildcards.each { wildcard ->
             List<Path> paths = match(wildcard)
-            println("writeSummarize: ${paths.size()} matches for ${wildcard}")
+            log.debug("writeSummarize: ${paths.size()} matches for ${wildcard}")
             paths.each { path ->
                 String filename = path.getFileName()
                 Map entry = ['path': path.toString(), 'title': filename]

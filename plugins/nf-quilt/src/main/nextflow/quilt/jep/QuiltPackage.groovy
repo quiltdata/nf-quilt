@@ -104,14 +104,13 @@ class QuiltPackage {
     }
 
     static QuiltPackage forParsed(QuiltParser parsed) {
-        println("QuiltPackage.forParsed: $parsed")
         boolean isNull = parsed.hasNullBucket()
         if (isNull && !PKGS.isEmpty()) {
             return PKGS.values().last()
         }
 
         String pkgKey = parsed.toPackageString(true) // ignore metadata for Key
-        log.info("QuiltPackage.forParsed[${pkgKey}]")
+        log.debug("QuiltPackage.forParsed[${pkgKey}]")
         def pkg = PKGS.get(pkgKey)
         if (pkg) { return pkg }
 
@@ -242,7 +241,7 @@ class QuiltPackage {
         String implicitStr = implicit ? 'implicitly ' : ''
 
         try {
-            log.info("${implicitStr}installing $packageName from $bucket...")
+            log.debug("${implicitStr}installing $packageName from $bucket...")
             S3PhysicalKey registryPath = new S3PhysicalKey(bucket, '', null)
             Registry registry = new Registry(registryPath)
             Namespace namespace = registry.getNamespace(packageName)
@@ -253,7 +252,7 @@ class QuiltPackage {
             Manifest manifest = namespace.getManifest(resolvedHash)
 
             manifest.install(dest)
-            log.info("install: ${implicitStr}installed into $dest)")
+            log.debug("install: ${implicitStr}installed into $dest)")
             log.debug("QuiltPackage.install.Children: ${relativeChildren('')}")
         } catch (IOException e) {
             if (!implicit) {
