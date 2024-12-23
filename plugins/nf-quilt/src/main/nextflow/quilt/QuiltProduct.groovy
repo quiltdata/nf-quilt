@@ -240,16 +240,16 @@ ${nextflow}
         * @param meta Map of package metadata
         * @param cf Map of config (from nextflow.config)`
      */
-    void updateFlags(Map pkg_meta, Map cf_meta) {
+    void updateFlags(Map pkgMeta, Map cfMeta) {
         for (String key : flags.getProperties().keySet()) {
-            if (pkg_meta.containsKey(key)) {
-                flags.setProperty(key, pkg_meta[key])
-            } else if (cf_meta.containsKey(key)) {
-                flags.setProperty(key, cf_meta[key])
+            if (pkgMeta.containsKey(key)) {
+                flags.setProperty(key, pkgMeta[key])
+            } else if (cfMeta.containsKey(key)) {
+                flags.setProperty(key, cfMeta[key])
             }
         }
         // TODO: should this only work for names inferred from S3 URIs?
-        String pkgName = cf_meta.containsKey(QuiltParser.P_PKG) ? cf_meta[QuiltParser.P_PKG] : pkg.getPackageName()
+        String pkgName = cfMeta.containsKey(QuiltParser.P_PKG) ? cfMeta[QuiltParser.P_PKG] : pkg.getPackageName()
         flags.setProperty(QuiltParser.P_PKG, pkgName)
     }
 

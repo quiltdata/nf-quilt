@@ -45,19 +45,6 @@ import nextflow.quilt.jep.QuiltParser
 @CompileStatic
 final class QuiltFileSystem extends FileSystem implements Closeable {
 
-    private final String quiltIDS
-    private final QuiltFileSystemProvider myProvider
-
-    QuiltFileSystem(String quiltIDS, QuiltFileSystemProvider provider) {
-        this.quiltIDS = quiltIDS
-        this.myProvider = provider
-    }
-
-    @Override
-    String toString() {
-        return quiltIDS
-    }
-
     static void copy(QuiltPath source, QuiltPath target) {
         throw new UnsupportedOperationException("NOT Implemented 'QuiltFileSystem.copy' `$source` -> `$target`")
     }
@@ -66,31 +53,6 @@ final class QuiltFileSystem extends FileSystem implements Closeable {
         //log.debug("QuiltFileSystem.delete: $path")
         path.deinstall()
     //throw new UnsupportedOperationException("Operation 'delete' is not supported by QuiltFileSystem")
-    }
-
-    @Override
-    FileSystemProvider provider() {
-        return myProvider
-    }
-
-    @Override
-    void close() throws IOException {
-    // nothing to do
-    }
-
-    @Override
-    boolean isOpen() {
-        return true
-    }
-
-    @Override
-    boolean isReadOnly() {
-        return false
-    }
-
-    @Override
-    String getSeparator() {
-        return QuiltParser.SEP
     }
 
     static QuiltFileAttributesView getFileAttributeView(QuiltPath path) {
@@ -122,6 +84,56 @@ final class QuiltFileSystem extends FileSystem implements Closeable {
         return path.pkg().isInstalled()
     }
 
+    static String toUriString(Path path) {
+        return path in QuiltPath ? ((QuiltPath)path).toUriString() : null
+    }
+
+    static String getBashLib(Path path) {
+        return path in QuiltPath ? QuiltBashLib.script() : null
+    }
+
+    static String getUploadCmd(String source, Path target) {
+        return target in QuiltPath ?  QuiltFileCopyStrategy.uploadCmd(source, target) : null
+    }
+
+    private final String quiltIDS
+    private final QuiltFileSystemProvider myProvider
+
+    QuiltFileSystem(String quiltIDS, QuiltFileSystemProvider provider) {
+        this.quiltIDS = quiltIDS
+        this.myProvider = provider
+    }
+
+    @Override
+    String toString() {
+        return quiltIDS
+    }
+
+    @Override
+    FileSystemProvider provider() {
+        return myProvider
+    }
+
+    @Override
+    void close() throws IOException {
+    // nothing to do
+    }
+
+    @Override
+    boolean isOpen() {
+        return true
+    }
+
+    @Override
+    boolean isReadOnly() {
+        return false
+    }
+
+    @Override
+    String getSeparator() {
+        return QuiltParser.SEP
+    }
+
     Iterable<? extends Path> getRootDirectories() {
         throw new UnsupportedOperationException("Operation 'getRootDirectories' is not supported by QuiltFileSystem")
     }
@@ -143,18 +155,6 @@ final class QuiltFileSystem extends FileSystem implements Closeable {
 
         QuiltParser p = QuiltParser.forBarePath(root)
         return new QuiltPath(this, p)
-    }
-
-    static String toUriString(Path path) {
-        return path in QuiltPath ? ((QuiltPath)path).toUriString() : null
-    }
-
-    static String getBashLib(Path path) {
-        return path in QuiltPath ? QuiltBashLib.script() : null
-    }
-
-    static String getUploadCmd(String source, Path target) {
-        return target in QuiltPath ?  QuiltFileCopyStrategy.uploadCmd(source, target) : null
     }
 
     @Override

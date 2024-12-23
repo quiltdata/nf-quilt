@@ -108,11 +108,11 @@ class QuiltParserTest extends QuiltSpecification {
         when:
         QuiltParser parser = QuiltParser.forUriString(testURI)
         String unparsed = parser.toUriString().replace('%2f', '/')
-        String no_scheme = testURI.replace('quilt+s3://','')
+        String no_scheme = testURI.replace('quilt+s3://', '')
 
         then:
         unparsed == testURI
-        parser.toString() == no_scheme.replace('/','%2f')
+        parser.toString() == no_scheme.replace('/', '%2f')
     }
 
     void 'should collect array parameters from query string'() {

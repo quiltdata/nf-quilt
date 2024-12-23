@@ -114,7 +114,7 @@ class QuiltProductTest extends QuiltSpecification {
         !product.shouldSkip(QuiltProduct.KEY_SUMMARIZE)
         !product.shouldSkip(QuiltProduct.KEY_README)
         !product.shouldSkip(QuiltProduct.KEY_META)
-        product.compileReadme("msg")
+        product.compileReadme('msg')
     }
 
     void 'shouldSkip if key is false'() {
@@ -128,7 +128,7 @@ class QuiltProductTest extends QuiltSpecification {
 
         expect:
         product.shouldSkip(key)
-        product.compileReadme("test") == null
+        product.compileReadme('test') == null
 
         where:
         key << [
@@ -180,11 +180,11 @@ class QuiltProductTest extends QuiltSpecification {
 
     void 'match files if present'() {
         QuiltProduct product = makeProduct()
-        String filename = "text.txt"
-        QuiltProduct.writeString("test", product.pkg, filename)
+        String filename = 'text.txt'
+        QuiltProduct.writeString('test', product.pkg, filename)
         expect:
-        product.match("*")[0].toString() == filename
-        product.match("*.txt")[0].toString() == filename
+        product.match('*')[0].toString() == filename
+        product.match('*.txt')[0].toString() == filename
         !product.match('temp.txt')
     }
 
@@ -218,7 +218,6 @@ class QuiltProductTest extends QuiltSpecification {
         !hasREADME.shouldSkip(QuiltProduct.KEY_README)
         files.size() > 0
     }
-
 
     void 'should create summarize if files are present'() {
         String readme_text = 'hasREADME'
