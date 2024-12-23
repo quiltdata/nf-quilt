@@ -39,12 +39,15 @@ import com.quiltdata.quiltcore.key.LocalPhysicalKey
 import com.quiltdata.quiltcore.key.S3PhysicalKey
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.ObjectWriter
 import com.fasterxml.jackson.databind.node.ObjectNode
 
 @Slf4j
 @CompileStatic
 class QuiltPackage {
 
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
+    private static final ObjectWriter OBJECT_WRITER = OBJECT_MAPPER.writerWithDefaultPrettyPrinter()
     private static final Map<String,QuiltPackage> PKGS = [:]
     private static final String INSTALL_PREFIX = 'QuiltPackage'
     static final Path INSTALL_ROOT = Files.createTempDirectory(INSTALL_PREFIX)
@@ -74,13 +77,20 @@ class QuiltPackage {
         return str.replace('\'', '_')
     }
 
+    static String arrayToJson(List<Map> array) {
+        List<String> entries = array.collect { dict ->
+            return toJson(dict)
+        }
+        return "[${entries.join(',')}]".toString()
+    }
+
     static String toJson(Map dict) {
         List<String> entries = dict.collect { key, value ->
-            String prefix = JsonOutput.toJson(key)
+            String prefix = OBJECT_WRITER.writeValueAsString(key)
             log.debug("toJson.${key}: ${value}")
             String suffix = "toJson.error[${value}]"
             try {
-                suffix = JsonOutput.toJson(value)
+                suffix = OBJECT_WRITER.writeValueAsString(value)
             }
             catch (Exception e) {
                 log.error(suffix, e)

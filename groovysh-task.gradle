@@ -6,7 +6,7 @@ gradle.projectsLoaded {
                     // To be able to load org.codehaus.groovy:groovy-groovysh and dependencies
                     mavenCentral {
                         content {
-                            includeGroup 'org.codehaus.groovy'
+                            includeGroup "org.${groovySource}.groovy"
                             includeGroup 'jline'
                             includeGroup 'com.github.javaparser'
                             includeGroup 'org.ow2.asm'
@@ -22,7 +22,7 @@ gradle.projectsLoaded {
 
             project.dependencies {
                 groovyshdependencies "org.${groovySource}.groovy:groovy-groovysh:$groovyVer" {
-                    exclude group: 'org.codehaus.groovy'
+                    exclude group: "org.${groovySource}.groovy"
                 }
             }
 
@@ -37,7 +37,7 @@ gradle.projectsLoaded {
 
                     def groovyshClass
                     def groovyShell
-                    groovyshClass = Class.forName('org.codehaus.groovy.groovysh.Groovysh', true, groovyshClassLoader)
+                    groovyshClass = Class.forName("org.${groovySource}.groovy.groovysh.Groovysh", true, groovyshClassLoader)
                     if (groovyshClass) {
                         groovyShell = groovyshClass.newInstance()
                         if (groovyShell) {
