@@ -1,6 +1,6 @@
 sinclude .env # create from example.env
 PROJECT ?= nf-quilt
-WRITE_BUCKET ?= udp-spec
+WRITE_BUCKET ?= write-bucket-not-set
 FRAGMENT ?= &path=.
 NF_DIR ?= ../nextflow
 NF_GIT ?= $(NF_DIR)/nextflow
