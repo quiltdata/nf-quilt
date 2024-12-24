@@ -68,7 +68,7 @@ sourceSets {
 dependencies {
     def nextflowVersion = rootProject.file('VERSION').text.trim()
     // quiltcore
-    implementation 'com.quiltdata:quiltcore:0.1.6'
+    implementation 'com.quiltdata:quiltcore:0.1.7'
 
     // This dependency is exported to consumers, that is to say found on their compile classpath.
     compileOnly "io.nextflow:nextflow:$nextflowVersion"
