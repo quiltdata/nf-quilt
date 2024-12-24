@@ -15,7 +15,7 @@ From the command-line, do, e.g.:
 
 ```bash
 export LOG4J_DEBUG=true  # for verbose logging
-export VERSION=0.9.0
+export VERSION=0.9.1
 export NXF_PLUGINS_TEST_REPOSITORY=https://github.com/quiltdata/nf-quilt/releases/download/$(VERSION)/nf-quilt-$(VERSION)-meta.json
 nextflow run main.nf -plugins nf-quilt@$(VERSION)
 ```
