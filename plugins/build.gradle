@@ -91,6 +91,7 @@ subprojects {
     String archiveName = "${project.name}-${pluginVersion}"
     String zipFilePath = "$buildDir/libs/${archiveName}.zip"
     String jsonFilePath = "$buildDir/libs/${archiveName}-meta.json"
+    String pluginsDir = "$buildDir/plugins"
 
     /*
      * Creates plugin zip and json meta file in plugin `build/libs` directory
@@ -103,7 +104,7 @@ subprojects {
         preserveFileTimestamps = false
         reproducibleFileOrder = true
 
-        String downloadUrl = "https://github.com/${github_organization}/${project.name}/releases/download/${project.version}/${archiveName}.zip"
+        String downloadUrl = "https://github.com/${github_organization}/${project.name}/releases/download/${pluginVersion}/${archiveName}.zip"
         doLast {
             // create the meta file
             final zip = new File(zipFilePath)
@@ -112,7 +113,7 @@ subprojects {
 {
 "version": "${pluginVersion}",
 "date": "${timestamp}",
-"url": downloadUrl,
+"url": "${downloadUrl}",
 "requires": "${metaFromManifest('Plugin-Requires', file('src/resources/META-INF/MANIFEST.MF'))}",
 "sha512sum": "${computeSha512(zip)}"
 }
@@ -138,9 +139,9 @@ subprojects {
         from {
             tasks.named('makeZip').get().outputs.files.singleFile
         }
-        into "$buildDir/plugins"
+        into pluginsDir
         outputs.file(zipFilePath)
-        def destDirPath = "$buildDir/plugins/${project.name}-${project.version}"
+        def destDirPath = "$pluginsDir/$archiveName"
 
         doLast {
             if (!file(zipFilePath).exists()) {
