@@ -299,7 +299,7 @@ class QuiltPackage {
         String registryURI = "s3://${bucket}"
         Namespace namespace = Registry.CreateNamespaceAtUri(pkgName, registryURI)
 
-        Map<String, Object> user_meta = meta + this.meta
+        Map<String, Object> user_meta = meta + this.meta as Map<String, Object>
         //     public static Manifest BuildFromDir(Path dir, Object user_meta, String regex) {
 
         Manifest m = Manifest.BuildFromDir(packageDest(), user_meta, null)
