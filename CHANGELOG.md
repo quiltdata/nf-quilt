@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.9.0] TBD
+## [0.9.0] 2024-12-23
 
 - Only supports Nextflow 24.10 and later (uses Groovy 4)
 - Shift to quiltcore 0.1.6 convenience methods
