@@ -82,13 +82,13 @@ class QuiltSpecification extends Specification {
 
                     @Override
                     protected Manifest readManifestFromDirectory(Path pluginPath) {
-                        if ( !Files.isDirectory(pluginPath) )
+                        if (!Files.isDirectory(pluginPath)) {
                             return null
-
+                        }
                         final manifestPath = pluginPath.resolve('src/resources/META-INF/MANIFEST.MF')
-                        if ( !Files.exists(manifestPath) )
+                        if (!Files.exists(manifestPath)) {
                             return null
-
+                        }
                         final input = Files.newInputStream(manifestPath)
                         return new Manifest(input)
                     }

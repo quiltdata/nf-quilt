@@ -6,7 +6,6 @@ NF_DIR ?= ../nextflow
 NF_GIT ?= $(NF_DIR)/nextflow
 NF_BIN ?= ./launch.sh
 PID ?= $$$$
-PIPELINE ?= sarek
 QUERY ?= ?Name=$(USER)&Owner=Kevin+Moore&Date=2023-03-07&Type=CRISPR&Notebook+URL=http%3A%2F%2Fexample.com
 VERSION ?= $(shell grep 'Plugin-Version' plugins/$(PROJECT)/src/resources/META-INF/MANIFEST.MF | awk '{ print $$2 }')
 NXF_VER ?= $(shell cat VERSION)
@@ -108,16 +107,6 @@ path-input: compile
 tower-test: $(NF_BIN)
 	$(NF_BIN) run "https://github.com/quiltdata/nf-quilt" -name local_einstein  -with-tower -r main -latest --pub "$(TEST_URI)"
 
-# use `make $(PIPELINE) WRITE_BUCKET=my-s3-bucket` to publish `--outdir` to a Quilt package
-
-$(PIPELINE): $(NF_BIN) install
-	echo "Ensure you have docker running"
-	$(NF_BIN) pull nf-core/$(PIPELINE)
-	$(NF_BIN) run nf-core/$(PIPELINE) -profile test,docker -plugins $(PROJECT)@$(VERSION) --outdir "$(PIPE_OUT)"
-
-fetchngs: $(NF_GIT)
-	NXF_VER=$(NXF_VER) $(NF_BIN) run quiltdata/fetchngs -r master -profile test,docker --input wf/ids.csv --outdir "s3://$(WRITE_BUCKET)/nf-quilt/fetchngs"
-
 nf-git-ver: $(NF_GIT)
 	NXF_VER=$(NXF_VER) $(NF_GIT) -v
 
@@ -139,12 +128,13 @@ install: compile
 	./gradlew copyPluginZip
 	rm -rf ${HOME}/.nextflow/plugins/$(PROJECT)-${VERSION}
 	cp -r build/plugins/$(PROJECT)-${VERSION} ${HOME}/.nextflow/plugins/
+
 #
 # Upload JAR artifacts to Maven Central
 #
 
 publish:
-	echo "Ensure you have set 'github_organization=<owner>' in gradle.properties"
-	ls gradle.properties # create locally or globally if it does not exist
+	echo "Ensure you have set 'github_organization=<owner>' in ~/.gradle/gradle.properties"
+	ls $(HOME)/.gradle/gradle.properties # create locally or globally if it does not exist
 	./gradlew :plugins:$(PROJECT):upload
 	./gradlew :plugins:publishIndex

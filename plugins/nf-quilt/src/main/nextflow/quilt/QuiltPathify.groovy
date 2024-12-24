@@ -98,14 +98,10 @@ class QuiltPathify  {
 
     // Constructor takes a Path and finds QuiltPath and QuiltPackage
     QuiltPathify(Path path) {
-        println("QuiltPathify: $path")
         if (path in QuiltPath) {
             this.path = (QuiltPath) path
-            println("\tQuiltPathify.QuiltPath: $this.path")
             this.uri = this.path.toUriString()
-            println("\t\tQuiltPathify.QuiltPath.uri: $this.uri")
             this.pkg = this.path.pkg()
-            println("\t\tQuiltPathify.QuiltPath.pkg: $this.pkg")
         } else if (!findQuiltPath(path.getFileName().toString())) {
             makeQuiltPath(path.toString())
             this.isOverlay = true
@@ -113,44 +109,31 @@ class QuiltPathify  {
     }
 
     boolean findQuiltPath(String filename) {
-        println("findQuiltPath: $filename")
         String base = QuiltPath.getRootPackage(filename)
         if (base == null) {
             return false
         }
 
         uri = "${QuiltParser.SCHEME}://${base}"
-        println("\tfindQuiltPath.uri: $uri")
         path = QuiltPathFactory.parse(this.uri)
-        println("\tfindQuiltPath.path: $path")
         pkg = path.pkg()
-        println("\tfindQuiltPath.pkg: $pkg")
         return true
     }
 
     boolean makeQuiltPath(String s3File) {
-        println("makeQuiltPath: $s3File")
         String quiltURI = uriFromS3File(s3File)
-        println("\tmakeQuiltPath.quiltURI: $quiltURI")
         this.path = QuiltPathFactory.parse(quiltURI)
-        println("\tmakeQuiltPath.path: $path")
         this.uri = this.path.toUriString()
-        println("\tmakeQuiltPath.uri: $uri")
         this.pkg = this.path.pkg()
-        println("\tmakeQuiltPath.pkg: $pkg")
         return true
     }
 
     boolean copyToCache(Path source) {
-        println("copyToCache: $source -> $path")
         if (!this.isOverlay) {
             return false
         }
         String localPath = source.getFileName() // FIXME: should be relative to workdir
-        println("\tcopyToCache.localPath: $localPath")
         Path destDir = pkg.packageDest()
-        println("\tcopyToCache.destDir: $destDir")
-        println("copyToCache: $source -> $destDir / $localPath")
         copyFile(source, destDir.toString(), localPath)
         return true
     }

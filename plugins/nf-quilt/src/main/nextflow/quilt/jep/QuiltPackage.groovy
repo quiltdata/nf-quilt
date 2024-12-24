@@ -17,7 +17,6 @@
 // https://medium.com/geekculture/how-to-execute-python-modules-from-java-2384041a3d6d
 package nextflow.quilt.jep
 
-import groovy.json.JsonOutput
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import java.nio.file.FileSystems
@@ -31,28 +30,23 @@ import java.nio.file.attribute.BasicFileAttributes
 import java.util.stream.Collectors
 import java.time.LocalDate
 
-import com.quiltdata.quiltcore.Entry
 import com.quiltdata.quiltcore.Registry
 import com.quiltdata.quiltcore.Namespace
 import com.quiltdata.quiltcore.Manifest
-import com.quiltdata.quiltcore.key.LocalPhysicalKey
 import com.quiltdata.quiltcore.key.S3PhysicalKey
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.ObjectWriter
-import com.fasterxml.jackson.databind.node.ObjectNode
 
 @Slf4j
 @CompileStatic
 class QuiltPackage {
 
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
-    private static final ObjectWriter OBJECT_WRITER = OBJECT_MAPPER.writerWithDefaultPrettyPrinter()
     private static final Map<String,QuiltPackage> PKGS = [:]
     private static final String INSTALL_PREFIX = 'QuiltPackage'
     static final Path INSTALL_ROOT = Files.createTempDirectory(INSTALL_PREFIX)
 
-    public final String packageName
+    private final String packageName
     private final String bucket
     private final QuiltParser parsed
     private final String hash
@@ -73,46 +67,18 @@ class QuiltPackage {
         return date.toString()
     }
 
-    static String sanitize(String str) {
-        return str.replace('\'', '_')
-    }
-
-    static String arrayToJson(List<Map> array) {
-        List<String> entries = array.collect { dict ->
-            return toJson(dict)
-        }
-        return "[${entries.join(',')}]".toString()
-    }
-
-    static String toJson(Map dict) {
-        List<String> entries = dict.collect { key, value ->
-            String prefix = OBJECT_WRITER.writeValueAsString(key)
-            log.debug("toJson.${key}: ${value}")
-            String suffix = "toJson.error[${value}]"
-            try {
-                suffix = OBJECT_WRITER.writeValueAsString(value)
-            }
-            catch (Exception e) {
-                log.error(suffix, e)
-            }
-            return "${prefix}:${suffix}".toString()
-        }
-        return sanitize("{${entries.join(',')}}".toString())
-    }
-
     static void resetPackageCache() {
         PKGS.clear()
     }
 
     static QuiltPackage forParsed(QuiltParser parsed) {
-        println("QuiltPackage.forParsed: $parsed")
         boolean isNull = parsed.hasNullBucket()
         if (isNull && !PKGS.isEmpty()) {
             return PKGS.values().last()
         }
 
         String pkgKey = parsed.toPackageString(true) // ignore metadata for Key
-        log.info("QuiltPackage.forParsed[${pkgKey}]")
+        log.debug("QuiltPackage.forParsed[${pkgKey}]")
         def pkg = PKGS.get(pkgKey)
         if (pkg) { return pkg }
 
@@ -222,6 +188,10 @@ class QuiltPackage {
         return folder
     }
 
+    String getPackageName() {
+        return packageName
+    }
+
     Map getMetadata() {
         return this.meta
     }
@@ -239,10 +209,9 @@ class QuiltPackage {
         String implicitStr = implicit ? 'implicitly ' : ''
 
         try {
-            log.info("${implicitStr}installing $packageName from $bucket...")
-            S3PhysicalKey registryPath = new S3PhysicalKey(bucket, '', null)
-            Registry registry = new Registry(registryPath)
-            Namespace namespace = registry.getNamespace(packageName)
+            log.debug("${implicitStr}installing $packageName from $bucket...")
+            String registryURI = "s3://${bucket}"
+            Namespace namespace = Registry.CreateNamespaceAtUri(packageName, registryURI)
             String resolvedHash = (hash == 'latest' || hash == null || hash == 'null')
               ? namespace.getHash('latest')
               : hash
@@ -250,7 +219,7 @@ class QuiltPackage {
             Manifest manifest = namespace.getManifest(resolvedHash)
 
             manifest.install(dest)
-            log.info("install: ${implicitStr}installed into $dest)")
+            log.debug("install: ${implicitStr}installed into $dest)")
             log.debug("QuiltPackage.install.Children: ${relativeChildren('')}")
         } catch (IOException e) {
             if (!implicit) {
@@ -298,28 +267,13 @@ class QuiltPackage {
             return null
         }
         String pkgName = pkg ?: packageName
-        S3PhysicalKey registryPath = new S3PhysicalKey(bucket, '', null)
-        Registry registry = new Registry(registryPath)
-        Namespace namespace = registry.getNamespace(pkgName)
+        String registryURI = "s3://${bucket}"
+        Namespace namespace = Registry.CreateNamespaceAtUri(pkgName, registryURI)
 
-        Manifest.Builder builder = Manifest.builder()
+        Map<String, Object> user_meta = meta + this.meta as Map<String, Object>
+        //     public static Manifest BuildFromDir(Path dir, Object user_meta, String regex) {
 
-        Files.walk(packageDest()).filter(f -> Files.isRegularFile(f)).forEach(f -> {
-            log.debug("push: ${f} -> ${packageDest()}")
-            String logicalKey = packageDest().relativize(f)
-            LocalPhysicalKey physicalKey = new LocalPhysicalKey(f)
-            long size = Files.size(f)
-            builder.addEntry(logicalKey, new Entry(physicalKey, size, null, null))
-        })
-
-        Map<String, Object> fullMeta = [
-            'version': Manifest.VERSION,
-            'user_meta': meta + this.meta,
-        ]
-        ObjectMapper mapper = new ObjectMapper()
-        builder.setMetadata((ObjectNode)mapper.valueToTree(fullMeta))
-
-        Manifest m = builder.build()
+        Manifest m = Manifest.BuildFromDir(packageDest(), user_meta, null)
         log.debug("push[${pkgName}]: ${m}")
         try {
             Manifest manifest = m.push(namespace, "nf-quilt:${today()}-${msg}", parsed.workflowName)

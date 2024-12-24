@@ -55,19 +55,15 @@ final class QuiltPath implements Path {
         }
         String base = filename
         if (n_package > 1) {
-            log.info("\tfindQuiltPath: multiple '#package' in $base")
-            println('\t\tTO MATCH')
+            log.warn("\tfindQuiltPath: multiple '#package' in $base")
             Matcher matches = (filename =~ /^([^#]+#package=.*)?(?:(?!%2f).)*#package=/)
             if (!matches) {
                 log.error("findQuiltPath: no match found for $filename")
                 return null
             }
-            println('\t\tDID MATCH')
-            println("\tfindQuiltPath.matches: $matches")
             List<String> parts = matches[0] as List<String>
-            println("\tfindQuiltPath.parts: $parts")
             base = parts[1]
-            log.info("\tfindQuiltPath: trimmed to $base")
+            log.debug("\tfindQuiltPath: trimmed to $base")
         }
         return base
     }
@@ -77,7 +73,7 @@ final class QuiltPath implements Path {
         this.parsed = parsed
         this.paths = parsed.getPaths()
         this.isFileName = isFileName
-        log.info("Creating QuiltPath: $parsed")
+        log.debug("Creating QuiltPath: $parsed")
     }
 
     String getBucket() {
@@ -93,7 +89,6 @@ final class QuiltPath implements Path {
     }
 
     QuiltPackage pkg() {
-        println("QuiltPath.pkg: $parsed")
         QuiltParser source = isAbsolute() ? parsed : QuiltParser.forNullBucket()
         return QuiltPackage.forParsed(source)
     }

@@ -77,6 +77,12 @@ class QuiltFileSystemProvider extends FileSystemProvider implements FileSystemTr
         )
     }
 
+    static String getQuiltIDS(URI uri) {
+        assert uri
+        QuiltParser parsed = QuiltParser.forURI(uri)
+        return parsed.quiltID().toString()
+    }
+
     static QuiltFileSystem getQuiltFilesystem(Path path) {
         final qPath = asQuiltPath(path)
         final fs = qPath.getFileSystem()
@@ -85,6 +91,43 @@ class QuiltFileSystemProvider extends FileSystemProvider implements FileSystemTr
 
     static FileSystemProvider provider(Path path) {
         return path.getFileSystem().provider()
+    }
+
+    static void checkRoot(Path path) {
+        if (path == Paths.get('/')) {
+            throw new UnsupportedOperationException("Operation 'checkRoot' not supported on root path")
+        }
+    }
+
+    /**
+    * Open a file for reading or writing.
+
+    * @param path: the path to the file to open or create
+    * @param options: options specifying how the file is opened, e.g. StandardOpenOption.WRITE
+    * @param attrs: (not supported, values will be ignored)
+    * @return
+    * @throws IOException
+    */
+    static void notifyFilePublish(QuiltPath destination, Path source=null) {
+        final sess = Global.session
+        /* groovylint-disable-next-line Instanceof */
+        if (sess instanceof Session) {
+            sess.notifyFilePublish((Path)destination, source)
+        }
+    }
+
+    static DirectoryStream<Path> emptyStream() throws IOException {
+        return new DirectoryStream<Path>() {
+
+            @Override
+            Iterator<Path> iterator() {
+                return Collections.emptyIterator()
+            }
+
+            /* groovylint-disable-next-line CloseWithoutCloseable */
+            @Override void close() throws IOException { }
+
+        }
     }
 
     /**
@@ -106,10 +149,10 @@ class QuiltFileSystemProvider extends FileSystemProvider implements FileSystemTr
         QuiltPath qPath = asQuiltPath(remoteFile)
         Path cachedFile = qPath.localPath()
         QuiltPackage pkg = qPath.pkg()
-        log.info "download Quilt package: ${pkg} installed? ${pkg.installed}"
+        log.debug "download Quilt package: ${pkg} installed? ${pkg.installed}"
         if (!pkg.installed) {
             Path dest = pkg.install()
-            log.info "download.installed Quilt package to: $dest"
+            log.debug "download.installed Quilt package to: $dest"
         }
 
         final CopyOptions opts = CopyOptions.parse(options)
@@ -158,12 +201,6 @@ class QuiltFileSystemProvider extends FileSystemProvider implements FileSystemTr
     @Override
     String getScheme() {
         return QuiltParser.SCHEME
-    }
-
-    static String getQuiltIDS(URI uri) {
-        assert uri
-        QuiltParser parsed = QuiltParser.forURI(uri)
-        return parsed.quiltID().toString()
     }
 
     /**
@@ -301,29 +338,6 @@ class QuiltFileSystemProvider extends FileSystemProvider implements FileSystemTr
         return new QuiltPath(fs, parsed)
     }
 
-    static void checkRoot(Path path) {
-        if (path == Paths.get('/')) {
-            throw new UnsupportedOperationException("Operation 'checkRoot' not supported on root path")
-        }
-    }
-
-    /**
-    * Open a file for reading or writing.
-
-    * @param path: the path to the file to open or create
-    * @param options: options specifying how the file is opened, e.g. StandardOpenOption.WRITE
-    * @param attrs: (not supported, values will be ignored)
-    * @return
-    * @throws IOException
-    */
-    static void notifyFilePublish(QuiltPath destination) { //, Path source=null) {
-        final sess = Global.session
-        /* groovylint-disable-next-line Instanceof */
-        if (sess instanceof Session) {
-            sess.notifyFilePublish((Path)destination) //, source)
-        }
-    }
-
     @Override
     SeekableByteChannel newByteChannel(
       Path path, Set<? extends OpenOption> options, FileAttribute<?>... attrs) throws IOException {
@@ -350,20 +364,6 @@ class QuiltFileSystemProvider extends FileSystemProvider implements FileSystemTr
         }
         return null
       }
-
-    static DirectoryStream<Path> emptyStream() throws IOException {
-        return new DirectoryStream<Path>() {
-
-            @Override
-            Iterator<Path> iterator() {
-                return Collections.emptyIterator()
-            }
-
-            /* groovylint-disable-next-line CloseWithoutCloseable */
-            @Override void close() throws IOException { }
-
-        }
-    }
 
     @Override
     DirectoryStream<Path> newDirectoryStream(Path obj, DirectoryStream.Filter<? super Path> filter) throws IOException {

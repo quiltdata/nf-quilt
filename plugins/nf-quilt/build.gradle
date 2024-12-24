@@ -7,24 +7,23 @@
  *
  *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This file is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS
+ * of any kind, either express or implied.
+ * See the License for the specific language governing permissions and limitations.
  */
 
 plugins {
-    // Apply the groovy plugin to add support for Groovy
+    // Apply the conventions and plugins required by the build
     id 'io.nextflow.groovy-library-conventions'
     id 'idea'
-    // id 'com.github.ben-manes.versions' version '0.51.0'
     id 'jacoco'
 }
 
 group = 'io.nextflow'
+
 // DO NOT SET THE VERSION HERE
-// THE VERSION FOR PLUGINS IS DEFINED IN THE `/resources/META-INF/MANIFEST.NF` file
+// PLUGIN VERSION IS DEFINED IN THE `META-INF/MANIFEST.MF` FILE
+
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(javaLangVersion)
@@ -35,7 +34,7 @@ compileJava {
     options.release = jdkVersion.toInteger()
 }
 
-tasks.withType(GroovyCompile) {
+tasks.withType(GroovyCompile).configureEach {
     sourceCompatibility = jdkVersion
     targetCompatibility = jdkVersion
 }
@@ -52,39 +51,49 @@ repositories {
 }
 
 configurations {
-    // see https://docs.gradle.org/4.1/userguide/dependency_management.html#sub:exclude_transitive_dependencies
-    runtimeClasspath.exclude group: 'org.slf4j', module: 'slf4j-api'
+    // Exclude transitive dependencies
+    runtimeClasspath.exclude(group: 'org.slf4j', module: 'slf4j-api')
 }
 
 sourceSets {
-    main.java.srcDirs = []
-    main.groovy.srcDirs = ['src/main']
-    main.resources.srcDirs = ['src/resources']
-    test.groovy.srcDirs = ['src/test']
-    test.java.srcDirs = []
-    test.resources.srcDirs = ['src/testResources']
+    main {
+        java.srcDirs = []               // Disable Java sources
+        groovy.srcDirs = ['src/main']   // Use Groovy sources
+        resources.srcDirs = ['src/resources'] // Use resources
+    }
+    test {
+        java.srcDirs = []               // Disable Java sources for tests
+        groovy.srcDirs = ['src/test']   // Use Groovy test sources
+        resources.srcDirs = ['src/testResources'] // Use test resources
+    }
 }
 
 dependencies {
     def nextflowVersion = rootProject.file('VERSION').text.trim()
-    // quiltcore
-    implementation 'com.quiltdata:quiltcore:0.1.6'
 
-    // This dependency is exported to consumers, that is to say found on their compile classpath.
+    // Quiltcore
+    implementation 'com.quiltdata:quiltcore:0.1.7'
+
+    // Compile-only dependencies
     compileOnly "io.nextflow:nextflow:$nextflowVersion"
     compileOnly 'org.slf4j:slf4j-api:2.1.0-alpha1'
     compileOnly 'org.pf4j:pf4j:3.13.0'
+
+    // Runtime-only dependencies
     runtimeOnly 'org.junit.platform:junit-platform-launcher:1.11.4'
     implementation 'commons-io:commons-io:2.18.0'
 
-    // test configuration
+    // Test dependencies
     testImplementation "io.nextflow:nextflow:$nextflowVersion"
-    // testImplementation "io.nextflow:nf-commons:$nextflowVersion"
     testImplementation "org.${groovySource}.groovy:groovy:$groovyVersion"
     testImplementation "org.${groovySource}.groovy:groovy-nio:$groovyVersion"
-    testImplementation ("org.${groovySource}.groovy:groovy-test:$groovyVersion") { exclude group: "org.${groovySource}.groovy" }
+    testImplementation("org.${groovySource}.groovy:groovy-test:$groovyVersion") {
+        exclude group: "org.${groovySource}.groovy"
+    }
     testImplementation('cglib:cglib-nodep:3.3.0')
     testImplementation('org.objenesis:objenesis:3.4')
+
+    // Spock framework
     testImplementation("org.spockframework:spock-core:2.3-$groovyV") {
         exclude group: "org.${groovySource}.groovy"
         exclude group: 'net.bytebuddy'
@@ -93,34 +102,35 @@ dependencies {
         exclude group: "org.${groovySource}.groovy"
         exclude group: 'net.bytebuddy'
     }
-    testImplementation('com.google.jimfs:jimfs:1.3.0')
 
+    // Miscellaneous test dependencies
+    testImplementation('com.google.jimfs:jimfs:1.3.0')
     testImplementation(testFixtures("io.nextflow:nextflow:$nextflowVersion"))
     testImplementation(testFixtures("io.nextflow:nf-commons:$nextflowVersion"))
 
-    // see https://docs.gradle.org/4.1/userguide/dependency_management.html#sec:module_replacement
+    // Module replacement
     modules {
-        module('commons-logging:commons-logging') { 
-            replacedBy('org.slf4j:jcl-over-slf4j') 
+        module('commons-logging:commons-logging') {
+            replacedBy('org.slf4j:jcl-over-slf4j')
         }
     }
 }
 
-// use JUnit 5 platform
+// Use JUnit 5 platform for testing
 test {
     useJUnitPlatform()
 }
 
 jacocoTestReport {
-    dependsOn test // tests are required to run before generating the report
+    dependsOn test // The report depends on the completion of tests
 }
 
 jacocoTestCoverageVerification {
-    dependsOn jacocoTestReport // tests are required to run before generating the report
+    dependsOn jacocoTestReport // Ensure the test report is generated first
     violationRules {
         rule {
             limit {
-                minimum = 0.7
+                minimum = 0.7 // Ensure at least 70% coverage
             }
         }
 
@@ -132,7 +142,7 @@ jacocoTestCoverageVerification {
             limit {
                 counter = 'LINE'
                 value = 'TOTALCOUNT'
-                maximum = 0.3
+                maximum = 0.3 // Coverage limit for lines
             }
         }
     }
