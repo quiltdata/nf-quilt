@@ -163,7 +163,8 @@ subprojects {
     project.parent.tasks.named('assemble').configure {
         dependsOn(copyPluginZip)
     }
-    task uploadPlugin(type: GithubUploader, dependsOn: makeZip) {
+    tasks.register('uploadPlugin', GithubUploader) {
+        dependsOn tasks.named('makeZip') // Lazy dependency
         assets = providers.provider { providerList } as Provider<? extends Iterable<? extends String>>
         release = providers.provider { project.version } as Provider<? extends String>
         repo = providers.provider { project.name }
