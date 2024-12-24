@@ -139,6 +139,7 @@ install: compile
 	./gradlew copyPluginZip
 	rm -rf ${HOME}/.nextflow/plugins/$(PROJECT)-${VERSION}
 	cp -r build/plugins/$(PROJECT)-${VERSION} ${HOME}/.nextflow/plugins/
+
 #
 # Upload JAR artifacts to Maven Central
 #

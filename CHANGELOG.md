@@ -3,6 +3,7 @@
 ## [0.9.0] TBD
 
 - Only supports Nextflow 24.10 and later (uses Groovy 4)
+- Shift to quiltcore 0.1.6 convenience methods
 - Shift metadata and configuration to `quilt` scope of nextflow.config
 - Moved test workflows into `wf` folder
 - Write the output URI when publishing

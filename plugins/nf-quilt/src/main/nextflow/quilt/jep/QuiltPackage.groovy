@@ -30,16 +30,13 @@ import java.nio.file.attribute.BasicFileAttributes
 import java.util.stream.Collectors
 import java.time.LocalDate
 
-import com.quiltdata.quiltcore.Entry
 import com.quiltdata.quiltcore.Registry
 import com.quiltdata.quiltcore.Namespace
 import com.quiltdata.quiltcore.Manifest
-import com.quiltdata.quiltcore.key.LocalPhysicalKey
 import com.quiltdata.quiltcore.key.S3PhysicalKey
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.ObjectWriter
-import com.fasterxml.jackson.databind.node.ObjectNode
 
 @Slf4j
 @CompileStatic
@@ -242,9 +239,8 @@ class QuiltPackage {
 
         try {
             log.debug("${implicitStr}installing $packageName from $bucket...")
-            S3PhysicalKey registryPath = new S3PhysicalKey(bucket, '', null)
-            Registry registry = new Registry(registryPath)
-            Namespace namespace = registry.getNamespace(packageName)
+            String registryURI = "s3://${bucket}"
+            Namespace namespace = Registry.CreateNamespaceAtUri(packageName, registryURI)
             String resolvedHash = (hash == 'latest' || hash == null || hash == 'null')
               ? namespace.getHash('latest')
               : hash
@@ -300,28 +296,13 @@ class QuiltPackage {
             return null
         }
         String pkgName = pkg ?: packageName
-        S3PhysicalKey registryPath = new S3PhysicalKey(bucket, '', null)
-        Registry registry = new Registry(registryPath)
-        Namespace namespace = registry.getNamespace(pkgName)
+        String registryURI = "s3://${bucket}"
+        Namespace namespace = Registry.CreateNamespaceAtUri(pkgName, registryURI)
 
-        Manifest.Builder builder = Manifest.builder()
+        Map<String, Object> user_meta = meta + this.meta
+        //     public static Manifest BuildFromDir(Path dir, Object user_meta, String regex) {
 
-        Files.walk(packageDest()).filter(f -> Files.isRegularFile(f)).forEach(f -> {
-            log.debug("push: ${f} -> ${packageDest()}")
-            String logicalKey = packageDest().relativize(f)
-            LocalPhysicalKey physicalKey = new LocalPhysicalKey(f)
-            long size = Files.size(f)
-            builder.addEntry(logicalKey, new Entry(physicalKey, size, null, null))
-        })
-
-        Map<String, Object> fullMeta = [
-            'version': Manifest.VERSION,
-            'user_meta': meta + this.meta,
-        ]
-        ObjectMapper mapper = new ObjectMapper()
-        builder.setMetadata((ObjectNode)mapper.valueToTree(fullMeta))
-
-        Manifest m = builder.build()
+        Manifest m = Manifest.BuildFromDir(packageDest(), user_meta, null)
         log.debug("push[${pkgName}]: ${m}")
         try {
             Manifest manifest = m.push(namespace, "nf-quilt:${today()}-${msg}", parsed.workflowName)
