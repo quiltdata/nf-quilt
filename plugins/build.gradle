@@ -146,7 +146,7 @@ subprojects {
             )
         }
     }
-    
+
     /* "Install" the Plugin */
     def providerList = [zipFile.absolutePath, jsonFile.absolutePath]
     project.parent.tasks.named('assemble').configure {

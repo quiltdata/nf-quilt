@@ -68,15 +68,6 @@ sourceSets {
         groovy.srcDirs = ['src/test'] // Use Groovy test sources from 'src/test'
         resources.srcDirs = ['src/testResources'] // Use test resources from 'src/testResources'
     }
-}println "Groovy Source Directories: ${sourceSets.main}"
-
-tasks.register('debugSourceSets') {
-    doLast {
-        println "Main Groovy Sources: ${sourceSets.main.groovy.srcDirs}"
-        println "Main Resources: ${sourceSets.main.resources.srcDirs}"
-        println "Test Groovy Sources: ${sourceSets.test.groovy.srcDirs}"
-        println "Test Resources: ${sourceSets.test.resources.srcDirs}"
-    }
 }
 
 dependencies {
