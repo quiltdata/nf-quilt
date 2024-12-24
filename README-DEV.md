@@ -111,8 +111,8 @@ and publish the plugin.
 
 Otherwise, follow these steps:
 
-1. Create a file named `gradle.properties` in the project root containing the
-   following attributes (this file should not be committed to Git):
+1. Create a file named `gradle.properties` in the user's home (NOT project)
+   directory containing the following attributes:
 
    - `github_organization`: the GitHub organisation where the plugin repository
      is hosted.

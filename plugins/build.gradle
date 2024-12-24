@@ -94,22 +94,27 @@ subprojects {
         preserveFileTimestamps = false
         reproducibleFileOrder = true
 
+        def zipFile = new File("$buildDir/libs/${project.name}-${project.version}.zip")
+        def jsonFile = new File("$buildDir/libs/${project.name}-${project.version}-meta.json")
+        def pluginVersion = project.version
+        def pluginRequires = metaFromManifest('Plugin-Requires', file('src/resources/META-INF/MANIFEST.MF'))
+        def sha512sum = computeSha512(zipFile)
+        def downloadUrl = "https://github.com/${github_organization}/${project.name}/releases/download/${pluginVersion}/${project.name}-${pluginVersion}.zip"
+
         doLast {
             // create the meta file
-            final zip = new File("$buildDir/libs/${project.name}-${project.version}.zip")
-            final json = new File("$buildDir/libs/${project.name}-${project.version}-meta.json")
-            json.text = """\
-{
-"version": "${project.version}",
-"date": "${timestamp}",
-"url": "https://github.com/${github_organization}/${project.name}/releases/download/${project.version}/${project.name}-${project.version}.zip",
-"requires": "${metaFromManifest('Plugin-Requires', file('src/resources/META-INF/MANIFEST.MF'))}",
-"sha512sum": "${computeSha512(zip)}"
-}
-"""
-        }
-        outputs.file("$buildDir/libs/${project.name}-${project.version}.zip")
+            jsonFile.text = """\
+    {
+    "version": "${pluginVersion}",
+    "date": "${timestamp}",
+    "url": "${downloadUrl}",
+    "requires": "${pluginRequires}",
+    "sha512sum": "${sha512sum}"
     }
+    """
+        }
+        outputs.file(zipFile)
+        }
 
     /*
      * Copy the plugin dependencies in the subproject `build/target/libs` directory
@@ -128,10 +133,13 @@ subprojects {
         from makeZip
         into "$rootProject.buildDir/plugins"
         outputs.file("$rootProject.buildDir/plugins/${project.name}-${project.version}.zip")
+        def zipFilePath = "$rootProject.buildDir/plugins/${project.name}-${project.version}.zip"
+        def destDirPath = "$rootProject.buildDir/plugins/${project.name}-${project.version}"
+
         doLast {
             ant.unzip(
-                    src: "$rootProject.buildDir/plugins/${project.name}-${project.version}.zip",
-                    dest: "$rootProject.buildDir/plugins/${project.name}-${project.version}"
+                src: zipFilePath,
+                dest: destDirPath
             )
         }
     }
