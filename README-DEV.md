@@ -15,8 +15,8 @@ From the command-line, do, e.g.:
 
 ```bash
 export LOG4J_DEBUG=true  # for verbose logging
-export NXF_PLUGINS_TEST_REPOSITORY=https://github.com/quiltdata/nf-quilt/releases/download/0.8.5/nf-quilt-0.8.5-meta.json
-nextflow run main.nf -plugins nf-quilt@0.8.5
+export NXF_PLUGINS_TEST_REPOSITORY=https://github.com/quiltdata/nf-quilt/releases/download/0.9.0/nf-quilt-0.9.0-meta.json
+nextflow run main.nf -plugins nf-quilt@0.9.0
 ```
 
 For Tower, you set the environment variables in the "Pre-run script".
