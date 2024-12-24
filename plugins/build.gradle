@@ -86,7 +86,7 @@ subprojects {
     /*
      * Creates plugin zip and json meta file in plugin `build/libs` directory
      */
-    task makeZip(type: Jar) {
+    tasks.register('makeZip', Jar) {
         into('classes') { with jar }
         into('lib') { from configurations.runtimeClasspath }
         manifest.from file('src/resources/META-INF/MANIFEST.MF')
@@ -94,21 +94,26 @@ subprojects {
         preserveFileTimestamps = false
         reproducibleFileOrder = true
 
+        String pluginVersion = project.version
+        String archiveName = "${project.name}-${pluginVersion}"
+        String downloadUrl = "https://github.com/${github_organization}/${project.name}/releases/download/${project.version}/${archiveName}.zip"
+        String zipName = "$buildDir/libs/${archiveName}.zip"
+        String jsonName = "$buildDir/libs/${archiveName}-meta.json"
         doLast {
             // create the meta file
-            final zip = new File("$buildDir/libs/${project.name}-${project.version}.zip")
-            final json = new File("$buildDir/libs/${project.name}-${project.version}-meta.json")
+            final zip = new File(zipName)
+            final json = new File(jsonName)
             json.text = """\
 {
-"version": "${project.version}",
+"version": "${pluginVersion}",
 "date": "${timestamp}",
-"url": "https://github.com/${github_organization}/${project.name}/releases/download/${project.version}/${project.name}-${project.version}.zip",
+"url": downloadUrl,
 "requires": "${metaFromManifest('Plugin-Requires', file('src/resources/META-INF/MANIFEST.MF'))}",
 "sha512sum": "${computeSha512(zip)}"
 }
 """
         }
-        outputs.file("$buildDir/libs/${project.name}-${project.version}.zip")
+        outputs.file(zipName)
     }
 
     /*
