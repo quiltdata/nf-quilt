@@ -91,7 +91,7 @@ the `<> CODE | URI` section at the top of the package page.
 ### Output URIs
 
 You can specify a Quilt+ URI as the `--outdir` parameter in your Nextflow
-pipeline if you want to specify the package name and metadata for the output,
+pipeline, if you want to specify the package name and metadata for the output,
 but don't care about the precise location in S3. For example:
 
 ```shell

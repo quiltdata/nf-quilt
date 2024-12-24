@@ -121,7 +121,7 @@ $(PIPELINE): nf-git-ver
 	NXF_PLUGINS_TEST_REPOSITORY=$(NXF_PLUGINS_TEST_REPOSITORY) NXF_VER=$(NXF_VER) $(NF_GIT) run nf-core/$(PIPELINE) -r master -profile test,docker -plugins $(PROJECT)@$(VERSION) --outdir "$(PIPE_OUT)"
 
 fetchngs: nf-git-ver
-	NXF_VER=$(NXF_VER) $(NF_GIT) run nf-core/fetchngs -profile docker -r dev -latest --pub "$(TEST_URI)"
+	NXF_PLUGINS_TEST_REPOSITORY=$(NXF_PLUGINS_TEST_REPOSITORY) NXF_VER=$(NXF_VER) $(NF_GIT) run nf-core/fetchngs -r master -profile test,docker -plugins $(PROJECT)@$(VERSION) --input ../nf-quilt/wf/ids.csv --outdir s3://$(WRITE_BUCKET)/nf-quilt/fetchngs
 
 #
 # Show dependencies

@@ -85,6 +85,13 @@ For example:
 ./launch.sh run ./main.nf -profile standard -plugins $(PROJECT) --outdir "quilt+s3://bucket#package=test/hurdat"
 ```
 
+There are standard Makefile targets for both `sarek` and `fetchngs` pipelines, which will test against the latest published versions of nf-quilt:
+
+```bash
+make sarek
+make fetchngs
+```
+
 ### Unit Testing
 
 You can cleanly compile and run all unit tests with:
