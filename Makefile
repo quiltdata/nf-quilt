@@ -10,7 +10,9 @@ QUERY ?= ?Name=$(USER)&Owner=Kevin+Moore&Date=2023-03-07&Type=CRISPR&Notebook+UR
 VERSION ?= $(shell grep 'Plugin-Version' plugins/$(PROJECT)/src/resources/META-INF/MANIFEST.MF | awk '{ print $$2 }')
 NXF_VER ?= $(shell cat VERSION)
 TEST_URI ?= quilt+s3://$(WRITE_BUCKET)$(QUERY)\#package=nf-quilt/dest-$(VERSION)$(FRAGMENT)
+PIPELINE ?= sarek
 PIPE_OUT ?=  quilt+s3://$(WRITE_BUCKET)\#package=$(PROJECT)/$(PIPELINE)
+NXF_PLUGINS_TEST_REPOSITORY ?= https://github.com/quiltdata/nf-quilt/releases/download/$(VERSION)/nf-quilt-$(VERSION)-meta.json
 S3_BASE = s3://$(WRITE_BUCKET)/$(PROJECT)
 REPORT ?= ./plugins/$(PROJECT)/build/reports/tests/test/index.html
 
@@ -107,8 +109,19 @@ path-input: compile
 tower-test: $(NF_BIN)
 	$(NF_BIN) run "https://github.com/quiltdata/nf-quilt" -name local_einstein  -with-tower -r main -latest --pub "$(TEST_URI)"
 
+#
+# Production Testing
+#
+
 nf-git-ver: $(NF_GIT)
 	NXF_VER=$(NXF_VER) $(NF_GIT) -v
+
+
+$(PIPELINE): nf-git-ver
+	NXF_PLUGINS_TEST_REPOSITORY=$(NXF_PLUGINS_TEST_REPOSITORY) NXF_VER=$(NXF_VER) $(NF_GIT) run nf-core/$(PIPELINE) -r master -profile test,docker -plugins $(PROJECT)@$(VERSION) --outdir "$(PIPE_OUT)"
+
+fetchngs: nf-git-ver
+	NXF_VER=$(NXF_VER) $(NF_GIT) run nf-core/fetchngs -profile docker -r dev -latest --pub "$(TEST_URI)"
 
 #
 # Show dependencies
