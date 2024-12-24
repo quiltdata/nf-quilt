@@ -82,6 +82,15 @@ subprojects {
     tasks.withType(Jar).configureEach {
         duplicatesStrategy = DuplicatesStrategy.INCLUDE
     }
+    
+    /*
+     * Set project variables for the plugin
+     */
+
+    String pluginVersion = project.version
+    String archiveName = "${project.name}-${pluginVersion}"
+    String zipFilePath = "$buildDir/libs/${archiveName}.zip"
+    String jsonFilePath = "$buildDir/libs/${archiveName}-meta.json"
 
     /*
      * Creates plugin zip and json meta file in plugin `build/libs` directory
@@ -94,15 +103,11 @@ subprojects {
         preserveFileTimestamps = false
         reproducibleFileOrder = true
 
-        String pluginVersion = project.version
-        String archiveName = "${project.name}-${pluginVersion}"
         String downloadUrl = "https://github.com/${github_organization}/${project.name}/releases/download/${project.version}/${archiveName}.zip"
-        String zipName = "$buildDir/libs/${archiveName}.zip"
-        String jsonName = "$buildDir/libs/${archiveName}-meta.json"
         doLast {
             // create the meta file
-            final zip = new File(zipName)
-            final json = new File(jsonName)
+            final zip = new File(zipFilePath)
+            final json = new File(jsonFilePath)
             json.text = """\
 {
 "version": "${pluginVersion}",
@@ -113,7 +118,7 @@ subprojects {
 }
 """
         }
-        outputs.file(zipName)
+        outputs.file(zipFilePath)
     }
 
     /*
@@ -134,8 +139,7 @@ subprojects {
             tasks.named('makeZip').get().outputs.files.singleFile
         }
         into "$buildDir/plugins"
-        outputs.file("$buildDir/plugins/${project.name}-${project.version}.zip")
-        def zipFilePath = "$buildDir/plugins/${project.name}-${project.version}.zip"
+        outputs.file(zipFilePath)
         def destDirPath = "$buildDir/plugins/${project.name}-${project.version}"
 
         doLast {
@@ -154,7 +158,7 @@ subprojects {
         dependsOn tasks.named('processResources') // Ensure resources are processed
         doFirst {
             destinationDirectory.get().asFile.mkdirs()
-            println "Inputs:"
+            println "makeZip.inputs:"
             println "  Classes: ${tasks.named('classes').get().outputs.files.files}"
             println "  Resources: ${tasks.named('processResources').get().outputs.files.files}"
         }
@@ -163,10 +167,7 @@ subprojects {
     /*
     * "install" the plugin the project root build/plugins directory
     */
-    def providerList = [
-            "$buildDir/libs/${project.name }-${project.version }.zip",
-            "$buildDir/libs/${project.name}-${project.version}-meta.json"
-    ]
+    def providerList = [ zipFilePath, jsonFilePath]
     project.parent.tasks.getByName('assemble').dependsOn << copyPluginZip
     task uploadPlugin(type: GithubUploader, dependsOn: makeZip) {
         assets = providers.provider { providerList } as Provider<? extends Iterable<? extends String>>
