@@ -146,18 +146,7 @@ subprojects {
             )
         }
     }
-
-    tasks.named('makeZip').configure {
-        dependsOn tasks.named('classes')            // Ensure compiled classes are available
-        dependsOn tasks.named('processResources')  // Ensure processed resources
-        doFirst {
-            destinationDirectory.get().asFile.mkdirs()
-            println "makeZip.inputs:"
-            println "  Classes: ${tasks.named('classes').get().outputs.files.files}"
-            println "  Resources: ${tasks.named('processResources').get().outputs.files.files}"
-        }
-    }
-
+    
     /* "Install" the Plugin */
     def providerList = [zipFile.absolutePath, jsonFile.absolutePath]
     project.parent.tasks.named('assemble').configure {
