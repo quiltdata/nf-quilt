@@ -15,11 +15,9 @@ import java.time.format.DateTimeFormatter
  *
  *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This file is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS
+ * of any kind, either express or implied.
+ * See the License for specific language governing permissions and limitations.
  */
 
 plugins {
@@ -28,14 +26,19 @@ plugins {
     id 'io.nextflow.nf-build-plugin' version '1.0.1'
 }
 
-ext.github_organization = project.findProperty('github_organization') ?: 'nextflow-io'
-ext.github_username = project.findProperty('github_username') ?: 'pditommaso'
-ext.github_access_token = project.findProperty('github_access_token') ?: System.getenv('GITHUB_TOKEN')
-ext.github_commit_email = project.findProperty('github_commit_email') ?: 'paolo.ditommaso@gmail.com'
-ext.github_index_url = "https://github.com/${github_organization}/plugins/main/plugins.json" as GStringImpl
+/* Project Constants */
+ext {
+    github_organization = project.findProperty('github_organization') ?: 'nextflow-io'
+    github_username = project.findProperty('github_username') ?: 'pditommaso'
+    github_access_token = project.findProperty('github_access_token') ?: System.getenv('GITHUB_TOKEN')
+    github_commit_email = project.findProperty('github_commit_email') ?: 'paolo.ditommaso@gmail.com'
+    github_index_url = "https://github.com/${github_organization}/plugins/main/plugins.json" as GStringImpl
+}
 
+// Disable default JAR generation
 jar.enabled = false
 
+/* Utility Functions */
 static String computeSha512(File file) {
     if (!file.exists()) {
         throw new GradleException("Missing file: $file -- cannot compute SHA-512")
@@ -49,7 +52,9 @@ static String now() {
 
 List<String> allPlugins() {
     def plugins = []
-    new File(rootProject.rootDir, 'plugins') .eachDir { if (it.name.startsWith('nf-')) plugins.add(it.name) }
+    new File(rootProject.rootDir, 'plugins').eachDir {
+        if (it.name.startsWith('nf-')) plugins.add(it.name)
+    }
     return plugins
 }
 
@@ -59,7 +64,7 @@ String metaFromManifest(String meta, File file) {
     def m = regex.matcher(str)
     if (m.find()) {
         def ver = m.group(1)
-        println "Set plugin '${file.parentFile.parentFile.parentFile.parentFile.name}' version=${ver}"
+        println "Set plugin '${file.parentFile.parentFile.parentFile.parentFile.name}' version=$ver"
         return ver
     }
     throw new GradleException("Cannot find '$meta' for plugin: $file")
@@ -67,6 +72,7 @@ String metaFromManifest(String meta, File file) {
 
 def timestamp = now()
 
+/* Configure Subprojects */
 subprojects {
     apply plugin: 'java'
     apply plugin: 'groovy'
@@ -83,10 +89,15 @@ subprojects {
         duplicatesStrategy = DuplicatesStrategy.INCLUDE
     }
 
-    /*
-     * Creates plugin zip and json meta file in plugin `build/libs` directory
-     */
-    task makeZip(type: Jar) {
+    /* Plugin Variables */
+    String pluginVersion = project.version
+    String archiveName = "${project.name}-${pluginVersion}"
+    File zipFile = layout.buildDirectory.file("libs/${archiveName}.zip").get().asFile
+    File jsonFile = layout.buildDirectory.file("libs/${archiveName}-meta.json").get().asFile
+    File pluginsDir = layout.buildDirectory.dir("plugins").get().asFile
+
+    /* Task to Create Plugin Zip and Metadata */
+    tasks.register('makeZip', Jar) {
         into('classes') { with jar }
         into('lib') { from configurations.runtimeClasspath }
         manifest.from file('src/resources/META-INF/MANIFEST.MF')
@@ -94,76 +105,66 @@ subprojects {
         preserveFileTimestamps = false
         reproducibleFileOrder = true
 
+        String downloadUrl = "https://github.com/${github_organization}/${project.name}/releases/download/${pluginVersion}/${archiveName}.zip"
         doLast {
-            // create the meta file
-            final zip = new File("$buildDir/libs/${project.name}-${project.version}.zip")
-            final json = new File("$buildDir/libs/${project.name}-${project.version}-meta.json")
-            json.text = """\
+            // Generate the metadata file
+            jsonFile.text = """\
 {
-"version": "${project.version}",
-"date": "${timestamp}",
-"url": "https://github.com/${github_organization}/${project.name}/releases/download/${project.version}/${project.name}-${project.version}.zip",
-"requires": "${metaFromManifest('Plugin-Requires', file('src/resources/META-INF/MANIFEST.MF'))}",
-"sha512sum": "${computeSha512(zip)}"
+    "version": "${pluginVersion}",
+    "date": "${timestamp}",
+    "url": "${downloadUrl}",
+    "requires": "${metaFromManifest('Plugin-Requires', file('src/resources/META-INF/MANIFEST.MF'))}",
+    "sha512sum": "${computeSha512(zipFile)}"
 }
 """
         }
-        outputs.file("$buildDir/libs/${project.name}-${project.version}.zip")
+        outputs.file(zipFile)
     }
 
-    /*
-     * Copy the plugin dependencies in the subproject `build/target/libs` directory
-     */
+    /* Task to Copy Plugin Dependencies */
     tasks.register('copyPluginLibs', Sync) {
         from configurations.runtimeClasspath
         into 'build/target/libs'
         duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     }
 
-    /*
-     * Copy the plugin in the project root build/plugins directory
-     */
+    /* Task to Copy Plugin ZIP to Plugins Directory */
     tasks.register('copyPluginZip', Copy) {
         dependsOn project.tasks.named('makeZip')
-        from {
-            tasks.named('makeZip').get().outputs.files.singleFile
-        }
-        into "$buildDir/plugins"
-        outputs.file("$buildDir/plugins/${project.name}-${project.version}.zip")
-        def zipFilePath = "$buildDir/plugins/${project.name}-${project.version}.zip"
-        def destDirPath = "$buildDir/plugins/${project.name}-${project.version}"
+        from { tasks.named('makeZip').get().outputs.files.singleFile }
+        into pluginsDir.absolutePath
+        outputs.file(zipFile)
 
+        def destDirPath = new File(pluginsDir, archiveName).absolutePath
         doLast {
-            if (!file(zipFilePath).exists()) {
-                throw new GradleException("File ${zipFilePath} does not exist! Cannot unzip.")
+            if (!zipFile.exists()) {
+                throw new GradleException("File ${zipFile} does not exist! Cannot unzip.")
             }
             ant.unzip(
-                src: zipFilePath,
-                dest: destDirPath
+                    src: zipFile.absolutePath,
+                    dest: destDirPath
             )
         }
     }
 
     tasks.named('makeZip').configure {
-        dependsOn tasks.named('classes') // Ensure compiled classes are available
-        dependsOn tasks.named('processResources') // Ensure resources are processed
+        dependsOn tasks.named('classes')            // Ensure compiled classes are available
+        dependsOn tasks.named('processResources')  // Ensure processed resources
         doFirst {
             destinationDirectory.get().asFile.mkdirs()
-            println "Inputs:"
+            println "makeZip.inputs:"
             println "  Classes: ${tasks.named('classes').get().outputs.files.files}"
             println "  Resources: ${tasks.named('processResources').get().outputs.files.files}"
         }
     }
 
-    /*
-    * "install" the plugin the project root build/plugins directory
-    */
-    def providerList = [
-            "$buildDir/libs/${project.name }-${project.version }.zip",
-            "$buildDir/libs/${project.name}-${project.version}-meta.json"
-    ]
-    project.parent.tasks.getByName('assemble').dependsOn << copyPluginZip
-    task uploadPlugin(type: GithubUploader, dependsOn: makeZip) {
+    /* "Install" the Plugin */
+    def providerList = [zipFile.absolutePath, jsonFile.absolutePath]
+    project.parent.tasks.named('assemble').configure {
+        dependsOn(copyPluginZip)
+    }
+    tasks.register('uploadPlugin', GithubUploader) {
+        dependsOn tasks.named('makeZip') // Lazy dependency
         assets = providers.provider { providerList } as Provider<? extends Iterable<? extends String>>
         release = providers.provider { project.version } as Provider<? extends String>
         repo = providers.provider { project.name }
@@ -174,13 +175,14 @@ subprojects {
     }
 }
 
-tasks.register('upload') { dependsOn[subprojects.uploadPlugin] }
+/* Upload Task */
+tasks.register('upload') {
+    dependsOn subprojects.uploadPlugin
+}
 
 classes.dependsOn subprojects.copyPluginLibs
 
-/*
- * Merge and publish the plugins index file
- */
+/* Publish Plugins Index File */
 tasks.register('publishIndex', GithubRepositoryPublisher) {
     indexUrl = github_index_url
     repos = allPlugins()
