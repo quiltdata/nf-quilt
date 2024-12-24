@@ -160,7 +160,9 @@ subprojects {
 
     /* "Install" the Plugin */
     def providerList = [zipFile.absolutePath, jsonFile.absolutePath]
-    project.parent.tasks.getByName('assemble').dependsOn << copyPluginZip
+    project.parent.tasks.named('assemble').configure {
+        dependsOn(copyPluginZip)
+    }
     task uploadPlugin(type: GithubUploader, dependsOn: makeZip) {
         assets = providers.provider { providerList } as Provider<? extends Iterable<? extends String>>
         release = providers.provider { project.version } as Provider<? extends String>
