@@ -86,7 +86,7 @@ subprojects {
     /*
      * Creates plugin zip and json meta file in plugin `build/libs` directory
      */
-    tasks.register('makeZip', Jar) {
+    task makeZip(type: Jar) {
         into('classes') { with jar }
         into('lib') { from configurations.runtimeClasspath }
         manifest.from file('src/resources/META-INF/MANIFEST.MF')
@@ -94,35 +94,21 @@ subprojects {
         preserveFileTimestamps = false
         reproducibleFileOrder = true
 
-        def pluginVersion = project.version
-        def archiveName = "${project.name}-${pluginVersion}"
-        def libDir = rootProject.layout.buildDirectory.dir("libs").get().asFile
-        println "Plugin: ${archiveName} libDir: ${libDir}"
-        def downloadUrl = "https://github.com/${github_organization}/${project.name}/releases/download/${pluginVersion}/${archiveName}.zip"
-        def zipFile = new File(libDir, "${archiveName}.zip")
-        def jsonFile = new File(libDir, "${archiveName}-meta.json")
-
-        doFirst {
-            println "Creating plugin dir for: ${libDir}"
-            libDir.mkdirs()
-        }
         doLast {
-            if (!zipFile.exists()) {
-                throw new GradleException("Expected file ${zipFile} does not exist!")
-            }
             // create the meta file
-            jsonFile.text = """\
-    {
-    "version": "${pluginVersion}",
-    "date": "${timestamp}",
-    "url": "${downloadUrl}",
-    "requires": "${metaFromManifest('Plugin-Requires', file('src/resources/META-INF/MANIFEST.MF'))}",
-    "sha512sum": "${computeSha512(zipFile)}"
-    }
-    """
+            final zip = new File("$buildDir/libs/${project.name}-${project.version}.zip")
+            final json = new File("$buildDir/libs/${project.name}-${project.version}-meta.json")
+            json.text = """\
+{
+"version": "${project.version}",
+"date": "${timestamp}",
+"url": "https://github.com/${github_organization}/${project.name}/releases/download/${project.version}/${project.name}-${project.version}.zip",
+"requires": "${metaFromManifest('Plugin-Requires', file('src/resources/META-INF/MANIFEST.MF'))}",
+"sha512sum": "${computeSha512(zip)}"
+}
+"""
         }
-        outputs.file(zipFile)
-        // outputs.file(jsonFile)
+        outputs.file("$buildDir/libs/${project.name}-${project.version}.zip")
     }
 
     /*
@@ -142,10 +128,10 @@ subprojects {
         from {
             tasks.named('makeZip').get().outputs.files.singleFile
         }
-        into "$rootProject.layout.buildDirectory/plugins"
-        outputs.file("$rootProject.layout.buildDirectory/plugins/${project.name}-${project.version}.zip")
-        def zipFilePath = "$rootProject.layout.buildDirectory/plugins/${project.name}-${project.version}.zip"
-        def destDirPath = "$rootProject.layout.buildDirectory/plugins/${project.name}-${project.version}"
+        into "$buildDir/plugins"
+        outputs.file("$buildDir/plugins/${project.name}-${project.version}.zip")
+        def zipFilePath = "$buildDir/plugins/${project.name}-${project.version}.zip"
+        def destDirPath = "$buildDir/plugins/${project.name}-${project.version}"
 
         doLast {
             if (!file(zipFilePath).exists()) {
@@ -173,8 +159,8 @@ subprojects {
     * "install" the plugin the project root build/plugins directory
     */
     def providerList = [
-            "$rootProject.layout.buildDirectory/libs/${project.name }-${project.version }.zip",
-            "$rootProject.layout.buildDirectory/libs/${project.name}-${project.version}-meta.json"
+            "$buildDir/libs/${project.name }-${project.version }.zip",
+            "$buildDir/libs/${project.name}-${project.version}-meta.json"
     ]
     project.parent.tasks.getByName('assemble').dependsOn << copyPluginZip
     task uploadPlugin(type: GithubUploader, dependsOn: makeZip) {
