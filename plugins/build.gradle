@@ -89,9 +89,10 @@ subprojects {
 
     String pluginVersion = project.version
     String archiveName = "${project.name}-${pluginVersion}"
-    String zipFilePath = "$buildDir/libs/${archiveName}.zip"
-    String jsonFilePath = "$buildDir/libs/${archiveName}-meta.json"
-    String pluginsDir = "$buildDir/plugins"
+    File zipFile = layout.buildDirectory.file("libs/${archiveName}.zip").get().asFile
+    File jsonFile = layout.buildDirectory.file("libs/${archiveName}-meta.json").get().asFile
+    File pluginsDir = layout.buildDirectory.dir("plugins").get().asFile
+    String zipFilePath = zipFile.absolutePath
 
     /*
      * Creates plugin zip and json meta file in plugin `build/libs` directory
@@ -107,15 +108,13 @@ subprojects {
         String downloadUrl = "https://github.com/${github_organization}/${project.name}/releases/download/${pluginVersion}/${archiveName}.zip"
         doLast {
             // create the meta file
-            final zip = new File(zipFilePath)
-            final json = new File(jsonFilePath)
-            json.text = """\
+            jsonFile.text = """\
 {
 "version": "${pluginVersion}",
 "date": "${timestamp}",
 "url": "${downloadUrl}",
 "requires": "${metaFromManifest('Plugin-Requires', file('src/resources/META-INF/MANIFEST.MF'))}",
-"sha512sum": "${computeSha512(zip)}"
+"sha512sum": "${computeSha512(zipFile)}"
 }
 """
         }
@@ -139,10 +138,9 @@ subprojects {
         from {
             tasks.named('makeZip').get().outputs.files.singleFile
         }
-        into pluginsDir
+        into pluginsDir.absolutePath
         outputs.file(zipFilePath)
-        def destDirPath = "$pluginsDir/$archiveName"
-
+        def destDirPath = new File(pluginsDir, archiveName).absolutePath
         doLast {
             if (!file(zipFilePath).exists()) {
                 throw new GradleException("File ${zipFilePath} does not exist! Cannot unzip.")
@@ -168,7 +166,7 @@ subprojects {
     /*
     * "install" the plugin the project root build/plugins directory
     */
-    def providerList = [ zipFilePath, jsonFilePath]
+    def providerList = [ zipFilePath, jsonFile.absolutePath]
     project.parent.tasks.getByName('assemble').dependsOn << copyPluginZip
     task uploadPlugin(type: GithubUploader, dependsOn: makeZip) {
         assets = providers.provider { providerList } as Provider<? extends Iterable<? extends String>>
