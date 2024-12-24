@@ -15,6 +15,8 @@
  */
 package nextflow.quilt
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.ObjectWriter
 import nextflow.quilt.jep.QuiltPackage
 import nextflow.quilt.jep.QuiltParser
 import nextflow.quilt.nio.QuiltPath
@@ -93,6 +95,14 @@ ${nextflow}
         'nextflow', 'commandLine', 'scriptFile', 'projectDir',
         'homeDir', 'workDir', 'launchDir', 'manifest', 'configFiles'
     ]
+
+
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
+    private static final ObjectWriter OBJECT_WRITER = OBJECT_MAPPER.writerWithDefaultPrettyPrinter()
+    static String toJson(Object value) {
+        String result = OBJECT_WRITER.writeValueAsString(value)
+        return result
+    }
 
     static void printMap(Map map, String title) {
         log.debug("\n\n\n# $title ${map.keySet()}")
@@ -257,7 +267,7 @@ ${nextflow}
         String filename = "nf-quilt/${prefix}.json"
         log.debug("writeMapToPackage[$prefix]: ${filename}")
         try {
-            writeString(QuiltPackage.toJson(map), pkg, filename)
+            writeString(toJson(map), pkg, filename)
         } catch (Exception e) {
             log.error("writeMapToPackage.toJson failed: ${e.getMessage()}", map)
         }
@@ -397,7 +407,7 @@ ${nextflow}
         }
 
         try {
-            String qs_json = QuiltPackage.arrayToJson(quilt_summarize)
+            String qs_json = toJson(quilt_summarize)
             writeString(qs_json, pkg, SUMMARY_FILE)
         }
         catch (Exception e) {
