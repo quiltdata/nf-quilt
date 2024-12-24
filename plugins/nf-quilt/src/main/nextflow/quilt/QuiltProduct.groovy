@@ -96,7 +96,6 @@ ${nextflow}
         'homeDir', 'workDir', 'launchDir', 'manifest', 'configFiles'
     ]
 
-
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
     private static final ObjectWriter OBJECT_WRITER = OBJECT_MAPPER.writerWithDefaultPrettyPrinter()
     static String toJson(Object value) {

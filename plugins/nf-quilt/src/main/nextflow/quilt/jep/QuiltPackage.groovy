@@ -35,9 +35,6 @@ import com.quiltdata.quiltcore.Namespace
 import com.quiltdata.quiltcore.Manifest
 import com.quiltdata.quiltcore.key.S3PhysicalKey
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.ObjectWriter
-
 @Slf4j
 @CompileStatic
 class QuiltPackage {
