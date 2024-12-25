@@ -22,13 +22,13 @@ For example, if your current pipeline writes to an S3 bucket specified by the
 environment variable `$WRITE_BUCKET`:
 
 ```shell
-nextflow run nf-core/rnaseq --outdir "s3://$WRITE_BUCKET/nf_quilt/rnaseq"
+nextflow run nf-core/sarek -profile test,docker --outdir "s3://$WRITE_BUCKET/nf_quilt/sarek"
 ```
 
 All you have to do is add the `nf-quilt` plugin to your command line:
 
 ```shell
-nextflow run nf-core/rnaseq -plugins nf-quilt --outdir "s3://$WRITE_BUCKET/nf_quilt/rnaseq"
+nextflow run nf-core/sarek -profile test,docker -plugins nf-quilt --outdir "s3://$WRITE_BUCKET/nf_quilt/sarek"
 ```
 
 This will automatically create a nicely-formmated Quilt package with all the
@@ -57,7 +57,7 @@ specify the metadata and other plugin behaviors:
 quilt {
     catalog = 'open.quiltdata.com'
     force = false  // replace (instead of update) existing packages
-    meta = [pipeline: 'nf-core/rnaseq']
+    meta = [pipeline: 'nf-core/sarek']
 }
 ```
 
@@ -70,7 +70,7 @@ to specify the package you want to read or write. For example, the URI for the
 package created from the initial example would be:
 
 ```shell
-quilt+s3://$WRITE_BUCKET#package=nf_quilt/rnaseq
+quilt+s3://$WRITE_BUCKET#package=nf_quilt/sarek
 ```
 
 ### Input URIs
@@ -91,11 +91,11 @@ the `<> CODE | URI` section at the top of the package page.
 ### Output URIs
 
 You can specify a Quilt+ URI as the `--outdir` parameter in your Nextflow
-pipeline if you want to specify the package name and metadata for the output,
+pipeline, if you want to specify the package name and metadata for the output,
 but don't care about the precise location in S3. For example:
 
 ```shell
-nextflow run nf-core/rnaseq --outdir "quilt+s3://$WRITE_BUCKET?key=value#package=nf_quilt/rnaseq"
+nextflow run nf-core/sarek -profile test,docker --outdir "quilt+s3://$WRITE_BUCKET?key=value#package=nf_quilt/sarek"
 ```
 
 The `key=value` part is optional, and can be used to specify metadata for the
@@ -161,7 +161,7 @@ keys to extract only the metadata you need, if present. For example:
 
 ````groovy
 quilt {
-    meta = [pipeline: 'nf-core/rnaseq']
+    meta = [pipeline: 'nf-core/sarek']
     msg = "${meta['config']?.get('runName')}: ${meta['cmd']}"
     readme = '''
 # ${pkg}

@@ -15,8 +15,9 @@ From the command-line, do, e.g.:
 
 ```bash
 export LOG4J_DEBUG=true  # for verbose logging
-export NXF_PLUGINS_TEST_REPOSITORY=https://github.com/quiltdata/nf-quilt/releases/download/0.9.0/nf-quilt-0.9.0-meta.json
-nextflow run main.nf -plugins nf-quilt@0.9.0
+export VERSION=0.9.1
+export NXF_PLUGINS_TEST_REPOSITORY=https://github.com/quiltdata/nf-quilt/releases/download/$(VERSION)/nf-quilt-$(VERSION)-meta.json
+nextflow run main.nf -plugins nf-quilt@$(VERSION)
 ```
 
 For Tower, you set the environment variables in the "Pre-run script".
@@ -82,6 +83,13 @@ For example:
 
 ```bash
 ./launch.sh run ./main.nf -profile standard -plugins $(PROJECT) --outdir "quilt+s3://bucket#package=test/hurdat"
+```
+
+There are standard Makefile targets for both `sarek` and `fetchngs` pipelines, which will test against the latest published versions of nf-quilt:
+
+```bash
+make sarek
+make fetchngs
 ```
 
 ### Unit Testing
