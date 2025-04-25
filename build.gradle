@@ -100,7 +100,7 @@ allprojects {
     dependencies {
         // see https://docs.gradle.org/4.1/userguide/dependency_management.html#sec:module_replacement
         implementation "org.${groovySource}.groovy:groovy-all:$groovyVersion"
-        implementation 'com.fasterxml.jackson.core:jackson-databind:2.18.2'
+        implementation 'com.fasterxml.jackson.core:jackson-databind:2.19.0'
         implementation 'com.upplication:s3fs:2.2.2'
 
         modules {
