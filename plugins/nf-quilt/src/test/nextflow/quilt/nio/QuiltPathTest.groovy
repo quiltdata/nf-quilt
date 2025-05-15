@@ -108,9 +108,9 @@ class QuiltPathTest extends QuiltSpecification {
 
         where:
         path                               | expected  |  fsName
-        'bucket'                           | true      | 'bucket.null.default'
+        'bucket'                           | true      | 'bucket.package.default'
         'bucket#package=sum/data'          | true      | 'bucket.sum.data'
-        'bucket#path=file.txt'             | false     | 'bucket.null.default'
+        'bucket#path=file.txt'             | false     | 'bucket.package.default'
         'bucket#package=sum/data/file.txt' | false     | 'bucket.sum.data'
         '#path=file-name.txt'              | false     | 'bucket.so.me'
     }
