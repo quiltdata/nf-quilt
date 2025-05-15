@@ -25,11 +25,11 @@ class QuiltIDTest extends QuiltSpecification {
         'bucket' | 'pkg/name' | 'bucket.pkg.name'
         'bucket' | 'pkg'      | 'bucket.pkg.default'
         'bucket' | 'pkg/'     | 'bucket.pkg.default'
-        'bucket' | '/'        | 'bucket.null.default'
-        'bucket' | 'p'        | 'bucket.null.default'
+        'bucket' | '/'        | 'bucket.package.default'
+        'bucket' | 'p'        | 'bucket.package.default'
         'bucket' | '/name'    | 'bucket..name'
         null     | 'pkg/name' | '<null>'
-        'bucket' | null       | 'bucket.null.default'
+        'bucket' | null       | 'bucket.package.default'
     }
 
 }
