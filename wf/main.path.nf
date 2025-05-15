@@ -3,11 +3,6 @@
 
 nextflow.enable.dsl=2
 
-test_file_local = 'work/COPY_THIS.md'
-test_file_s3 = 's3://udp-spec/nf-quilt/source/COPY_THIS.md'
-test_file_quilt = 'quilt+s3://udp-spec#package=nf-quilt/source&path=COPY_THIS.md'
-
-myFileChannel = Channel.fromList([file(test_file_local), file(test_file_s3), file(test_file_quilt)])
 
 process CHECK_INPUT {
     container 'ubuntu:20.04'
@@ -26,5 +21,10 @@ process CHECK_INPUT {
 }
 
 workflow {
+    test_file_local = 'work/COPY_THIS.md'
+    test_file_s3 = 's3://udp-spec/nf-quilt/source/COPY_THIS.md'
+    test_file_quilt = 'quilt+s3://udp-spec#package=nf-quilt/source&path=COPY_THIS.md'
+
+    myFileChannel = Channel.fromList([file(test_file_local), file(test_file_s3), file(test_file_quilt)])
     CHECK_INPUT(myFileChannel)
 }

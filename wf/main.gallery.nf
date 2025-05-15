@@ -3,11 +3,6 @@
 
 nextflow.enable.dsl=2
 
-test_file_local = 'README.md'
-test_file_s3 = 's3://nf-core-gallery/nf-core/hlatyping/README_NF_QUILT.md'
-test_file_quilt = 'quilt+s3://nf-core-gallery#package=nf-core/hlatyping&path=README_NF_QUILT.md'
-// file(test_file_local), file(test_file_s3), file(test_file_quilt)
-myFileChannel = Channel.fromList([file(test_file_s3), file(test_file_quilt)])
 
 process CHECK_INPUT {
     container 'ubuntu:20.04'
@@ -26,5 +21,10 @@ process CHECK_INPUT {
 }
 
 workflow {
+    test_file_s3 = 's3://nf-core-gallery/nf-core/hlatyping/README_NF_QUILT.md'
+    test_file_quilt = 'quilt+s3://nf-core-gallery#package=nf-core/hlatyping&path=README_NF_QUILT.md'
+    // test_file_local = 'README.md'
+    // file(test_file_local), file(test_file_s3), file(test_file_quilt)
+    myFileChannel = Channel.fromList([file(test_file_s3), file(test_file_quilt)])
     CHECK_INPUT(myFileChannel)
 }
