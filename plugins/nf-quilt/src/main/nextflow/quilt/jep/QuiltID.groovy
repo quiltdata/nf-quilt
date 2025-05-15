@@ -22,7 +22,7 @@ import groovy.util.logging.Slf4j
 @CompileStatic
 class QuiltID {
 
-    private static final String[] DEFAULT_PACKAGE = ['null', 'default']
+    private static final String[] DEFAULT_PACKAGE = ['package', 'default']
     private static final Map<String,QuiltID> QIDS = [:]
 
     private final String bucket
