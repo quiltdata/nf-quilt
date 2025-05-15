@@ -107,7 +107,7 @@ allprojects {
             module('commons-logging:commons-logging') { replacedBy('org.slf4j:jcl-over-slf4j') }
         }
         // Documentation required libraries
-        groovyDoc 'org.fusesource.jansi:jansi:2.4.1'
+        groovyDoc 'org.fusesource.jansi:jansi:2.4.2'
         groovyDoc "org.${groovySource}.groovy:groovy-groovydoc:$groovyVersion"
         groovyDoc "org.${groovySource}.groovy:groovy-ant:$groovyVersion"
     }
