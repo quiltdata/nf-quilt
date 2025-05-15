@@ -81,7 +81,7 @@ dependencies {
 
     // Runtime-only dependencies
     runtimeOnly 'org.junit.platform:junit-platform-launcher:1.12.2'
-    implementation 'commons-io:commons-io:2.18.0'
+    implementation 'commons-io:commons-io:2.19.0'
 
     // Test dependencies
     testImplementation "io.nextflow:nextflow:$nextflowVersion"
