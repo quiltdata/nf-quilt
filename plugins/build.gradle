@@ -154,13 +154,13 @@ subprojects {
     }
     tasks.register('uploadPlugin', GithubUploader) {
         dependsOn tasks.named('makeZip') // Lazy dependency
-        assets = providers.provider { providerList } as Provider<? extends Iterable<? extends String>>
-        release = providers.provider { project.version } as Provider<? extends String>
         repo = providers.provider { project.name }
         owner = github_organization
         userName = github_username
         authToken = github_access_token
         skipExisting = true
+        release = providers.provider { project.version } as Provider<? extends String>
+        assets = providers.provider { providerList } as Provider<? extends Iterable<? extends String>>
     }
 }
 

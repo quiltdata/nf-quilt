@@ -6,8 +6,6 @@ nextflow.enable.dsl = 2
 params.input = 'quilt+s3://udp-spec#package=nf-quilt/source'
 params.outdir = '/var/tmp'
 
-packageFiles = Channel.fromPath(params.input)
-
 process transferFail {
     publishDir params.outdir, mode: 'copy', overwrite: true
 
@@ -21,6 +19,7 @@ process transferFail {
 
     beforeScript = 'exit 1'
 
+    script:
     """
     mkdir -p output
     cp -r $x output
@@ -29,5 +28,5 @@ process transferFail {
 }
 
 workflow {
-    packageFiles | transferFail | view { file -> file }
+    Channel.fromPath(params.input) | transferFail | view { file -> file }
 }

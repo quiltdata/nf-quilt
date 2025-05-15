@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.9.2] 2025-05-XX
+
+- Use "package" as default prefix
+- Modernize main*.nf files
+
 ## [0.9.1] 2024-12-24
 
 - Minor code cleanup

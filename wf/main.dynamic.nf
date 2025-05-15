@@ -4,8 +4,6 @@
 nextflow.enable.dsl = 2
 params.input = 'quilt+s3://udp-spec#package=nf-quilt/source@c4e44f6932'
 
-packageFiles = Channel.fromPath(params.input)
-
 process transfer {
     publishDir(
         /* groovylint-disable-next-line LineLength */
@@ -20,6 +18,7 @@ process transfer {
     output:
     path 'inputs/**'
 
+    script:
     """
     mkdir -p data
     mkdir -p inputs
@@ -29,5 +28,5 @@ process transfer {
 }
 
 workflow {
-    packageFiles | transfer | view { file -> file }
+    Channel.fromPath(params.input) | transfer | view { file -> file }
 }
