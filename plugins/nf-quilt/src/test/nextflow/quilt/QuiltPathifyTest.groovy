@@ -57,6 +57,11 @@ class QuiltPathifyTest extends QuiltSpecification {
         '/bkt/pre/FILE.md'          | "quilt+s3://bkt#package=pre%2f${DS}&path=FILE.md"
         '/bkt/FILE.md'              | "quilt+s3://bkt#package=${DP}%2f${DS}&path=FILE.md"
         '/FILE.md'                  | "quilt+s3://${DB}#package=${DP}%2f${DS}&path=FILE.md"
+        ''                          | ''  // Empty path should return empty string
+        '/'                         | ''  // Root path should return empty string
+        '/bkt/pre/suf/nested/deep/folder/FILE.md' | 'quilt+s3://bkt#package=pre%2fsuf&path=nested/deep/folder/FILE.md'
+        '/bkt/pre/suf/'             | 'quilt+s3://bkt#package=pre%2fsuf&path='  // Path with trailing slash
+        '/bkt/pre/suf/file with spaces.md' | 'quilt+s3://bkt#package=pre%2fsuf&path=file with spaces.md'
     }
 
     void 'test with QuiltPath'() {

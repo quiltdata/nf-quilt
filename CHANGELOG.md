@@ -7,6 +7,7 @@
 - Fix catalog URL handling in QuiltProduct.displayName()
 - Fix boolean flag parsing from query string parameters
 - Fix error message consistency in QuiltProduct.copyFile test
+- Improve handling of edge cases in QuiltPathify.uriFromS3File
 
 ## [0.9.1] 2024-12-24
 

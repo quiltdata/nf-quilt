@@ -74,6 +74,11 @@ class QuiltPathify  {
      */
     static String uriFromS3File(String s3path) {
         log.debug("uriFromS3File: $s3path")
+        if (s3path == null || s3path.isEmpty() || s3path == '/') {
+            log.error("uriFromS3File: invalid path: $s3path")
+            return ''
+        }
+        
         String[] partsArray = s3path.split('/')
         List<String> parts = new ArrayList(partsArray.toList())
         // parts.eachWithIndex { p, i -> println("uriFromS3File.parts[$i]: $p") }
@@ -82,7 +87,16 @@ class QuiltPathify  {
             return ''
         }
         parts.remove(0) // remove leading slash
-        String file = parts.remove(parts.size() - 1)
+        
+        // Handle case where path ends with a slash
+        String file = parts.isEmpty() ? '' : parts.remove(parts.size() - 1)
+        // If the original path ended with a slash, we need to set file to empty string
+        if (s3path.endsWith('/')) {
+            if (!file.isEmpty()) {
+                parts.add(file)  // Put the removed part back
+            }
+            file = ''  // Set file to empty string
+        }
 
         String bucket = parts.size() > 0 ? parts.remove(0) : QuiltParser.NULL_BUCKET
         String prefix = parts.size() > 0 ? parts.remove(0) : 'default_prefix'
