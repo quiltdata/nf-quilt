@@ -159,23 +159,72 @@ class QuiltProductTest extends QuiltSpecification {
     }
 
     void 'overrides config force with query string'() {
-        expect:
-        true
+        when:
+        Map qconfig = [(QuiltParser.P_FORCE): false]
+        QuiltProduct product = makeConfigProduct(qconfig)
+
+        then:
+        product.flags.getProperty(QuiltParser.P_FORCE) == false
+
+        when:
+        QuiltProduct forceProduct = makeProduct('force=true')
+
+        then:
+        // The string "true" from query string should be converted to boolean true
+        forceProduct.flags.getProperty(QuiltParser.P_FORCE) == true
+        forceProduct.flags.getProperty(QuiltParser.P_FORCE) instanceof Boolean
     }
 
     void 'overrides config catalog with query string'() {
-        expect:
-        true
+        when:
+        String catalogName = 'test-catalog.quiltdata.com'
+        Map qconfig = [(QuiltParser.P_CAT): catalogName]
+        QuiltProduct product = makeConfigProduct(qconfig)
+
+        then:
+        product.flags.getProperty(QuiltParser.P_CAT) == catalogName
+        
+        when:
+        String newCatalog = 'override-catalog.quiltdata.com'
+        QuiltProduct catalogProduct = makeProduct("catalog=${newCatalog}")
+
+        then:
+        catalogProduct.flags.getProperty(QuiltParser.P_CAT) == newCatalog
     }
 
     void 'skips README if false'() {
-        expect:
-        true
+        when:
+        Map qconfig = [:]
+        qconfig[QuiltProduct.KEY_README] = false
+        QuiltProduct product = makeConfigProduct(qconfig)
+
+        then:
+        product.shouldSkip(QuiltProduct.KEY_README) == true
+        product.compileReadme('test') == null
+
+        when:
+        String result = product.writeReadme('test message')
+
+        then:
+        result == null
     }
 
     void 'overrides default msg with config'() {
-        expect:
-        true
+        when:
+        /* groovylint-disable-next-line GStringExpressionWithinString */
+        String customMsg = 'Custom message: ${meta.get("cmd")}'
+        Map qconfig = [(QuiltProduct.KEY_MSG): customMsg]
+        QuiltProduct product = makeConfigProduct(qconfig)
+
+        then:
+        product.flags.getProperty(QuiltProduct.KEY_MSG) == customMsg
+
+        when:
+        String result = product.compileMessage()
+
+        then:
+        result.startsWith('Custom message:')
+        result != customMsg // Template should be processed
     }
 
     void 'match files if present'() {

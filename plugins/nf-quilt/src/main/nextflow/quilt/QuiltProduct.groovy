@@ -33,7 +33,7 @@ import java.nio.file.PathMatcher
 import java.nio.file.SimpleFileVisitor
 import java.time.LocalDateTime
 
-import groovy.transform.CompileStatic
+import groovy.transform.CompileDynamic
 import groovy.text.GStringTemplateEngine
 import groovy.util.logging.Slf4j
 
@@ -43,7 +43,7 @@ import groovy.util.logging.Slf4j
  * @author Ernest Prabhakar <ernest@quiltdata.io>
  */
 @Slf4j
-@CompileStatic
+@CompileDynamic
 class QuiltProduct {
 
     public final static String README_FILE = 'README_NF_QUILT.md'
@@ -252,14 +252,30 @@ ${nextflow}
     void updateFlags(Map pkgMeta, Map cfMeta) {
         for (String key : flags.getProperties().keySet()) {
             if (pkgMeta.containsKey(key)) {
-                flags.setProperty(key, pkgMeta[key])
+                flags.setProperty(key, convertFlagValue(key, pkgMeta[key]))
             } else if (cfMeta.containsKey(key)) {
-                flags.setProperty(key, cfMeta[key])
+                flags.setProperty(key, convertFlagValue(key, cfMeta[key]))
             }
         }
         // TODO: should this only work for names inferred from S3 URIs?
         String pkgName = cfMeta.containsKey(QuiltParser.P_PKG) ? cfMeta[QuiltParser.P_PKG] : pkg.getPackageName()
         flags.setProperty(QuiltParser.P_PKG, pkgName)
+    }
+    
+    /**
+     * Convert flag values to appropriate types
+     * Handles special cases like converting string "true"/"false" to boolean
+     */
+    private Object convertFlagValue(String key, Object value) {
+        if (value instanceof String) {
+            String strValue = (String)value
+            // Handle boolean flags
+            if (QuiltParser.P_FORCE.equals(key) || key == 'meta' || key == 'readme' || key == 'summarize') {
+                if (strValue.equalsIgnoreCase("true")) return true
+                if (strValue.equalsIgnoreCase("false")) return false
+            }
+        }
+        return value
     }
 
     String writeMapToPackage(Map map, String prefix) {
@@ -297,7 +313,15 @@ ${nextflow}
 
     String displayName() {
         Object catalog = flags.getProperty(QuiltParser.P_CAT)
-        return catalog ? pkg.toCatalogURL(catalog.toString()) : pkg.toUriString()
+        if (catalog) {
+            try {
+                return pkg.toCatalogURL(catalog.toString())
+            } catch (Exception e) {
+                log.warn("Failed to create catalog URL: ${e.message}")
+                return pkg.toUriString()
+            }
+        }
+        return pkg.toUriString()
     }
 
     String compileMessage() {

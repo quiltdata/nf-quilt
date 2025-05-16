@@ -4,6 +4,8 @@
 
 - Use "package" as default prefix
 - Modernize main*.nf files
+- Fix catalog URL handling in QuiltProduct.displayName()
+- Fix boolean flag parsing from query string parameters
 
 ## [0.9.1] 2024-12-24
 

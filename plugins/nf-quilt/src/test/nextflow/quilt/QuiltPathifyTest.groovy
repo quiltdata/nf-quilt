@@ -165,7 +165,7 @@ class QuiltPathifyTest extends QuiltSpecification {
         where:
         sub_path  << ['FILE.md']
     }
-    
+
     @IgnoreIf({ System.getProperty('os.name').toLowerCase().contains('windows') })
     void 'test static copyFile method'() {
         when:
@@ -174,23 +174,23 @@ class QuiltPathifyTest extends QuiltSpecification {
         Path destFolder = Paths.get(tempFolder.toString(), 'dest')
         Files.createDirectories(sourceFolder)
         Files.createDirectories(destFolder)
-        
+
         Path source = Paths.get(sourceFolder.toString(), 'test.txt')
         String content = 'test content'
         Files.writeString(source, content)
-        
+
         then:
         Files.exists(source)
-        
+
         when:
         String relpath = 'subfolder/test.txt'
         QuiltPathify.copyFile(source, destFolder.toString(), relpath)
         Path dest = Paths.get(destFolder.toString(), 'subfolder', 'test.txt')
-        
+
         then:
         Files.exists(dest)
         Files.readString(dest) == content
-        
+
         cleanup:
         Files.deleteIfExists(dest)
         Files.deleteIfExists(Paths.get(destFolder.toString(), 'subfolder'))
