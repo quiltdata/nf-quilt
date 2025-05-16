@@ -134,7 +134,7 @@ ${nextflow}
             Files.copy(source, dest)
         }
         catch (Exception e) {
-            log.error("writeString: cannot write `$source` to `$dest` in `${destRoot}`\n$e.message()")
+            log.error("writeString: cannot write `$source` to `$dest` in `${destRoot}`\n$e")
         }
     }
 
