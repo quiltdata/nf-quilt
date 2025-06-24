@@ -80,7 +80,7 @@ dependencies {
     compileOnly 'org.pf4j:pf4j:3.13.0'
 
     // Runtime-only dependencies
-    runtimeOnly 'org.junit.platform:junit-platform-launcher:1.12.2'
+    runtimeOnly 'org.junit.platform:junit-platform-launcher:1.13.2'
     implementation 'commons-io:commons-io:2.19.0'
 
     // Test dependencies
