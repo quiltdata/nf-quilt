@@ -90,6 +90,9 @@ s3-overlay: compile
 s3-test: compile
 	$(NF_BIN) run ./main.nf --outdir "$(S3_BASE)/s3-test" --input "$(S3_BASE)/s3-in"
 
+s3-deep: compile
+	$(NF_BIN) run ./main.nf --outdir "$(S3_BASE)/s3-test/deep-run" --input "$(S3_BASE)/s3-in"
+
 s3-in: compile
 	$(NF_BIN) run ./main.nf -profile standard -plugins $(PROJECT) --outdir "$(TEST_URI)" --input "$(S3_BASE)/s3-in"
 
