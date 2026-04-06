@@ -40,7 +40,7 @@ import spock.lang.Unroll
 @CompileDynamic
 class QuiltProductTest extends QuiltSpecification {
 
-    QuiltProduct makeProductFromUrl(String url, boolean success = false) {
+    QuiltProduct makeProductFromUrl(String url, boolean success = false, String outdir = null) {
         WorkflowMetadata wf_meta = GroovyMock(WorkflowMetadata) {
             toMap() >> [start:'2022-01-01', complete:'2022-01-02']
         }
@@ -48,11 +48,11 @@ class QuiltProductTest extends QuiltSpecification {
         QuiltPathify pathify = new QuiltPathify(path)
         Session session = GroovyMock(Session) {
             getWorkflowMetadata() >> wf_meta
-            getParams() >> [outdir: url]
+            getParams() >> [outdir: outdir ?: url]
             isSuccess() >> success
             config >> [quilt: [meta: [cf_key: 'cf_val']]]
         }
-        return new QuiltProduct(pathify, session)
+        return new QuiltProduct(pathify, session, outdir)
     }
 
     QuiltProduct makeProduct(String query=null, boolean success = false) {
@@ -370,6 +370,71 @@ class QuiltProductTest extends QuiltSpecification {
 
         then:
         true
+    }
+
+    void 'computeOutdirPrefix extracts sub-path from outdir'() {
+        given:
+        QuiltProduct product = makeProduct()
+
+        expect:
+        product.computeOutdirPrefix(outdir) == expected
+
+        where:
+        outdir                                      | expected
+        null                                        | ''
+        ''                                          | ''
+        's3://bucket/ns/pkg'                        | ''
+        's3://bucket/ns/pkg/'                       | ''
+        's3://bucket/ns/pkg/run-name'               | 'run-name'
+        's3://bucket/ns/pkg/run-name/'              | 'run-name'
+        's3://bucket/ns/pkg/run-name/sub'           | 'run-name/sub'
+        's3://bucket/ns/pkg/run-name/sub/'          | 'run-name/sub'
+    }
+
+    void 'prefixedPath uses outdirPrefix when set'() {
+        when:
+        QuiltProduct withPrefix = makeProductFromUrl(testURI, false, 's3://bkt/pre/suf/my-run')
+
+        then:
+        withPrefix.outdirPrefix == 'my-run'
+        withPrefix.prefixedPath('README.md') == 'my-run/README.md'
+        withPrefix.prefixedPath('nf-quilt/params.json') == 'my-run/nf-quilt/params.json'
+
+        when:
+        QuiltProduct noPrefix = makeProductFromUrl(testURI, false, 's3://bkt/pre/suf')
+
+        then:
+        noPrefix.outdirPrefix == ''
+        noPrefix.prefixedPath('README.md') == 'README.md'
+    }
+
+    void 'writeReadme places file under outdirPrefix'() {
+        given:
+        QuiltProduct product = makeProductFromUrl(testURI, false, 's3://bkt/pre/suf/my-run')
+        product.pkg.reset()
+
+        when:
+        product.writeReadme('test message')
+
+        then:
+        product.match("my-run/${QuiltProduct.README_FILE}").size() == 1
+        product.match(QuiltProduct.README_FILE).size() == 0
+    }
+
+    void 'writeSummarize places file under outdirPrefix'() {
+        given:
+        QuiltProduct product = makeProductFromUrl(testURI, false, 's3://bkt/pre/suf/my-run')
+        product.pkg.reset()
+
+        when:
+        // Write a file in the prefixed subdir so summarize has something to find
+        String prefixedFile = "my-run/test.md"
+        QuiltProduct.writeString('# Test', product.pkg, prefixedFile)
+        product.writeSummarize()
+
+        then:
+        product.match("my-run/${QuiltProduct.SUMMARY_FILE}").size() == 1
+        product.match(QuiltProduct.SUMMARY_FILE).size() == 0
     }
 
 }

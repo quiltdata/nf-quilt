@@ -147,6 +147,7 @@ ${nextflow}
     protected final QuiltPackage pkg
     protected final Session session
     protected final Map<String, Map<String,Object>> config
+    protected final String outdirPrefix
 
     protected final Map metadata
     protected final Expando flags = new Expando([
@@ -159,18 +160,54 @@ ${nextflow}
         workflow: false,
     ])
 
-    QuiltProduct(QuiltPathify pathify, Session session) {
+    QuiltProduct(QuiltPathify pathify, Session session, String outdir = null) {
         log.debug("Creating QuiltProduct: ${pathify}")
         this.session = session
         this.config = session.config ?: [:]
         this.path = pathify.path
         this.pkg = pathify.pkg
+        this.outdirPrefix = computeOutdirPrefix(outdir)
         this.metadata = collectMetadata()
         if (session.isSuccess() || flags.getProperty(QuiltParser.P_FORCE) == true) {
             publish()
         } else {
             log.warn("not publishing: ${pkg} [unsuccessful session]")
         }
+    }
+
+    /**
+     * Compute the sub-path prefix within the package that corresponds to the outdir.
+     *
+     * Given outdir 's3://bucket/ns/pkg/run-name/' and the package being 'ns/pkg',
+     * the outdir prefix is 'run-name' — the portion of the outdir path that lives
+     * inside the package.  README and summarize files are written here instead of
+     * the package root.
+     *
+     * Returns empty string when outdir cannot be parsed or matches the package root exactly.
+     */
+    String computeOutdirPrefix(String outdir) {
+        if (!outdir) {
+            return ''
+        }
+        try {
+            // Strip scheme (s3://) to get bare path components
+            String barePath = outdir
+                .replaceFirst('^s3://', '')
+                .replaceFirst('^quilt\\+s3://', '')
+                .replaceAll('/+$', '')  // trim trailing slashes
+
+            String[] parts = barePath.split('/')
+            // parts[0] = bucket, parts[1] = prefix (namespace), parts[2] = suffix (name)
+            // parts[3+] = sub-path within the package
+            if (parts.length > 3) {
+                String prefix = parts[3..-1].join('/')
+                log.debug("computeOutdirPrefix: '${prefix}' from outdir '${outdir}'")
+                return prefix
+            }
+        } catch (Exception e) {
+            log.warn("computeOutdirPrefix: failed to parse outdir '${outdir}': ${e.message}")
+        }
+        return ''
     }
 
     Map collectMetadata() {
@@ -262,8 +299,16 @@ ${nextflow}
         flags.setProperty(QuiltParser.P_PKG, pkgName)
     }
 
+    /**
+     * Prepend the outdirPrefix to a filename so that generated files
+     * land inside the outdir sub-directory of the package (when known).
+     */
+    String prefixedPath(String filename) {
+        return outdirPrefix ? "${outdirPrefix}/${filename}" : filename
+    }
+
     String writeMapToPackage(Map map, String prefix) {
-        String filename = "nf-quilt/${prefix}.json"
+        String filename = prefixedPath("nf-quilt/${prefix}.json")
         log.debug("writeMapToPackage[$prefix]: ${filename}")
         try {
             writeString(toJson(map), pkg, filename)
@@ -353,7 +398,7 @@ ${nextflow}
         }
         if (text != null && text.length() > 0) {
             log.debug("writeReadme: ${text.length()} bytes")
-            writeString(text, pkg, README_FILE)
+            writeString(text, pkg, prefixedPath(README_FILE))
         }
         return text
     }
@@ -407,7 +452,7 @@ ${nextflow}
 
         try {
             String qs_json = toJson(quilt_summarize)
-            writeString(qs_json, pkg, SUMMARY_FILE)
+            writeString(qs_json, pkg, prefixedPath(SUMMARY_FILE))
         }
         catch (Exception e) {
             log.error("writeSummarize.toJson failed: ${e.getMessage()}\n{$e}", SUMMARY_FILE)

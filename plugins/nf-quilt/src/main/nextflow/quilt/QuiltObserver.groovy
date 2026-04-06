@@ -36,6 +36,7 @@ class QuiltObserver implements TraceObserver {
 
     private Session session
     private String workDir
+    private String outdir
 
     final private Lock lock = new ReentrantLock() // Need this because of threads
     // Is this overkill? Do we ever have more than one output URI per run?
@@ -68,6 +69,10 @@ class QuiltObserver implements TraceObserver {
         log.info("`onFlowCreate` $session")
         this.session = session
         this.workDir = session.config.workDir
+        this.outdir = session.getParams()?.get('outdir')?.toString()
+        if (this.outdir) {
+            log.info("onFlowCreate.outdir: ${this.outdir}")
+        }
     }
 
     @Override
@@ -96,7 +101,7 @@ class QuiltObserver implements TraceObserver {
         // create a QuiltProduct for each unique package key
         publishedPaths.each { key, path ->
             log.debug("onFlowComplete: $key -> $path")
-            new QuiltProduct(path, session)
+            new QuiltProduct(path, session, outdir)
         }
     }
 

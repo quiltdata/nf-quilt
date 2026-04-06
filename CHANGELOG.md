@@ -2,6 +2,7 @@
 
 ## [0.9.2] 2025-05-XX
 
+- Use outdir param to determine package-relative paths instead of positional S3 path guessing
 - Use "package" as default prefix
 - Modernize main*.nf files
 
