@@ -53,6 +53,13 @@ repositories {
 configurations {
     // Exclude transitive dependencies
     runtimeClasspath.exclude(group: 'org.slf4j', module: 'slf4j-api')
+
+    // Force quiltcore version to ensure chunked hash support
+    all {
+        resolutionStrategy {
+            force 'com.quiltdata:quiltcore:0.1.7'
+        }
+    }
 }
 
 sourceSets {

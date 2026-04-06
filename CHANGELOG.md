@@ -4,6 +4,7 @@
 
 - Use "package" as default prefix
 - Modernize main*.nf files
+- Force quiltcore 0.1.7 to ensure sha2-256-chunked hash type support (#318)
 
 ## [0.9.1] 2024-12-24
 
