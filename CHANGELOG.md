@@ -7,6 +7,14 @@
 - Fix Jackson serialization of `java.time.OffsetDateTime` from Nextflow 24.10+ workflow metadata (#321)
 - Restore working test input package (replace deleted `nf-core-gallery` with `udp-spec/nf-quilt/source`)
 - Remove `wf/main.gallery.nf` (referenced the deleted `nf-core-gallery` bucket)
+- Migrate to the `io.nextflow.nextflow-plugin` Gradle build system; collapse the
+  legacy `plugins/nf-quilt/` subproject into a single-module layout (#323, #324)
+- Publish releases via the [Nextflow Plugin Registry](https://registry.nextflow.io)
+  using `./gradlew releasePlugin`; drop the `nextflow-io/plugins` PR flow and
+  `NXF_PLUGINS_TEST_REPOSITORY` GitHub-release pinning (#323)
+- Update README and developer documentation to reflect the new build/publish
+  workflow (`make assemble` / `install` / `package` / `release`)
+- Restore the JaCoCo line-coverage gate (70% minimum) wired into `./gradlew check`
 
 ## [0.9.1] 2024-12-24
 
