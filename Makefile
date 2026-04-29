@@ -2,152 +2,112 @@ sinclude .env # create from example.env
 PROJECT ?= nf-quilt
 WRITE_BUCKET ?= write-bucket-not-set
 FRAGMENT ?= &path=.
-NF_DIR ?= ../nextflow
-NF_GIT ?= $(NF_DIR)/nextflow
-NF_BIN ?= ./launch.sh
-PID ?= $$$$
 QUERY ?= ?Name=$(USER)&Owner=Kevin+Moore&Date=2023-03-07&Type=CRISPR&Notebook+URL=http%3A%2F%2Fexample.com
-VERSION ?= $(shell grep 'Plugin-Version' plugins/$(PROJECT)/src/resources/META-INF/MANIFEST.MF | awk '{ print $$2 }')
+VERSION ?= $(shell grep "^version" build.gradle | head -1 | awk -F"'" '{ print $$2 }')
 NXF_VER ?= $(shell cat VERSION)
 TEST_URI ?= quilt+s3://$(WRITE_BUCKET)$(QUERY)\#package=nf-quilt/dest-$(VERSION)$(FRAGMENT)
 PIPELINE ?= sarek
-PIPE_OUT ?=  quilt+s3://$(WRITE_BUCKET)\#package=$(PROJECT)/$(PIPELINE)
-NXF_PLUGINS_TEST_REPOSITORY ?= https://github.com/quiltdata/nf-quilt/releases/download/$(VERSION)/nf-quilt-$(VERSION)-meta.json
+PIPE_OUT ?= quilt+s3://$(WRITE_BUCKET)\#package=$(PROJECT)/$(PIPELINE)
 S3_BASE = s3://$(WRITE_BUCKET)/$(PROJECT)
-REPORT ?= ./plugins/$(PROJECT)/build/reports/tests/test/index.html
+REPORT ?= ./build/reports/tests/test/index.html
 
-verify: #compile
+.PHONY: all assemble clean test test-all check rebuild install package release verify fast \
+        check-env coverage pkg-test dyn-test s3-overlay s3-test s3-in s3-out \
+        pkg-fail path-input deps update refresh
+
+all: assemble
+
+assemble:
+	./gradlew assemble
+
+clean:
+	rm -rf .nextflow*
+	rm -rf work results null
+	rm -rf build
+	./gradlew clean
+
+test:
+	./gradlew test
+
+check:
+	./gradlew check --warning-mode all
+
+verify:
 	echo $(WRITE_BUCKET)
 	./gradlew test ${ONE} || open $(REPORT)
 
 fast:
 	./gradlew test ${ONE} --fail-fast || open $(REPORT)
 # example: make fast ONE="--tests QuiltProductTest"
+
 check-env:
 	echo $(VERSION)
 	echo $(WRITE_BUCKET)
 	echo "$(TEST_URI)"
-	echo "Use 'make WRITE_BUCKET=<value>' to override" 
+	echo "Use 'make WRITE_BUCKET=<value>' to override"
 	printenv MAKEFLAGS
-
-clean:
-	./gradlew clean
-	rm -rf null results work
-	rm -rf build */build */*/build plugins/nf-quilt/bin
-	rm -f .nextflow.log* .launch*classpath
-
-clean-all: clean
-	rm -rf .gradle buildSrc/.gradle
 
 rebuild:
 	./gradlew clean build --refresh-dependencies
 
-compile:
-	./gradlew compileGroovy exportClasspath
-	@echo "DONE `date`"
-
-nextflow:
-	if [ ! -d "$(NF_DIR)" ]; then git clone https://github.com/nextflow-io/nextflow.git  "$(NF_DIR)"; fi
-	cd "$(NF_DIR)"; git checkout && make compile && git restore .; cd ..
-
-compile-all: nextflow compile
-
-check:
-	./gradlew check --warning-mode all
-
-.PHONY: clean test test-all all pkg-test tower-test
-
-test: clean compile check verifyCoverage
-
-test-nextflow: clean nextflow-git compile check
-
-test-all: clean compile-all check coverage
+test-all: clean test
 
 coverage:
 	./gradlew jacocoTestReport
-	open plugins/nf-quilt/build/reports/jacoco/test/html/index.html
+	open build/reports/jacoco/test/html/index.html || true
 
-verifyCoverage:
-	./gradlew jacocoTestCoverageVerification
+install: assemble
+	./gradlew installPlugin
 
-groovysh:
-	./gradlew -q --no-daemon --console=plain --init-script groovysh-task.gradle groovysh
+package:
+	./gradlew packagePlugin
+
+release:
+	./gradlew releasePlugin
 
 #
-# Create packages
+# Create packages (real-S3 integration tests).
+# These run the plugin via `nextflow` directly. Requires `nextflow` on PATH.
 #
 
-pkg-test: compile #-all
+pkg-test: install
 	echo "$(TEST_URI)"
-	$(NF_BIN) run ./main.nf -profile standard -plugins $(PROJECT) --outdir "$(TEST_URI)"
+	nextflow run ./main.nf -profile standard -plugins $(PROJECT)@$(VERSION) --outdir "$(TEST_URI)"
 
-dyn-test: compile #-all
-	$(NF_BIN) run wf/main.dynamic.nf -profile standard -plugins $(PROJECT)
+dyn-test: install
+	nextflow run wf/main.dynamic.nf -profile standard -plugins $(PROJECT)@$(VERSION)
 
-s3-overlay: compile
-	$(NF_BIN) run ./main.nf --plugins $(PROJECT) --outdir "$(S3_BASE)/s3-overlay" --input "$(S3_BASE)/s3-in"  
+s3-overlay: install
+	nextflow run ./main.nf --plugins $(PROJECT)@$(VERSION) --outdir "$(S3_BASE)/s3-overlay" --input "$(S3_BASE)/s3-in"
 
-s3-test: compile
-	$(NF_BIN) run ./main.nf --outdir "$(S3_BASE)/s3-test" --input "$(S3_BASE)/s3-in"
+s3-test: install
+	nextflow run ./main.nf --outdir "$(S3_BASE)/s3-test" --input "$(S3_BASE)/s3-in"
 
-s3-in: compile
-	$(NF_BIN) run ./main.nf -profile standard -plugins $(PROJECT) --outdir "$(TEST_URI)" --input "$(S3_BASE)/s3-in"
+s3-in: install
+	nextflow run ./main.nf -profile standard -plugins $(PROJECT)@$(VERSION) --outdir "$(TEST_URI)" --input "$(S3_BASE)/s3-in"
 
-s3-out: compile
-	$(NF_BIN) run ./main.nf -profile standard -plugins $(PROJECT) --outdir "$(S3_BASE)/s3-out"
+s3-out: install
+	nextflow run ./main.nf -profile standard -plugins $(PROJECT)@$(VERSION) --outdir "$(S3_BASE)/s3-out"
 
-pkg-fail: compile
+pkg-fail: install
 	echo "$(TEST_URI)"
-	$(NF_BIN) run wf/fail.nf -profile standard -plugins $(PROJECT) --outdir "$(TEST_URI)"
+	nextflow run wf/fail.nf -profile standard -plugins $(PROJECT)@$(VERSION) --outdir "$(TEST_URI)"
 
-path-input: compile
+path-input: install
 	mkdir -p work
 	date > work/COPY_THIS.md
 	echo "$(TEST_URI)"
-	$(NF_BIN) run wf/main.path.nf -profile standard -plugins $(PROJECT) --outdir "./results"
-
-tower-test: $(NF_BIN)
-	$(NF_BIN) run "https://github.com/quiltdata/nf-quilt" -name local_einstein  -with-tower -r main -latest --pub "$(TEST_URI)"
-
-#
-# Production Testing
-#
-
-nf-git-ver: $(NF_GIT)
-	NXF_VER=$(NXF_VER) $(NF_GIT) -v
-
-
-$(PIPELINE): nf-git-ver
-	NXF_PLUGINS_TEST_REPOSITORY=$(NXF_PLUGINS_TEST_REPOSITORY) NXF_VER=$(NXF_VER) $(NF_GIT) run nf-core/$(PIPELINE) -r master -profile test,docker -plugins $(PROJECT)@$(VERSION) --outdir "$(PIPE_OUT)"
-
-fetchngs: nf-git-ver
-	NXF_PLUGINS_TEST_REPOSITORY=$(NXF_PLUGINS_TEST_REPOSITORY) NXF_VER=$(NXF_VER) $(NF_GIT) run nf-core/fetchngs -r master -profile test,docker -plugins $(PROJECT)@$(VERSION) --input ../nf-quilt/wf/ids.csv --outdir s3://$(WRITE_BUCKET)/nf-quilt/fetchngs
+	nextflow run wf/main.path.nf -profile standard -plugins $(PROJECT)@$(VERSION) --outdir "./results"
 
 #
 # Show dependencies
 #
 
 deps:
-	./gradlew -q ${mm}dependencies
+	./gradlew -q dependencies
 
 update:
-	./gradlew useLatestVersions
-	make check
+	./gradlew dependencyUpdates
 
 refresh:
 	./gradlew --refresh-dependencies dependencies
-
-install: compile
-	./gradlew copyPluginZip
-	rm -rf ${HOME}/.nextflow/plugins/$(PROJECT)-${VERSION}
-	cp -r build/plugins/$(PROJECT)-${VERSION} ${HOME}/.nextflow/plugins/
-
-#
-# Upload JAR artifacts to Maven Central
-#
-
-publish:
-	echo "Ensure you have set 'github_organization=<owner>' in ~/.gradle/gradle.properties"
-	ls $(HOME)/.gradle/gradle.properties # create locally or globally if it does not exist
-	./gradlew :plugins:$(PROJECT):upload
-	./gradlew :plugins:publishIndex

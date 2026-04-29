@@ -85,12 +85,22 @@ class QuiltSpecification extends Specification {
                         if (!Files.isDirectory(pluginPath)) {
                             return null
                         }
-                        final manifestPath = pluginPath.resolve('src/resources/META-INF/MANIFEST.MF')
-                        if (!Files.exists(manifestPath)) {
-                            return null
+                        // Under the new Nextflow Gradle plugin (io.nextflow.nextflow-plugin)
+                        // the MANIFEST.MF is generated into build/tmp/jar/ during the `jar`
+                        // task. The legacy path src/resources/META-INF/MANIFEST.MF is
+                        // retained as a fallback for transitional builds.
+                        final candidates = [
+                            pluginPath.resolve('build/tmp/jar/MANIFEST.MF'),
+                            pluginPath.resolve('src/resources/META-INF/MANIFEST.MF'),
+                            pluginPath.resolve('src/main/resources/META-INF/MANIFEST.MF'),
+                        ]
+                        for (Path manifestPath : candidates) {
+                            if (Files.exists(manifestPath)) {
+                                final input = Files.newInputStream(manifestPath)
+                                return new Manifest(input)
+                            }
                         }
-                        final input = Files.newInputStream(manifestPath)
-                        return new Manifest(input)
+                        return null
                     }
 
                 }
