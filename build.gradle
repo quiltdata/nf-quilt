@@ -1,207 +1,69 @@
 /*
- * Copyright 2020-2022, Seqera Labs
- * Copyright 2013-2019, Centre for Genomic Regulation (CRG)
+ * Copyright 2024-2026, Quilt Data Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
  *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
  */
 
 plugins {
-    id 'io.codearte.nexus-staging' version '0.30.0'
-    id 'java'
-    id 'idea'
-    id 'se.patrikerdes.use-latest-versions' version '0.2.18'
-    id 'com.github.ben-manes.versions' version '0.52.0'
+    id 'io.nextflow.nextflow-plugin' version '1.0.0-beta.14'
 }
 
-// Add ability to test with upcoming versions of Groovy
-def groovyVer = System.getenv('CI_GROOVY_VERSION')
-if (groovyVer) {
-    def repo = groovyVer.startsWith('com.github.apache:') ? 'https://jitpack.io' : 'https://oss.jfrog.org/oss-snapshot-local/'
-    logger.lifecycle "Overriden Groovy dependency to use $groovyVer - repository: $repo"
-    allprojects {
-        repositories {
-            maven { url repo }
-        }
-
-        configurations.configureEach {
-            resolutionStrategy.eachDependency { DependencyResolveDetails details ->
-                force 'cglib:cglib-nodep:3.3.0'
-                force 'org.objenesis:objenesis:3.4'
-
-                // (Optional) If transitive Groovy dependencies cause conflicts
-                force "org.${groovySource}.groovy:groovy-all:$groovyVer"
-                if ((details.requested.group == "org.${groovySource}.groovy") && details.requested.version != groovyVer) {
-                    if (groovyVer.contains(':')) {
-                        details.useTarget(groovyVer)
-                    }
-                    else {
-                        details.useVersion(groovyVer)
-                    }
-                    println ">> Overriding $details.requested with version: $groovyVer"
-                }
-            }
-        }
-    }
-}
-
-
+// Plugin version: bump here to release a new version.
+// Keep in sync with any references in CHANGELOG / README until the 1.0.0 release.
+version = '0.9.2'
 group = 'io.nextflow'
 
-allprojects {
-    apply plugin: 'java'
-    apply plugin: 'java-test-fixtures'
-    apply plugin: 'idea'
-    apply plugin: 'groovy'
-    apply plugin: 'java-library'
-
-    java {
-        toolchain {
-            languageVersion = JavaLanguageVersion.of(javaLangVersion)
-        }
-    }
-
-    compileJava {
-        options.release = jdkVersion.toInteger()
-    }
-
-    tasks.withType(GroovyCompile).configureEach {
-        sourceCompatibility = jdkVersion
-        targetCompatibility = jdkVersion
-    }
-
-    idea {
-        module.inheritOutputDirs = true
-    }
-    repositories {
-        mavenCentral()
-        maven { url = 'https://repo.eclipse.org/content/groups/releases' }
-        maven { url = 'https://oss.sonatype.org/content/repositories/snapshots' }
-    }
-    configurations {
-        // see https://docs.gradle.org/4.1/userguide/dependency_management.html#sub:exclude_transitive_dependencies
-        all*.exclude group: 'org.codehaus.groovy', module: 'groovy-all'
-        all*.exclude group: 'org.codehaus.groovy', module: 'groovy-cli-picocli'
-        all*.exclude group: 'org.apache.groovy', module: 'groovy-all'
-        all*.exclude group: 'org.apache.groovy', module: 'groovy-cli-picocli'
-        // groovydoc libs
-        groovyDoc.extendsFrom runtime
-    }
-
-    dependencies {
-        // see https://docs.gradle.org/4.1/userguide/dependency_management.html#sec:module_replacement
-        implementation "org.${groovySource}.groovy:groovy-all:$groovyVersion"
-        implementation 'com.fasterxml.jackson.core:jackson-databind:2.19.0'
-        implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.19.0'
-        implementation 'com.upplication:s3fs:2.2.2'
-
-        modules {
-            module('commons-logging:commons-logging') { replacedBy('org.slf4j:jcl-over-slf4j') }
-        }
-        // Documentation required libraries
-        groovyDoc 'org.fusesource.jansi:jansi:2.4.2'
-        groovyDoc "org.${groovySource}.groovy:groovy-groovydoc:$groovyVersion"
-        groovyDoc "org.${groovySource}.groovy:groovy-ant:$groovyVersion"
-    }
-
-    test {
-        useJUnitPlatform()
-    }
-
-    // this is required due to this IDEA bug
-    // https://youtrack.jetbrains.com/issue/IDEA-129282
-    sourceSets {
-        main {
-            output.resourcesDir = 'build/classes/main'
-        }
-    }
-
-    // Disable strict javadoc checks
-    // See http://blog.joda.org/2014/02/turning-off-doclint-in-jdk-8-javadoc.html
-    if (JavaVersion.current().isJava8Compatible()) {
-        tasks.withType(Javadoc).configureEach {
-            options.addStringOption('Xdoclint:none', '-quiet')
-        }
-    }
-
-    tasks.withType(Jar).configureEach {
-        duplicatesStrategy = DuplicatesStrategy.INCLUDE
-    }
-
-    // patched as described here
-    // http://forums.gradle.org/gradle/topics/gradle_task_groovydoc_failing_with_noclassdeffounderror
-    tasks.withType(Groovydoc).configureEach {
-        groovyClasspath = project.configurations.groovyDoc
-        includes = ['nextflow/**']
-    }
-
-    // Required to run tests on Java 9 and higher in compatibility mode
-    if (JavaVersion.current() >= JavaVersion.VERSION_1_9) {
-        tasks.withType(Test).tap {
-            configureEach {
-                jvmArgs([
-                        '--add-opens=java.base/java.lang=ALL-UNNAMED',
-                        '--add-opens=java.base/java.io=ALL-UNNAMED',
-                        '--add-opens=java.base/java.nio=ALL-UNNAMED',
-                        '--add-opens=java.base/java.nio.file.spi=ALL-UNNAMED',
-                        '--add-opens=java.base/java.net=ALL-UNNAMED',
-                        '--add-opens=java.base/java.util=ALL-UNNAMED',
-                        '--add-opens=java.base/java.util.concurrent.locks=ALL-UNNAMED',
-                        '--add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED',
-                        '--add-opens=java.base/sun.nio.ch=ALL-UNNAMED',
-                        '--add-opens=java.base/sun.nio.fs=ALL-UNNAMED',
-                        '--add-opens=java.base/sun.net.www.protocol.http=ALL-UNNAMED',
-                        '--add-opens=java.base/sun.net.www.protocol.https=ALL-UNNAMED',
-                        '--add-opens=java.base/sun.net.www.protocol.ftp=ALL-UNNAMED',
-                        '--add-opens=java.base/sun.net.www.protocol.file=ALL-UNNAMED',
-                        '--add-opens=java.base/jdk.internal.misc=ALL-UNNAMED',
-                ])
-            }
-        }
-    }
+dependencies {
+    implementation 'com.quiltdata:quiltcore:0.1.7'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.19.0'
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.19.0'
+    implementation 'commons-io:commons-io:2.19.0'
 }
 
-def getRuntimeConfigs() {
-    def names = subprojects
-            .findAll { prj -> prj.name in ['nextflow', 'nf-commons', 'nf-httpfs'] }
-            .collect { p -> p.name }
-
-    FileCollection result = null
-    for ( def it : names ) {
-        def cfg = project(it).configurations.getByName('runtimeClasspath')
-        if ( result == null ) {
-            result = cfg
-        }
-        else {
-            result += cfg
-        }
-    // this include the module actual jar file
-    // note: migrating to gradle 7 does not work any more
-    //result = result + cfg.getOutgoing().getArtifacts().getFiles()
-    }
-    return result
+// The io.nextflow.nextflow-plugin gradle plugin wires `test` to depend on
+// `assemble` (which transitively runs `packagePlugin`). On Windows,
+// `packagePlugin` fails with "character to be escaped is missing" because
+// the upstream task uses `String.replaceAll(..., File.separator)` and `\`
+// is an escape character in regex replacements
+// (see https://github.com/nextflow-io/nextflow-plugin-gradle/issues/20).
+// Until that upstream bug is fixed, we sever the test->assemble link so the
+// test suite can run on Windows. `make assemble` / `make package` /
+// `make release` still trigger packagePlugin on platforms where it works.
+tasks.named('test') { task ->
+    task.setDependsOn(task.getDependsOn().findAll { it != tasks.assemble && it != 'assemble' })
+    task.dependsOn 'jar'
+    useJUnitPlatform()
+    // Required to run Nextflow / Groovy reflection-heavy tests on JDK 9+.
+    jvmArgs([
+        '--add-opens=java.base/java.lang=ALL-UNNAMED',
+        '--add-opens=java.base/java.io=ALL-UNNAMED',
+        '--add-opens=java.base/java.nio=ALL-UNNAMED',
+        '--add-opens=java.base/java.nio.file.spi=ALL-UNNAMED',
+        '--add-opens=java.base/java.net=ALL-UNNAMED',
+        '--add-opens=java.base/java.util=ALL-UNNAMED',
+        '--add-opens=java.base/java.util.concurrent.locks=ALL-UNNAMED',
+        '--add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED',
+        '--add-opens=java.base/sun.nio.ch=ALL-UNNAMED',
+        '--add-opens=java.base/sun.nio.fs=ALL-UNNAMED',
+        '--add-opens=java.base/sun.net.www.protocol.http=ALL-UNNAMED',
+        '--add-opens=java.base/sun.net.www.protocol.https=ALL-UNNAMED',
+        '--add-opens=java.base/sun.net.www.protocol.ftp=ALL-UNNAMED',
+        '--add-opens=java.base/sun.net.www.protocol.file=ALL-UNNAMED',
+        '--add-opens=java.base/jdk.internal.misc=ALL-UNNAMED',
+    ])
 }
 
-/*
- * Save the runtime classpath
- */
-task exportClasspath {
-    dependsOn allprojects.jar
-    doLast {
-        def nextflowVersion = rootProject.file('VERSION').text.trim()
-
-        def all = getRuntimeConfigs()
-        def libs = all.collect { File file -> file.canonicalPath  }
-        ['nextflow', 'nf-commons', 'nf-httfs'].each { libs << file("modules/$it/build/libs/${it}-${nextflowVersion}.jar").canonicalPath }
-        file('.launch.classpath').text = libs.unique().join(':')
-    }
+nextflowPlugin {
+    nextflowVersion = '24.10.0'
+    provider = 'Quilt Data'
+    className = 'nextflow.quilt.QuiltPlugin'
+    extensionPoints = [
+        'nextflow.quilt.QuiltObserverFactory',
+        'nextflow.quilt.nio.QuiltPathFactory',
+        'nextflow.quilt.nio.QuiltPathSerializer'
+    ]
 }

@@ -49,12 +49,25 @@ class QuiltPkgTest extends QuiltSpecification {
     }
 
     static String manifestVersion() {
-        String subPath = 'src/resources/META-INF/MANIFEST.MF'
-        File manifestFile = new File(subPath)
-        def manifest = new Manifest(new FileInputStream(manifestFile))
-        def attrs = manifest.getMainAttributes()
-        String version = attrs.getValue('Plugin-Version')
-        return version
+        // Under the new Nextflow Gradle plugin the MANIFEST.MF is generated
+        // into build/tmp/jar/MANIFEST.MF by the `jar` task. Fall back to the
+        // legacy source path for transitional builds.
+        for (String subPath : [
+            'build/tmp/jar/MANIFEST.MF',
+            'src/resources/META-INF/MANIFEST.MF',
+            'src/main/resources/META-INF/MANIFEST.MF',
+        ]) {
+            File manifestFile = new File(subPath)
+            if (manifestFile.exists()) {
+                String version = manifestFile.withInputStream { stream ->
+                    new Manifest(stream).getMainAttributes().getValue('Plugin-Version')
+                }
+                if (version) {
+                    return version
+                }
+            }
+        }
+        throw new FileNotFoundException('Could not locate plugin MANIFEST.MF')
     }
 
     static String destPackage() {
