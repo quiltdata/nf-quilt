@@ -59,9 +59,9 @@ class QuiltPkgTest extends QuiltSpecification {
         ]) {
             File manifestFile = new File(subPath)
             if (manifestFile.exists()) {
-                def manifest = new Manifest(new FileInputStream(manifestFile))
-                def attrs = manifest.getMainAttributes()
-                String version = attrs.getValue('Plugin-Version')
+                String version = manifestFile.withInputStream { stream ->
+                    new Manifest(stream).getMainAttributes().getValue('Plugin-Version')
+                }
                 if (version) {
                     return version
                 }

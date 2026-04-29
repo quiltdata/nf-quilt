@@ -12,8 +12,8 @@ S3_BASE = s3://$(WRITE_BUCKET)/$(PROJECT)
 REPORT ?= ./build/reports/tests/test/index.html
 
 .PHONY: all assemble clean test test-all check rebuild install package release verify fast \
-        check-env coverage pkg-test dyn-test s3-overlay s3-test s3-in s3-out \
-        pkg-fail path-input deps update refresh
+        check-env pkg-test dyn-test s3-overlay s3-test s3-in s3-out \
+        pkg-fail path-input deps refresh
 
 all: assemble
 
@@ -52,10 +52,6 @@ rebuild:
 
 test-all: clean test
 
-coverage:
-	./gradlew jacocoTestReport
-	open build/reports/jacoco/test/html/index.html || true
-
 install: assemble
 	./gradlew installPlugin
 
@@ -81,7 +77,7 @@ s3-overlay: install
 	nextflow run ./main.nf --plugins $(PROJECT)@$(VERSION) --outdir "$(S3_BASE)/s3-overlay" --input "$(S3_BASE)/s3-in"
 
 s3-test: install
-	nextflow run ./main.nf --outdir "$(S3_BASE)/s3-test" --input "$(S3_BASE)/s3-in"
+	nextflow run ./main.nf -profile standard -plugins $(PROJECT)@$(VERSION) --outdir "$(S3_BASE)/s3-test" --input "$(S3_BASE)/s3-in"
 
 s3-in: install
 	nextflow run ./main.nf -profile standard -plugins $(PROJECT)@$(VERSION) --outdir "$(TEST_URI)" --input "$(S3_BASE)/s3-in"
@@ -105,9 +101,6 @@ path-input: install
 
 deps:
 	./gradlew -q dependencies
-
-update:
-	./gradlew dependencyUpdates
 
 refresh:
 	./gradlew --refresh-dependencies dependencies
