@@ -28,6 +28,8 @@ import nextflow.quilt.jep.QuiltPackage
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.time.OffsetDateTime
+import java.time.ZoneOffset
 import groovy.transform.CompileDynamic
 import spock.lang.Ignore
 import spock.lang.IgnoreIf
@@ -93,6 +95,23 @@ class QuiltProductTest extends QuiltSpecification {
         product.metadata.key == 'val'
         product.metadata.key2 == 'val2'
         product.displayName().replace('%2f', '/') == testURI
+    }
+
+    void 'toJson serializes OffsetDateTime as ISO-8601 string'() {
+        // Regression test for #321: Nextflow 24.10+ returns OffsetDateTime
+        // for workflow start/complete; without JavaTimeModule + disabling
+        // WRITE_DATES_AS_TIMESTAMPS, Jackson would either throw or emit
+        // a numeric epoch like 1.735040400E9.
+        given:
+        OffsetDateTime when = OffsetDateTime.of(2026, 1, 2, 3, 4, 5, 0, ZoneOffset.UTC)
+        Map map = [start: when, complete: when]
+
+        when:
+        String json = QuiltProduct.toJson(map)
+
+        then:
+        json.contains('"2026-01-02T03:04:05Z"')
+        !(json =~ /"start"\s*:\s*[0-9]/)
     }
 
     void 'should generate solid string for timestamp from now'() {
