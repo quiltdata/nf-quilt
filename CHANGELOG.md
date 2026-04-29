@@ -1,9 +1,12 @@
 # Changelog
 
-## [0.9.2] 2025-05-XX
+## [0.9.2] 2026-04-29
 
 - Use "package" as default prefix
 - Modernize main*.nf files
+- Fix Jackson serialization of `java.time.OffsetDateTime` from Nextflow 24.10+ workflow metadata (#321)
+- Restore working test input package (replace deleted `nf-core-gallery` with `udp-spec/nf-quilt/source`)
+- Remove `wf/main.gallery.nf` (referenced the deleted `nf-core-gallery` bucket)
 
 ## [0.9.1] 2024-12-24
 
