@@ -4,6 +4,7 @@
 
 - Use "package" as default prefix
 - Modernize main*.nf files
+- Fix Jackson serialization of `java.time.OffsetDateTime` from Nextflow 24.10+ workflow metadata (#321)
 
 ## [0.9.1] 2024-12-24
 
