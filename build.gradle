@@ -9,7 +9,7 @@
  */
 
 plugins {
-    id 'io.nextflow.nextflow-plugin' version '1.0.0-beta.6' // pinned to migration-guide baseline
+    id 'io.nextflow.nextflow-plugin' version '1.0.0-beta.14'
 }
 
 // Plugin version: bump here to release a new version.
@@ -24,10 +24,18 @@ dependencies {
     implementation 'commons-io:commons-io:2.19.0'
 }
 
-// QuiltSpecification reads the generated MANIFEST.MF from build/tmp/jar/ to
-// initialise the plugin manager, so make sure the jar task runs first.
-tasks.named('test') {
-    dependsOn 'jar'
+// The io.nextflow.nextflow-plugin gradle plugin wires `test` to depend on
+// `assemble` (which transitively runs `packagePlugin`). On Windows,
+// `packagePlugin` fails with "character to be escaped is missing" because
+// the upstream task uses `String.replaceAll(..., File.separator)` and `\`
+// is an escape character in regex replacements
+// (see https://github.com/nextflow-io/nextflow-plugin-gradle/issues/20).
+// Until that upstream bug is fixed, we sever the test->assemble link so the
+// test suite can run on Windows. `make assemble` / `make package` /
+// `make release` still trigger packagePlugin on platforms where it works.
+tasks.named('test') { task ->
+    task.setDependsOn(task.getDependsOn().findAll { it != tasks.assemble && it != 'assemble' })
+    task.dependsOn 'jar'
     useJUnitPlatform()
     // Required to run Nextflow / Groovy reflection-heavy tests on JDK 9+.
     jvmArgs([
