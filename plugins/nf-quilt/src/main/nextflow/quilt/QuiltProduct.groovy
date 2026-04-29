@@ -17,6 +17,7 @@ package nextflow.quilt
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.ObjectWriter
+import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import nextflow.quilt.jep.QuiltPackage
 import nextflow.quilt.jep.QuiltParser
@@ -97,7 +98,9 @@ ${nextflow}
         'homeDir', 'workDir', 'launchDir', 'manifest', 'configFiles'
     ]
 
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper().registerModule(new JavaTimeModule())
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
+        .registerModule(new JavaTimeModule())
+        .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
     private static final ObjectWriter OBJECT_WRITER = OBJECT_MAPPER.writerWithDefaultPrettyPrinter()
     static String toJson(Object value) {
         String result = OBJECT_WRITER.writeValueAsString(value)
