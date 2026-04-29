@@ -10,6 +10,7 @@
 
 plugins {
     id 'io.nextflow.nextflow-plugin' version '1.0.0-beta.14'
+    id 'jacoco'
 }
 
 // Plugin version: bump here to release a new version.
@@ -55,6 +56,32 @@ tasks.named('test') { task ->
         '--add-opens=java.base/sun.net.www.protocol.file=ALL-UNNAMED',
         '--add-opens=java.base/jdk.internal.misc=ALL-UNNAMED',
     ])
+}
+
+// JaCoCo line-coverage gate: 70% minimum, mirroring the pre-migration
+// (single-subproject) build. Wired into `check` below.
+jacocoTestReport {
+    dependsOn tasks.named('test')
+    reports {
+        xml.required = true
+        html.required = true
+    }
+}
+
+jacocoTestCoverageVerification {
+    dependsOn tasks.named('jacocoTestReport')
+    violationRules {
+        rule {
+            limit {
+                counter = 'LINE'
+                minimum = 0.7
+            }
+        }
+    }
+}
+
+tasks.named('check') {
+    dependsOn tasks.named('jacocoTestCoverageVerification')
 }
 
 nextflowPlugin {

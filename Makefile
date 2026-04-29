@@ -12,6 +12,7 @@ S3_BASE = s3://$(WRITE_BUCKET)/$(PROJECT)
 REPORT ?= ./build/reports/tests/test/index.html
 
 .PHONY: all assemble clean test test-all check rebuild install package release verify fast \
+        coverage verifyCoverage \
         check-env pkg-test dyn-test s3-overlay s3-test s3-in s3-out \
         pkg-fail path-input deps refresh
 
@@ -31,6 +32,13 @@ test:
 
 check:
 	./gradlew check --warning-mode all
+
+coverage:
+	./gradlew jacocoTestReport
+	open ./build/reports/jacoco/test/html/index.html
+
+verifyCoverage:
+	./gradlew jacocoTestCoverageVerification
 
 verify:
 	echo $(WRITE_BUCKET)
