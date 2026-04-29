@@ -2,8 +2,7 @@
 /* groovylint-disable CompileStatic */
 
 nextflow.enable.dsl = 2
-params.hash =  '90527238d0e2ebc9e1ba98265e5f79440b557697fed3f0d29ec95942cbb4e4e0'
-params.input = "quilt+s3://nf-core-gallery#package=test/observer@${params.hash}&catalog=demo.quiltdata.com"
+params.input = 'quilt+s3://udp-spec#package=nf-quilt/source@c4e44f6932'
 params.outdir = '/var/tmp'
 
 process transfer {
