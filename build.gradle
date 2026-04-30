@@ -85,7 +85,7 @@ tasks.named('check') {
 
 nextflowPlugin {
     nextflowVersion = '24.10.0'
-    provider = 'Quilt Data'
+    provider = 'Quilt Data, Inc.'
     className = 'nextflow.quilt.QuiltPlugin'
     extensionPoints = [
         'nextflow.quilt.QuiltObserverFactory',
