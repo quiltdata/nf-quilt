@@ -26,7 +26,7 @@ case "$LEVEL" in
 esac
 NEW="${MAJOR}.${MINOR}.${PATCH}"
 
-sed -i.bak "s/^version = '${OLD}'\$/version = '${NEW}'/" "$FILE"
+sed -i.bak "s/^version = '${OLD//./\\.}'\$/version = '${NEW}'/" "$FILE"
 rm "$FILE.bak"
 
 cd "$ROOT"
