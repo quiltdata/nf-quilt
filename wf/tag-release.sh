@@ -26,18 +26,20 @@ if [[ "$BRANCH" != "main" || "$HEAD_SHA" != "$MAIN_SHA" ]]; then
     echo "(dry-run: continuing anyway)" >&2
 fi
 
-if git rev-parse "$VERSION" >/dev/null 2>&1; then
+if git rev-parse "refs/tags/$VERSION" >/dev/null 2>&1; then
     echo "Tag $VERSION already exists" >&2
     [[ $DRY_RUN -eq 1 ]] || exit 1
 fi
 
-NOTES="$(awk -v v="$VERSION" '
+# Escape dots so awk treats the version literally (1.0.1 must not match 1X0Y1).
+ESCAPED_VERSION="${VERSION//./\\.}"
+NOTES="$(awk -v v="$ESCAPED_VERSION" '
     $0 ~ "^## \\[" v "\\]" { found=1; next }
     found && /^## \[/ { exit }
     found { print }
 ' CHANGELOG.md)"
 
-if [[ -z "${NOTES// }" ]]; then
+if [[ -z "$(printf %s "$NOTES" | tr -d '[:space:]')" ]]; then
     echo "No CHANGELOG section found for [$VERSION]" >&2
     exit 1
 fi
@@ -57,5 +59,12 @@ fi
 
 git tag -a "$VERSION" -m "Release $VERSION"
 git push origin "$VERSION"
-gh release create "$VERSION" --title "Version $VERSION" --notes "$NOTES"
+
+# Roll back the tag if release creation fails so we don't leave a half-released state.
+if ! gh release create "$VERSION" --title "Version $VERSION" --notes "$NOTES"; then
+    echo "gh release create failed; rolling back tag $VERSION" >&2
+    git push origin --delete "$VERSION" || true
+    git tag -d "$VERSION" || true
+    exit 1
+fi
 echo "Tagged and released $VERSION"
