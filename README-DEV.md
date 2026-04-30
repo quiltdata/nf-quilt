@@ -2,103 +2,114 @@
 
 ## Using Pre-Release Versions
 
-Occasionally we will release beta versions of the plugin that are not yet
-available in the Nextflow plugin registry. You can help test these versions as
-follows:
-
-- Set the `NXF_PLUGINS_TEST_REPOSITORY` environment variable to the URL of the
-  plugin's metadata file
-- Specify the plugin version in the `plugins` section of your `nextflow.config`
-  file
-
-From the command-line, do, e.g.:
+Once a version is published to the [Nextflow Plugin
+Registry](https://registry.nextflow.io), users can install it directly via
+`-plugins nf-quilt@<version>`; no GitHub-release pinning or
+`NXF_PLUGINS_TEST_REPOSITORY` override is required.
 
 ```bash
-export LOG4J_DEBUG=true  # for verbose logging
-export VERSION=0.9.2
-export NXF_PLUGINS_TEST_REPOSITORY=https://github.com/quiltdata/nf-quilt/releases/download/$(VERSION)/nf-quilt-$(VERSION)-meta.json
-nextflow run main.nf -plugins nf-quilt@$(VERSION)
+nextflow run main.nf -plugins nf-quilt@0.9.2
 ```
 
-For Tower, you set the environment variables in the "Pre-run script".
+To pin the plugin in `nextflow.config`:
 
-![Example Tower Pre-run Script](./images/tower-beta.png)
+```groovy
+plugins {
+    id 'nf-quilt@0.9.2'
+}
+```
+
+For Tower, set this in the "Advanced Options -> Nextflow config file" (or in
+the "Pre-run script" if you need to override env vars).
 
 ## Using Development Versions
 
-If you want to use edge versions of nf-quilt, you must run it with a development
-version of `nextflow`. The simplest way to do that is to pull them both directly
-from GitHub:
+To work on `nf-quilt` locally, clone the repo and build it with the supplied
+Gradle wrapper. The build now uses the
+[`io.nextflow.nextflow-plugin`](https://docs.seqera.io/nextflow/guides/migrate-plugin)
+Gradle plugin (single-module layout — no `plugins/` subdirectory or
+`buildSrc`).
 
 ```bash
-git clone https://github.com/nextflow.io/nextflow.git
 git clone https://github.com/quiltdata/nf-quilt.git
 cd ./nf-quilt
 ```
 
-### Verifying Nextflow
+### Verifying Java
 
-If this is your first time using Nextflow, you may also need to install a recent
-[version of Java](https://www.java.com/en/download/help/download_options.html)
-for your platform. Nextflow itself will take care of all the other dependencies.
-
-You can verify and compile Nextflow with:
+You need JDK 21 (Nextflow 24.10+ requirement). On macOS you can install it via
+Homebrew:
 
 ```bash
-make nextflow
+brew install openjdk@21
+export JAVA_HOME=$(/usr/libexec/java_home -v 21)
 ```
 
 ## Running from Git
 
-To quickly run `nf-quilt` from this GitHub repository:
-
 ```bash
-# install and compiles dependencies, then test
-make test-all 
-# create "test/hurdat" package on s3://$WRITE_BUCKET
-make pkg-test WRITE_BUCKET=your-writeablebucket
+# compile + run unit tests
+make test-all
+# create a "test/dest-<version>" package on s3://$WRITE_BUCKET
+make pkg-test WRITE_BUCKET=your-writeable-bucket
 ```
+
+`pkg-test` requires that the current `Plugin-Version` has already been
+installed locally via `make install` (which runs `./gradlew installPlugin`).
 
 This ensures you have properly installed Nextflow and configured your local
 <--markdownlint-disable-next-line MD041-->
 [AWS credentials](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html).
 
-You can also set WRITE_BUCKET and other parameters in a `.env` file in the
+You can also set `WRITE_BUCKET` and other parameters in a `.env` file in the
 project root, and they will be automatically read by the Makefile.
 
 ### Running a Pipeline Locally
 
-From inside the `nf-quilt` directory, call `./launch.sh` with a path to your
-pipeline.
-
-For example, with a standard `nf-core` pipeline like `sarek`:
-
-```bash
-./launch.sh run nf-core/sarek -profile test,docker -plugins nf-quilt --outdir "quilt+s3://bucket#package=nf-quilt/sarek"
-```
-
-Otherwise, replace `nf-core/sarek` with the local path to your pipeline's `.nf`
-file (be sure to rename the `outdir` parameter if you use different convention).
-For example:
+After `make install`, the plugin is available to any local `nextflow` invocation
+via `-plugins nf-quilt@<version>`. For example, with a standard `nf-core`
+pipeline like `sarek`:
 
 ```bash
-./launch.sh run ./main.nf -profile standard -plugins $(PROJECT) --outdir "quilt+s3://bucket#package=test/hurdat"
+nextflow run nf-core/sarek -profile test,docker -plugins nf-quilt@0.9.2 \
+  --outdir "quilt+s3://bucket#package=nf-quilt/sarek"
 ```
 
-There are standard Makefile targets for both `sarek` and `fetchngs` pipelines, which will test against the latest published versions of nf-quilt:
+Or with a local pipeline:
+
+```bash
+nextflow run ./main.nf -profile standard -plugins nf-quilt@0.9.2 \
+  --outdir "quilt+s3://bucket#package=test/hurdat"
+```
+
+There are standard Makefile targets for both `sarek` and `fetchngs` pipelines,
+which test against the latest published version of nf-quilt:
 
 ```bash
 make sarek
 make fetchngs
 ```
 
+### Build Targets
+
+| Target | Action |
+| --- | --- |
+| `make assemble` | Compile and build the plugin jar (`./gradlew assemble`) |
+| `make install` | Install the built plugin into the local Nextflow plugin cache (`./gradlew installPlugin`) |
+| `make package` | Produce the distributable plugin zip + metadata (`./gradlew packagePlugin`) |
+| `make release` | Publish to the Nextflow Plugin Registry (`./gradlew releasePlugin`); requires `NPR_API_KEY` |
+| `make check` | Run unit tests + JaCoCo coverage gate |
+| `make coverage` | Generate the JaCoCo HTML report and open it |
+
 ### Unit Testing
 
-You can cleanly compile and run all unit tests with:
+You can compile and run all unit tests with:
 
 ```bash
 make check
 ```
+
+This also runs `jacocoTestCoverageVerification` (70% line coverage minimum).
 
 To show the output of the tests, use:
 
@@ -112,40 +123,27 @@ To fast-fail on the first failing test, use:
 make fast
 ```
 
-## Publishing the Plugin for Others to Use
+## Publishing the Plugin to the Nextflow Plugin Registry
 
-If your system is properly configured, use `make publish` to package, upload,
-and publish the plugin.
+Releases are published to the [Nextflow Plugin
+Registry](https://registry.nextflow.io). The flow is fully automated through
+the `io.nextflow.nextflow-plugin` Gradle plugin — there is no longer a step
+involving `nextflow-io/plugins` PRs or GitHub-release uploads.
 
-Otherwise, follow these steps:
-
-1. Create a file named `gradle.properties` in the user's home (NOT project)
-   directory containing the following attributes:
-
-   - `github_organization`: the GitHub organisation where the plugin repository
-     is hosted.
-   - `github_username`: The GitHub username granting access to the plugin
-     repository.
-   - `github_access_token`: The GitHub access token required to upload and
-     commit changes to the plugin repository.
-   - `github_commit_email`: The email address associated with your GitHub
-     account.
-
-2. Use the following command to package and create a release for your plugin on
-   GitHub:
+1. Bump the `version` in `build.gradle` and add a corresponding section to
+   `CHANGELOG.md`.
+2. Set the registry API key:
 
    ```bash
-   ./gradlew :plugins:nf-quilt:upload
+   export NPR_API_KEY=<your-registry-api-key>
    ```
 
-3. Fork the [nextflow-io/plugins](https://github.com/nextflow-io/plugins)
-   repository to one you can write to
-
-4. Use the following command to publish your plugin to your fork:
+3. Publish:
 
    ```bash
-   ./gradlew :plugins:publishIndex
+   make release   # or: ./gradlew releasePlugin
    ```
 
-5. Create a pull request to push your changes back to
-   [nextflow-io/plugins](https://github.com/nextflow-io/plugins/blob/main/plugins.json)
+This packages the plugin, uploads the artefacts, and registers the new version
+with the registry. After it succeeds, users can install with `-plugins
+nf-quilt@<version>` immediately.
