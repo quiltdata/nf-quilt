@@ -114,6 +114,24 @@ class QuiltProductTest extends QuiltSpecification {
         !(json =~ /"start"\s*:\s*[0-9]/)
     }
 
+    void 'toJson serializes empty beans without failing'() {
+        // Regression test for #332: on Nextflow 25.10.x, dynamic process directive
+        // closures (e.g. `cpus = { task.attempt * 2 }`) transitively pull in the
+        // script binding's `secrets` field, an anonymous SecretsLoader$1 inner
+        // class with no bean properties. Without disabling FAIL_ON_EMPTY_BEANS,
+        // Jackson throws when serializing config/params/workflow JSON.
+        given:
+        Object emptyBean = new Object() { } // anonymous inner class, no properties
+        Map map = [process: [cpus: [variables: [secrets: emptyBean]]]]
+
+        when:
+        String json = QuiltProduct.toJson(map)
+
+        then:
+        noExceptionThrown()
+        json.contains('"secrets"')
+    }
+
     void 'should generate solid string for timestamp from now'() {
         when:
         def now = QuiltProduct.now()

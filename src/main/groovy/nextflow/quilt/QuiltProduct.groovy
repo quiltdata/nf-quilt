@@ -101,6 +101,7 @@ ${nextflow}
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
         .registerModule(new JavaTimeModule())
         .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+        .disable(SerializationFeature.FAIL_ON_EMPTY_BEANS)
     private static final ObjectWriter OBJECT_WRITER = OBJECT_MAPPER.writerWithDefaultPrettyPrinter()
     static String toJson(Object value) {
         String result = OBJECT_WRITER.writeValueAsString(value)
