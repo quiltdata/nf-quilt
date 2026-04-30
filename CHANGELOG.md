@@ -1,7 +1,8 @@
 # Changelog
 
-## [0.9.2] 2026-04-29
+## [1.0.0] 2026-04-29
 
+- First release published to the [Nextflow Plugin Registry](https://registry.nextflow.io)
 - Use "package" as default prefix
 - Modernize main*.nf files
 - Fix Jackson serialization of `java.time.OffsetDateTime` from Nextflow 24.10+ workflow metadata (#321)

@@ -8,14 +8,14 @@ Registry](https://registry.nextflow.io), users can install it directly via
 `NXF_PLUGINS_TEST_REPOSITORY` override is required.
 
 ```bash
-nextflow run main.nf -plugins nf-quilt@0.9.2
+nextflow run main.nf -plugins nf-quilt@1.0.0
 ```
 
 To pin the plugin in `nextflow.config`:
 
 ```groovy
 plugins {
-    id 'nf-quilt@0.9.2'
+    id 'nf-quilt@1.0.0'
 }
 ```
 
@@ -71,14 +71,14 @@ via `-plugins nf-quilt@<version>`. For example, with a standard `nf-core`
 pipeline like `sarek`:
 
 ```bash
-nextflow run nf-core/sarek -profile test,docker -plugins nf-quilt@0.9.2 \
+nextflow run nf-core/sarek -profile test,docker -plugins nf-quilt@1.0.0 \
   --outdir "quilt+s3://bucket#package=nf-quilt/sarek"
 ```
 
 Or with a local pipeline:
 
 ```bash
-nextflow run ./main.nf -profile standard -plugins nf-quilt@0.9.2 \
+nextflow run ./main.nf -profile standard -plugins nf-quilt@1.0.0 \
   --outdir "quilt+s3://bucket#package=test/hurdat"
 ```
 
