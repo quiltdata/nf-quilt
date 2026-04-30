@@ -12,7 +12,7 @@ S3_BASE = s3://$(WRITE_BUCKET)/$(PROJECT)
 REPORT ?= ./build/reports/tests/test/index.html
 
 .PHONY: all assemble clean test test-all check rebuild install package release verify fast \
-        coverage verifyCoverage bump \
+        coverage verifyCoverage bump tag \
         check-env pkg-test dyn-test s3-overlay s3-test s3-in s3-out \
         pkg-fail path-input deps refresh
 
@@ -64,6 +64,11 @@ rebuild:
 LEVEL ?= patch
 bump:
 	./wf/bump-version.sh $(LEVEL)
+
+# Tag the current build.gradle version and create a GitHub release
+# using the matching CHANGELOG section as release notes.
+tag:
+	./wf/tag-release.sh
 
 test-all: clean test
 
