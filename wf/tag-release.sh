@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+DRY_RUN=0
+if [[ "${1:-}" == "--dry-run" ]]; then
+    DRY_RUN=1
+fi
+
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 
@@ -10,12 +15,22 @@ if [[ -z "$VERSION" ]]; then
     exit 1
 fi
 
-if git rev-parse "$VERSION" >/dev/null 2>&1; then
-    echo "Tag $VERSION already exists" >&2
-    exit 1
+# Refuse to tag from anywhere but main at origin/main's HEAD.
+git fetch origin main --quiet
+BRANCH="$(git rev-parse --abbrev-ref HEAD)"
+HEAD_SHA="$(git rev-parse HEAD)"
+MAIN_SHA="$(git rev-parse origin/main)"
+if [[ "$BRANCH" != "main" || "$HEAD_SHA" != "$MAIN_SHA" ]]; then
+    echo "Refusing to tag: must be on main at origin/main (currently $BRANCH @ ${HEAD_SHA:0:7}, origin/main @ ${MAIN_SHA:0:7})" >&2
+    [[ $DRY_RUN -eq 1 ]] || exit 1
+    echo "(dry-run: continuing anyway)" >&2
 fi
 
-# Extract the CHANGELOG section for this version (between its header and the next ## header).
+if git rev-parse "$VERSION" >/dev/null 2>&1; then
+    echo "Tag $VERSION already exists" >&2
+    [[ $DRY_RUN -eq 1 ]] || exit 1
+fi
+
 NOTES="$(awk -v v="$VERSION" '
     $0 ~ "^## \\[" v "\\]" { found=1; next }
     found && /^## \[/ { exit }
@@ -27,8 +42,20 @@ if [[ -z "${NOTES// }" ]]; then
     exit 1
 fi
 
+if [[ $DRY_RUN -eq 1 ]]; then
+    echo "=== DRY RUN ==="
+    echo "Version: $VERSION"
+    echo "HEAD:    ${HEAD_SHA:0:7} ($BRANCH)"
+    echo "--- Release notes ---"
+    echo "$NOTES"
+    echo "--- Would run ---"
+    echo "git tag -a $VERSION -m 'Release $VERSION'"
+    echo "git push origin $VERSION"
+    echo "gh release create $VERSION --title 'Version $VERSION' --notes <notes above>"
+    exit 0
+fi
+
 git tag -a "$VERSION" -m "Release $VERSION"
 git push origin "$VERSION"
-
 gh release create "$VERSION" --title "Version $VERSION" --notes "$NOTES"
 echo "Tagged and released $VERSION"
