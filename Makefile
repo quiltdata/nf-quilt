@@ -78,7 +78,7 @@ install: assemble
 package:
 	./gradlew packagePlugin
 
-release:
+release: tag
 	./gradlew releasePlugin
 
 #
