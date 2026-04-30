@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.0.1] 2026-04-30
+
+- Disable Jackson `FAIL_ON_EMPTY_BEANS` so config serialization survives Nextflow 25.10.x dynamic process directive closures that transitively pull in `SecretsLoader$1` (#332)
+- Add `make bump [LEVEL=patch|minor|major]` target backed by `wf/bump-version.sh`
+
 ## [1.0.0] 2026-04-29
 
 - First release published to the [Nextflow Plugin Registry](https://registry.nextflow.io)
