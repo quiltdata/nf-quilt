@@ -1,4 +1,5 @@
 sinclude .env # create from example.env
+export
 PROJECT ?= nf-quilt
 WRITE_BUCKET ?= write-bucket-not-set
 FRAGMENT ?= &path=.
