@@ -1,5 +1,5 @@
 sinclude .env # create from example.env
-export
+export NPR_API_KEY WRITE_BUCKET
 PROJECT ?= nf-quilt
 WRITE_BUCKET ?= write-bucket-not-set
 FRAGMENT ?= &path=.
