@@ -1,7 +1,12 @@
 sinclude .env # create from example.env
-export NPR_API_KEY WRITE_BUCKET
+# Export to subprocesses (gradle, nextflow). Only export WRITE_BUCKET when
+# .env actually sets it; the integration tests use env.WRITE_BUCKET == null
+# as their @IgnoreIf signal, so a placeholder default would unmask them in CI.
+export NPR_API_KEY
+ifneq ($(strip $(WRITE_BUCKET)),)
+export WRITE_BUCKET
+endif
 PROJECT ?= nf-quilt
-WRITE_BUCKET ?= write-bucket-not-set
 FRAGMENT ?= &path=.
 QUERY ?= ?Name=$(USER)&Owner=Kevin+Moore&Date=2023-03-07&Type=CRISPR&Notebook+URL=http%3A%2F%2Fexample.com
 VERSION ?= $(shell grep "^version" build.gradle | head -1 | awk -F"'" '{ print $$2 }')
