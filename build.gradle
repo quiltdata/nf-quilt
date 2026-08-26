@@ -19,8 +19,8 @@ group = 'io.nextflow'
 
 dependencies {
     implementation 'com.quiltdata:quiltcore:0.1.7'
-    implementation 'com.fasterxml.jackson.core:jackson-databind:2.19.0'
-    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.19.0'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.22.2'
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.22.2'
     implementation 'commons-io:commons-io:2.22.0'
 }
 
