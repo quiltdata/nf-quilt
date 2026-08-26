@@ -55,7 +55,7 @@ jobs:
           LOG4J_DEBUG: true
 
       - name: Archive production artifacts (Windows only)
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: ${{ always() && matrix.os  == 'windows-latest' }}
         with:
           name: nf-quilt-test-reports-${{ matrix.os }}-${{ matrix.java_version }}
@@ -63,7 +63,7 @@ jobs:
             D:\a\nf-quilt\nf-quilt\build\reports\
           overwrite: true
       - name: Archive production artifacts (Linux and MacOS)
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: ${{ always() && matrix.os != 'windows-latest' }}
         with:
           name: nf-quilt-test-reports-${{ matrix.os }}-${{ matrix.java_version }}
