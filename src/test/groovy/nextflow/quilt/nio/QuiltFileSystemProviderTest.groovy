@@ -2,12 +2,14 @@
 package nextflow.quilt.nio
 
 import nextflow.quilt.QuiltSpecification
+import nextflow.quilt.jep.QuiltParser
 import groovy.transform.CompileDynamic
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.nio.file.Files
 import java.nio.file.CopyOption
 import java.nio.file.StandardCopyOption
+import java.nio.file.LinkOption
 import java.nio.file.DirectoryStream
 import groovy.util.logging.Slf4j
 import spock.lang.IgnoreIf
@@ -130,6 +132,44 @@ class QuiltFileSystemProviderTest extends QuiltSpecification {
         then:
         Files.exists(remoteFile)
         Files.size(remoteFile) > 0
+    }
+
+    void 'should drop non-standard copy options such as Nextflow SkipDirOption'() {
+        given:
+        CopyOption custom = new CopyOption() {
+            @Override
+            String toString() { return 'SkipDirOption[.fusion]' }
+        }
+
+        expect:
+        QuiltFileSystemProvider.localCopyOptions(null) == [] as CopyOption[]
+        QuiltFileSystemProvider.localCopyOptions(custom) == [] as CopyOption[]
+        QuiltFileSystemProvider.localCopyOptions(
+            StandardCopyOption.REPLACE_EXISTING, custom, StandardCopyOption.ATOMIC_MOVE, LinkOption.NOFOLLOW_LINKS
+        ) == [StandardCopyOption.REPLACE_EXISTING, LinkOption.NOFOLLOW_LINKS] as CopyOption[]
+    }
+
+    void 'should upload into the package cache when given a non-standard copy option'() {
+        given:
+        QuiltFileSystemProvider provider = new QuiltFileSystemProvider()
+        QuiltPath remoteFile = QuiltPathFactory.parse(
+            "quilt+s3://${QuiltParser.NULL_BUCKET}#package=test%2fcopyopts&path=UPLOAD_${System.nanoTime()}.md"
+        )
+        Path tempFile = Files.createTempDirectory('quilt').resolve('UPLOAD_THIS.md')
+        Files.writeString(tempFile, 'hello')
+        CopyOption skipDir = new CopyOption() {
+            @Override
+            String toString() { return 'SkipDirOption[.fusion]' }
+        }
+
+        when:
+        provider.upload(tempFile, remoteFile, StandardCopyOption.REPLACE_EXISTING, skipDir)
+
+        then:
+        Files.readString(remoteFile.localPath()) == 'hello'
+
+        cleanup:
+        Files.deleteIfExists(remoteFile.localPath())
     }
 
     void 'should fail to upload a file to itself'() {

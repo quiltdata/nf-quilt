@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.0.2] 2026-11-18
+
+- Fix publishing to `quilt+s3://` on Nextflow 26.x: drop non-standard copy options (e.g. `SkipDirOption[.fusion]`) before copying into the local package cache, which previously failed every publish with `UnsupportedOperationException`
+
 ## [1.0.1] 2026-04-30
 
 - Disable Jackson `FAIL_ON_EMPTY_BEANS` so config serialization survives Nextflow 25.10.x dynamic process directive closures that transitively pull in `SecretsLoader$1` (#332)
