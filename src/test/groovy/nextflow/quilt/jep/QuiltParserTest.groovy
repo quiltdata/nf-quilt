@@ -65,6 +65,9 @@ class QuiltParserTest extends QuiltSpecification {
         'B#package=q%2Fp'                 | 'b'      | 'package=q/p'              | 'q/p' | ''     | null   | null
         'B#package=q%2Fp@hash'            | 'b'      | 'package=q/p@hash'         | 'q/p' | ''     | 'hash' | null
         'B#package=q%2Fp:tag&path=a%2Fb'  | 'b'      | 'package=q/p:tag&path=a/b' | 'q/p' | 'a/b'  | null   | 'tag'
+        'B#package=q%2Fp%2Frun'           | 'b'      | 'package=q/p/run'          | 'q/p' | 'run'  | null   | null
+        'B#package=q%2Fp%2Frun&path=a'    | 'b'      | 'package=q/p/run&path=a'   | 'q/p' | 'run/a' | null  | null
+        'B#package=q%2Fp%2Fr%2Fs&path=a%2Fb' | 'b'   | 'package=q/p/r/s&path=a/b' | 'q/p' | 'r/s/a/b' | null | null
     }
 
     void 'should parse package into components'() {

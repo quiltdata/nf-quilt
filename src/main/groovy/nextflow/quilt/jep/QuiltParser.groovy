@@ -159,7 +159,9 @@ class QuiltParser {
             List<String> head = split[0..1]
             List<String> tail = split[2..-1]
             new_pkg = head.join(SEP)
-            paths += tail
+            // Extra package segments come before any `&path=` segments:
+            // `package=ns/name/run&path=sub` is `run/sub`, not `sub/run`
+            paths = (tail + (paths as List<String>)) as String[]
         }
         return new_pkg
     }

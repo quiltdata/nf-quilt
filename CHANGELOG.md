@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.0.3] 2026-11-18
+
+- Fix `QuiltParser` path order when a package URI has extra segments plus `&path=`: `package=ns/name/run&path=sub` now parses to path `run/sub` instead of `sub/run`
+
 ## [1.0.2] 2026-11-18
 
 - Fix publishing to `quilt+s3://` on Nextflow 26.x: drop non-standard copy options (e.g. `SkipDirOption[.fusion]`) before copying into the local package cache, which previously failed every publish with `UnsupportedOperationException`
