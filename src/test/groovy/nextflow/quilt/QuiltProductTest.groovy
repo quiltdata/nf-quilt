@@ -238,7 +238,7 @@ class QuiltProductTest extends QuiltSpecification {
         when:
         QuiltProduct defaultREADME = makeProduct()
         String text = defaultREADME.writeReadme('msg')
-        def files = defaultREADME.match('*')
+        def files = defaultREADME.match(QuiltProduct.README_FILE, defaultREADME.outdirPrefix)
 
         then:
         text.size() > 0
@@ -249,7 +249,7 @@ class QuiltProductTest extends QuiltSpecification {
         String readme_text = 'hasREADME'
         QuiltProduct hasREADME = makeProduct("readme=${readme_text}")
         text = hasREADME.writeReadme('msg')
-        files = hasREADME.match('*')
+        files = hasREADME.match(QuiltProduct.README_FILE, hasREADME.outdirPrefix)
         then:
         text == readme_text
         !hasREADME.shouldSkip(QuiltProduct.KEY_README)
@@ -426,6 +426,10 @@ class QuiltProductTest extends QuiltSpecification {
         's3://bucket/ns/pkg/run-name/'                          | 'run-name'
         's3://bucket/ns/pkg/run-name/sub'                       | 'run-name/sub'
         's3://bucket/ns/pkg/run-name/sub/'                      | 'run-name/sub'
+        's3://bucket/ns/pkg/date=2024-01-01'                    | 'date=2024-01-01'
+        's3://bucket/ns/pkg/run+1&x'                            | 'run+1&x'
+        's3://bucket/ns/pkg/my run'                             | 'my run'
+        's3://BUCKET/ns/pkg/run-name'                           | 'run-name'
         'quilt+s3://bucket#package=ns%2fpkg'                    | ''
         'quilt+s3://bucket#package=ns%2fpkg&path=.'             | ''
         'quilt+s3://bucket?k=v#package=ns%2fpkg&path=run-name'  | 'run-name'
@@ -438,6 +442,21 @@ class QuiltProductTest extends QuiltSpecification {
         's3://bucket/ns'                                        | ''
         's3://bucket/ns/pkg/../escape'                          | ''
         './results'                                             | ''
+    }
+
+    void 'computeOutdirPrefix agrees with how published S3 files map to packages'() {
+        given: 'a file published under the outdir, mapped to a package the way onFilePublish does'
+        QuiltPathify published = new QuiltPathify(Paths.get("/${dir}/sub/out.txt"))
+
+        expect:
+        published.isOverlay
+        QuiltProduct.computeOutdirPrefix("s3://${dir}", published.path) == expected
+
+        where:
+        dir                         | expected
+        'bkt/ns/pkg'                | ''
+        'bkt/ns/pkg/run'            | 'run'
+        'bkt/ns/pkg/run/deeper'     | 'run/deeper'
     }
 
     void 'computeOutdirPrefix accepts a QuiltPath outdir'() {

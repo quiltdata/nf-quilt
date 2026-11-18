@@ -141,7 +141,8 @@ the behavior of the plugin:
 - **summarize**: which files to display on the "front page" of the package via
   `quilt_summarize.json` (default:
   `*.md,*.html,*.?sv,*.pdf,igv.json,**/multiqc_report.html`); use `false` to
-  disable.
+  disable. Globs are relative to the folder `--outdir` points to inside the
+  package (the package root unless `--outdir` is deeper).
 - **workflow**: specify the name of a Quilt workflow on that bucket to use for
   metadata validation (default: None)
 

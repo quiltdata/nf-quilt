@@ -51,6 +51,7 @@ class QuiltProduct {
 
     public final static String README_FILE = 'README_NF_QUILT.md'
     public final static String SUMMARY_FILE = 'quilt_summarize.json'
+    private final static String S3_PREFIX = 's3://'
 
     public final static String KEY_META = 'meta'
     public final static String KEY_MSG = 'message'
@@ -194,17 +195,17 @@ ${nextflow}
             log.warn('computeOutdirPrefix: no `params.outdir`; writing nf-quilt files at the package root')
             return ''
         }
-        QuiltPath outPath = parseOutdir(outdir)
-        if (outPath == null) {
+        Map<String,String> out = parseOutdir(outdir)
+        if (out == null) {
             log.warn("computeOutdirPrefix: cannot resolve outdir `${outdir}` to a Quilt package; using the package root")
             return ''
         }
-        if (outPath.getBucket() != target.getBucket() || outPath.getPackageName() != target.getPackageName()) {
+        if (out.bucket != target.getBucket() || out.pkg != target.getPackageName()) {
             log.warn("computeOutdirPrefix: outdir `${outdir}` is not in package " +
                 "`${target.getBucket()}#${target.getPackageName()}`; using the package root")
             return ''
         }
-        List<String> segments = outPath.sub_paths().split('/').findAll { String seg ->
+        List<String> segments = out.sub.split('/').findAll { String seg ->
             seg && seg != '.'
         } as List<String>
         if (segments.contains('..')) {
@@ -216,23 +217,40 @@ ${nextflow}
         return prefix
     }
 
-    static QuiltPath parseOutdir(Object outdir) {
+    /**
+     * Resolve an outdir to its bucket, package name and sub-path, or null.
+     *
+     * `s3://` outdirs are split directly (no URI round trip, so keys such as
+     * `date=2024-01-01` or `run+1` survive), using the same positional rule as
+     * {@link QuiltPathify#uriFromS3File} for published files: the segments after
+     * the bucket are namespace, name, then the sub-path.
+     * `quilt+s3://` outdirs go through QuiltParser.
+     */
+    static Map<String,String> parseOutdir(Object outdir) {
         if (outdir instanceof QuiltPath) {
-            return (QuiltPath) outdir
+            return quiltOutdir((QuiltPath) outdir)
         }
         String uri = (outdir instanceof Path) ? ((Path) outdir).toUri().toString() : outdir.toString().trim()
         try {
             if (uri.startsWith(QuiltParser.PREFIX)) {
-                return QuiltPathFactory.parse(uri)
+                return quiltOutdir(QuiltPathFactory.parse(uri))
             }
-            if (uri.startsWith('s3://')) {
-                String quiltUri = QuiltPathify.uriFromS3Dir(uri.substring('s3://'.length()))
-                return quiltUri ? QuiltPathFactory.parse(quiltUri) : null
+            if (uri.startsWith(S3_PREFIX)) {
+                String[] parts = uri.substring(S3_PREFIX.length()).replaceFirst('/+$', '').split('/')
+                if (parts.length < 3) {
+                    return null
+                }
+                String sub = parts.length > 3 ? parts[3..-1].join('/') : ''
+                return [bucket: parts[0].toLowerCase(), pkg: "${parts[1]}/${parts[2]}".toString(), sub: sub]
             }
         } catch (Exception e) {
             log.warn("parseOutdir: cannot parse `${uri}`: ${e.message}")
         }
         return null
+    }
+
+    private static Map<String,String> quiltOutdir(QuiltPath outPath) {
+        return [bucket: outPath.getBucket(), pkg: outPath.getPackageName(), sub: outPath.sub_paths()]
     }
 
     String prefixedPath(String relpath) {
@@ -471,11 +489,8 @@ ${nextflow}
             log.debug("writeSummarize: ${paths.size()} matches for ${wildcard}")
             paths.each { path ->
                 String filename = path.getFileName()
-                List<String> names = []
-                for (Path name : path) {
-                    names.add(name.toString())
-                }
-                Map entry = ['path': names.join('/'), 'title': filename]
+                String relpath = path.collect { Path name -> name.toString() }.join('/')
+                Map entry = ['path': relpath, 'title': filename]
                 quilt_summarize.add(entry)
             }
         }
