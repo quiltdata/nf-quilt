@@ -19,7 +19,7 @@ REPORT ?= ./build/reports/tests/test/index.html
 
 .PHONY: all assemble clean test test-all check rebuild install package release verify fast \
         coverage verifyCoverage bump tag \
-        check-env pkg-test dyn-test s3-overlay s3-test s3-in s3-out \
+        check-env pkg-test dyn-test s3-overlay s3-test deep-run s3-in s3-out \
         pkg-fail path-input deps refresh lock
 
 all: assemble
@@ -104,6 +104,11 @@ s3-overlay: install
 
 s3-test: install
 	nextflow run ./main.nf -profile standard -plugins $(PROJECT)@$(VERSION) --outdir "$(S3_BASE)/s3-test" --input "$(S3_BASE)/s3-in"
+
+# Manual smoke test for #341: outdir below the package root; README,
+# quilt_summarize.json and nf-quilt/*.json should land under deep-run/
+deep-run: install
+	nextflow run ./main.nf -profile standard -plugins $(PROJECT)@$(VERSION) --outdir "$(S3_BASE)/s3-test/deep-run" --input "$(S3_BASE)/s3-in"
 
 s3-in: install
 	nextflow run ./main.nf -profile standard -plugins $(PROJECT)@$(VERSION) --outdir "$(TEST_URI)" --input "$(S3_BASE)/s3-in"

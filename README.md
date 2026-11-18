@@ -34,6 +34,13 @@ nextflow run nf-core/sarek -profile test,docker -plugins nf-quilt --outdir "s3:/
 This will automatically create a nicely-formmated Quilt package with all the
 metadata from that run.
 
+The package is named after the first two path components below the bucket
+(here, `nf_quilt/sarek`). If `--outdir` points deeper than that, for example
+`s3://$WRITE_BUCKET/nf_quilt/sarek/run-1`, the generated `README_NF_QUILT.md`,
+`quilt_summarize.json` and `nf-quilt/*.json` files are written to `run-1/`,
+next to that run's outputs, and the summary only lists files in that folder.
+The same applies to a Quilt+ `--outdir` with `&path=run-1`.
+
 ## Use nextflow.config to configure the plugin
 
 To avoid having to manually specify the plugin, you can add it to your
@@ -134,7 +141,8 @@ the behavior of the plugin:
 - **summarize**: which files to display on the "front page" of the package via
   `quilt_summarize.json` (default:
   `*.md,*.html,*.?sv,*.pdf,igv.json,**/multiqc_report.html`); use `false` to
-  disable.
+  disable. Globs are relative to the folder `--outdir` points to inside the
+  package (the package root unless `--outdir` is deeper).
 - **workflow**: specify the name of a Quilt workflow on that bucket to use for
   metadata validation (default: None)
 

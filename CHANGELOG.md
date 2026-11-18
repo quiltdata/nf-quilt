@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.0] 2026-11-18
+
+- When `--outdir` is below the package root (e.g. `s3://bucket/ns/pkg/run-name/` or `quilt+s3://bucket#package=ns%2fpkg&path=run-name`), write `README_NF_QUILT.md`, `quilt_summarize.json` and `nf-quilt/{config,params,workflow}.json` under that sub-path instead of the package root (#341)
+  - `quilt_summarize.json` only lists files under the sub-path, with paths relative to it, so one run's summary no longer includes another run's outputs
+  - **Behavior change:** `summarize` globs (default or from `quilt.summarize`) are now matched relative to that sub-path, not the package root
+  - If `params.outdir` is missing or resolves to a different package, files are written at the package root as before, with a warning
+- Add a `make deep-run` smoke test that publishes with an outdir one level below the package
+
 ## [1.0.4] 2026-11-18
 
 ### Fixes

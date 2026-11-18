@@ -22,6 +22,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import nextflow.quilt.jep.QuiltPackage
 import nextflow.quilt.jep.QuiltParser
 import nextflow.quilt.nio.QuiltPath
+import nextflow.quilt.nio.QuiltPathFactory
 import nextflow.Session
 
 import java.nio.file.attribute.BasicFileAttributes
@@ -50,6 +51,7 @@ class QuiltProduct {
 
     public final static String README_FILE = 'README_NF_QUILT.md'
     public final static String SUMMARY_FILE = 'quilt_summarize.json'
+    private final static String S3_PREFIX = 's3://'
 
     public final static String KEY_META = 'meta'
     public final static String KEY_MSG = 'message'
@@ -152,6 +154,7 @@ ${nextflow}
     protected final QuiltPackage pkg
     protected final Session session
     protected final Map<String, Map<String,Object>> config
+    protected final String outdirPrefix
 
     protected final Map metadata
     protected final Expando flags = new Expando([
@@ -170,12 +173,94 @@ ${nextflow}
         this.config = session.config ?: [:]
         this.path = pathify.path
         this.pkg = pathify.pkg
+        this.outdirPrefix = computeOutdirPrefix(session.getParams()?.get('outdir'), path)
         this.metadata = collectMetadata()
         if (session.isSuccess() || flags.getProperty(QuiltParser.P_FORCE) == true) {
             publish()
         } else {
             log.warn("not publishing: ${pkg} [unsuccessful session]")
         }
+    }
+
+    /**
+     * The part of `params.outdir` below the package root, e.g. `run-name` for
+     * `s3://bucket/ns/pkg/run-name/`. Generated files (README, summarize,
+     * `nf-quilt/*.json`) are written there, next to the run's outputs.
+     *
+     * Returns '' (package root) when outdir is missing, is the package root,
+     * or does not resolve to the same package as the published files.
+     */
+    static String computeOutdirPrefix(Object outdir, QuiltPath target) {
+        if (outdir == null || outdir.toString().trim().isEmpty()) {
+            log.warn('computeOutdirPrefix: no `params.outdir`; writing nf-quilt files at the package root')
+            return ''
+        }
+        Map<String,String> out = parseOutdir(outdir)
+        if (out == null) {
+            log.warn("computeOutdirPrefix: cannot resolve outdir `${outdir}` to a Quilt package; using the package root")
+            return ''
+        }
+        if (out.bucket != target.getBucket() || out.pkg != target.getPackageName()) {
+            log.warn("computeOutdirPrefix: outdir `${outdir}` is not in package " +
+                "`${target.getBucket()}#${target.getPackageName()}`; using the package root")
+            return ''
+        }
+        List<String> segments = out.sub.split('/').findAll { String seg ->
+            seg && seg != '.'
+        } as List<String>
+        if (segments.contains('..')) {
+            log.warn("computeOutdirPrefix: outdir `${outdir}` leaves the package; using the package root")
+            return ''
+        }
+        String prefix = segments.join('/')
+        log.debug("computeOutdirPrefix: `${prefix}` from outdir `${outdir}`")
+        return prefix
+    }
+
+    /**
+     * Resolve an outdir to its bucket, package name and sub-path, or null.
+     *
+     * `s3://` outdirs are split directly (no URI round trip, so keys such as
+     * `date=2024-01-01` or `run+1` survive), using the same positional rule as
+     * {@link QuiltPathify#uriFromS3File} for published files: the segments after
+     * the bucket are namespace, name, then the sub-path.
+     * `quilt+s3://` outdirs go through QuiltParser.
+     */
+    static Map<String,String> parseOutdir(Object outdir) {
+        if (outdir instanceof QuiltPath) {
+            return quiltOutdir((QuiltPath) outdir)
+        }
+        String uri = (outdir instanceof Path) ? pathUri((Path) outdir) : outdir.toString().trim()
+        try {
+            if (uri.startsWith(QuiltParser.PREFIX)) {
+                return quiltOutdir(QuiltPathFactory.parse(uri))
+            }
+            if (uri.startsWith(S3_PREFIX)) {
+                String[] parts = uri.substring(S3_PREFIX.length()).replaceFirst('/+$', '').split('/')
+                if (parts.length < 3) {
+                    return null
+                }
+                String sub = parts.length > 3 ? parts[3..-1].join('/') : ''
+                return [bucket: parts[0].toLowerCase(), pkg: "${parts[1]}/${parts[2]}".toString(), sub: sub]
+            }
+        } catch (Exception e) {
+            log.warn("parseOutdir: cannot parse `${uri}`: ${e.message}")
+        }
+        return null
+    }
+
+    // Decoded form: Path.toUri() percent-encodes (`my run` -> `my%20run`)
+    private static String pathUri(Path outdir) {
+        URI uri = outdir.toUri()
+        return uri.scheme == 's3' ? "${S3_PREFIX}${uri.authority}${uri.path}".toString() : uri.toString()
+    }
+
+    private static Map<String,String> quiltOutdir(QuiltPath outPath) {
+        return [bucket: outPath.getBucket(), pkg: outPath.getPackageName(), sub: outPath.sub_paths()]
+    }
+
+    String prefixedPath(String relpath) {
+        return outdirPrefix ? "${outdirPrefix}/${relpath}" : relpath
     }
 
     Map collectMetadata() {
@@ -268,7 +353,7 @@ ${nextflow}
     }
 
     String writeMapToPackage(Map map, String prefix) {
-        String filename = "nf-quilt/${prefix}.json"
+        String filename = prefixedPath("nf-quilt/${prefix}.json")
         log.debug("writeMapToPackage[$prefix]: ${filename}")
         try {
             writeString(toJson(map), pkg, filename)
@@ -358,14 +443,18 @@ ${nextflow}
         }
         if (text != null && text.length() > 0) {
             log.debug("writeReadme: ${text.length()} bytes")
-            writeString(text, pkg, README_FILE)
+            writeString(text, pkg, prefixedPath(README_FILE))
         }
         return text
     }
 
-    List<Path> match(String glob) throws IOException {
+    /**
+     * Files under {@code base} (package-relative, '' for the root) whose path
+     * relative to {@code base} matches {@code glob}.
+     */
+    List<Path> match(String glob, String base = '') throws IOException {
         String dir = pkg.packageDest()
-        Path folder = Paths.get(dir)
+        Path folder = base ? Paths.get(dir, base.split('/') as String[]) : Paths.get(dir)
         FileSystem fs = FileSystems.getDefault()
         PathMatcher pathMatcher = fs.getPathMatcher("glob:${glob}")
         List<Path> matches = []
@@ -401,18 +490,20 @@ ${nextflow}
         String summarize = flags.getProperty(KEY_SUMMARIZE)
         String[] wildcards = summarize.split(',')
         wildcards.each { wildcard ->
-            List<Path> paths = match(wildcard)
+            // Only this run's files; entries are relative to the summarize file's folder
+            List<Path> paths = match(wildcard, outdirPrefix)
             log.debug("writeSummarize: ${paths.size()} matches for ${wildcard}")
             paths.each { path ->
                 String filename = path.getFileName()
-                Map entry = ['path': path.toString(), 'title': filename]
+                String relpath = path.collect { Path name -> name.toString() }.join('/')
+                Map entry = ['path': relpath, 'title': filename]
                 quilt_summarize.add(entry)
             }
         }
 
         try {
             String qs_json = toJson(quilt_summarize)
-            writeString(qs_json, pkg, SUMMARY_FILE)
+            writeString(qs_json, pkg, prefixedPath(SUMMARY_FILE))
         }
         catch (Exception e) {
             log.error("writeSummarize.toJson failed: ${e.getMessage()}\n{$e}", SUMMARY_FILE)

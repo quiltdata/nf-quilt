@@ -42,7 +42,7 @@ import spock.lang.Unroll
 @CompileDynamic
 class QuiltProductTest extends QuiltSpecification {
 
-    QuiltProduct makeProductFromUrl(String url, boolean success = false) {
+    QuiltProduct makeProductFromUrl(String url, boolean success = false, Object outdir = url) {
         WorkflowMetadata wf_meta = GroovyMock(WorkflowMetadata) {
             toMap() >> [start:'2022-01-01', complete:'2022-01-02']
         }
@@ -50,7 +50,7 @@ class QuiltProductTest extends QuiltSpecification {
         QuiltPathify pathify = new QuiltPathify(path)
         Session session = GroovyMock(Session) {
             getWorkflowMetadata() >> wf_meta
-            getParams() >> [outdir: url]
+            getParams() >> [outdir: outdir]
             isSuccess() >> success
             config >> [quilt: [meta: [cf_key: 'cf_val']]]
         }
@@ -238,7 +238,7 @@ class QuiltProductTest extends QuiltSpecification {
         when:
         QuiltProduct defaultREADME = makeProduct()
         String text = defaultREADME.writeReadme('msg')
-        def files = defaultREADME.match('*')
+        def files = defaultREADME.match(QuiltProduct.README_FILE, defaultREADME.outdirPrefix)
 
         then:
         text.size() > 0
@@ -249,7 +249,7 @@ class QuiltProductTest extends QuiltSpecification {
         String readme_text = 'hasREADME'
         QuiltProduct hasREADME = makeProduct("readme=${readme_text}")
         text = hasREADME.writeReadme('msg')
-        files = hasREADME.match('*')
+        files = hasREADME.match(QuiltProduct.README_FILE, hasREADME.outdirPrefix)
         then:
         text == readme_text
         !hasREADME.shouldSkip(QuiltProduct.KEY_README)
@@ -407,6 +407,132 @@ class QuiltProductTest extends QuiltSpecification {
 
         then:
         true
+    }
+
+    void 'computeOutdirPrefix finds the outdir sub-path inside the package'() {
+        given:
+        QuiltPath target = QuiltPathFactory.parse('quilt+s3://bucket#package=ns%2fpkg&path=run-name%2ffile.txt')
+
+        expect:
+        QuiltProduct.computeOutdirPrefix(outdir, target) == expected
+
+        where:
+        outdir                                                  | expected
+        null                                                    | ''
+        ''                                                      | ''
+        's3://bucket/ns/pkg'                                    | ''
+        's3://bucket/ns/pkg/'                                   | ''
+        's3://bucket/ns/pkg/run-name'                           | 'run-name'
+        's3://bucket/ns/pkg/run-name/'                          | 'run-name'
+        's3://bucket/ns/pkg/run-name/sub'                       | 'run-name/sub'
+        's3://bucket/ns/pkg/run-name/sub/'                      | 'run-name/sub'
+        's3://bucket/ns/pkg/date=2024-01-01'                    | 'date=2024-01-01'
+        's3://bucket/ns/pkg/run+1&x'                            | 'run+1&x'
+        's3://bucket/ns/pkg/my run'                             | 'my run'
+        's3://BUCKET/ns/pkg/run-name'                           | 'run-name'
+        'quilt+s3://bucket#package=ns%2fpkg'                    | ''
+        'quilt+s3://bucket#package=ns%2fpkg&path=.'             | ''
+        'quilt+s3://bucket?k=v#package=ns%2fpkg&path=run-name'  | 'run-name'
+        'quilt+s3://bucket#package=ns%2fpkg&path=run-name%2f'   | 'run-name'
+        'quilt+s3://bucket#package=ns%2fpkg%2frun-name'         | 'run-name'
+        'quilt+s3://bucket#package=ns%2fpkg%2frun&path=sub'     | 'run/sub'
+        's3://other/ns/pkg/run-name'                            | ''
+        's3://bucket/ns/other/run-name'                         | ''
+        'quilt+s3://bucket#package=ns%2fother&path=run-name'    | ''
+        's3://bucket/ns'                                        | ''
+        's3://bucket/ns/pkg/../escape'                          | ''
+        './results'                                             | ''
+    }
+
+    // Paths.get uses backslashes on Windows; real S3 paths always use '/'
+    @IgnoreIf({ System.getProperty('os.name').toLowerCase().contains('windows') })
+    void 'computeOutdirPrefix agrees with how published S3 files map to packages'() {
+        given: 'a file published under the outdir, mapped to a package the way onFilePublish does'
+        QuiltPathify published = new QuiltPathify(Paths.get("/${dir}/sub/out.txt"))
+
+        expect:
+        published.isOverlay
+        QuiltProduct.computeOutdirPrefix("s3://${dir}", published.path) == expected
+
+        where:
+        dir                         | expected
+        'bkt/ns/pkg'                | ''
+        'bkt/ns/pkg/run'            | 'run'
+        'bkt/ns/pkg/run/deeper'     | 'run/deeper'
+    }
+
+    void 'computeOutdirPrefix decodes an S3 Path outdir'() {
+        given:
+        QuiltPath target = QuiltPathFactory.parse('quilt+s3://bucket#package=ns%2fpkg')
+        Path outdir = Mock(Path) {
+            toUri() >> new URI('s3://bucket/ns/pkg/my%20run')
+        }
+
+        expect:
+        QuiltProduct.computeOutdirPrefix(outdir, target) == 'my run'
+    }
+
+    void 'computeOutdirPrefix accepts a QuiltPath outdir'() {
+        given:
+        QuiltPath target = QuiltPathFactory.parse('quilt+s3://bucket#package=ns%2fpkg')
+        QuiltPath outdir = QuiltPathFactory.parse('quilt+s3://bucket#package=ns%2fpkg&path=run-name')
+
+        expect:
+        QuiltProduct.computeOutdirPrefix(outdir, target) == 'run-name'
+    }
+
+    void 'writes README, summarize and nf-quilt files under the outdir sub-path'() {
+        given:
+        String name = "outdir${System.nanoTime()}"
+        String url = "quilt+s3://bkt#package=pre%2f${name}&path=run-name%2fresult.md"
+        QuiltProduct product = makeProductFromUrl(url, false, "s3://bkt/pre/${name}/run-name/")
+        Path root = product.pkg.packageDest()
+        // this run's outputs, plus a file from another run at the package root
+        QuiltProduct.writeString('# result', product.pkg, 'run-name/result.md')
+        QuiltProduct.writeString('<html/>', product.pkg, 'run-name/qc/multiqc_report.html')
+        QuiltProduct.writeString('# other', product.pkg, 'other-run.md')
+
+        when:
+        product.writeReadme('msg')
+        List<Map> summary = product.writeSummarize()
+
+        then:
+        product.outdirPrefix == 'run-name'
+        Files.exists(root.resolve('run-name').resolve(QuiltProduct.README_FILE))
+        Files.exists(root.resolve('run-name').resolve(QuiltProduct.SUMMARY_FILE))
+        ['config', 'params', 'workflow'].every { String f ->
+            Files.exists(root.resolve('run-name').resolve('nf-quilt').resolve("${f}.json"))
+        }
+        !Files.exists(root.resolve(QuiltProduct.README_FILE))
+        !Files.exists(root.resolve(QuiltProduct.SUMMARY_FILE))
+        !Files.exists(root.resolve('nf-quilt'))
+
+        and: 'summarize entries are relative to run-name/ and exclude other runs'
+        summary*.path.toSet() == [QuiltProduct.README_FILE, 'result.md', 'qc/multiqc_report.html'] as Set
+
+        cleanup:
+        product.pkg.reset()
+    }
+
+    void 'writes at the package root when outdir is a different package'() {
+        given:
+        String name = "outdir${System.nanoTime()}"
+        String url = "quilt+s3://bkt#package=pre%2f${name}&path=result.md"
+        QuiltProduct product = makeProductFromUrl(url, false, 's3://bkt/pre/elsewhere/run-name')
+        Path root = product.pkg.packageDest()
+
+        when:
+        product.writeReadme('msg')
+        product.writeSummarize()
+
+        then:
+        product.outdirPrefix == ''
+        Files.exists(root.resolve(QuiltProduct.README_FILE))
+        Files.exists(root.resolve(QuiltProduct.SUMMARY_FILE))
+        Files.exists(root.resolve('nf-quilt').resolve('params.json'))
+
+        cleanup:
+        product.pkg.reset()
     }
 
 }
