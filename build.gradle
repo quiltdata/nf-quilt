@@ -65,7 +65,7 @@ tasks.named('test') { task ->
     task.dependsOn 'jar'
     useJUnitPlatform()
     // Tests otherwise run on the JDK 21 build toolchain, though the plugin
-    // targets Java 17 and Nextflow runs on 17-26.
+    // targets Java 17 and current Nextflow releases run on 17-26.
     if (project.hasProperty('testJavaVersion')) {
         javaLauncher = javaToolchains.launcherFor {
             languageVersion = JavaLanguageVersion.of(project.property('testJavaVersion'))
