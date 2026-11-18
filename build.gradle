@@ -64,6 +64,13 @@ tasks.named('test') { task ->
     task.setDependsOn(task.getDependsOn().findAll { it != tasks.assemble && it != 'assemble' })
     task.dependsOn 'jar'
     useJUnitPlatform()
+    // Tests otherwise run on the JDK 21 build toolchain, though the plugin
+    // targets Java 17 and current Nextflow releases run on 17-26.
+    if (project.hasProperty('testJavaVersion')) {
+        javaLauncher = javaToolchains.launcherFor {
+            languageVersion = JavaLanguageVersion.of(project.property('testJavaVersion'))
+        }
+    }
     // Required to run Nextflow / Groovy reflection-heavy tests on JDK 9+.
     jvmArgs([
         '--add-opens=java.base/java.lang=ALL-UNNAMED',
