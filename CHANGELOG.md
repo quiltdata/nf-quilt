@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.0.4] 2026-11-18
+
+- `QuiltPathify.copyToCache` now places an overlay file at its package sub-path (e.g. `a_folder/FILE.md`) instead of flattening it to the bare filename
+
 ## [1.0.3] 2026-11-18
 
 - Fix `QuiltParser` path order when a package URI has extra segments plus `&path=`: `package=ns/name/run&path=sub` now parses to path `run/sub` instead of `sub/run`
