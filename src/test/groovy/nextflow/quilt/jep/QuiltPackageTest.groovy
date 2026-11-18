@@ -294,8 +294,11 @@ class QuiltPackageTest extends QuiltSpecification {
         Files.writeString(local, 'hashed locally')
         new S3PhysicalKey(writeBucket, "${prefix}/run/local.txt", null).putBytes('hashed locally'.bytes)
         new S3PhysicalKey(writeBucket, "${prefix}/run/dir/remote.txt", null).putBytes('hashed remotely'.bytes)
-        opkg.addRemoteEntry('run/local.txt', local)
-        opkg.addRemoteEntry('run/dir/remote.txt')
+        // e.g. a shallow outdir: the object is not under the package name
+        new S3PhysicalKey(writeBucket, "${prefix}-elsewhere/shallow.txt", null).putBytes('shallow'.bytes)
+        opkg.addRemoteEntry('run/local.txt', "${prefix}/run/local.txt", local)
+        opkg.addRemoteEntry('run/dir/remote.txt', "${prefix}/run/dir/remote.txt")
+        opkg.addRemoteEntry('shallow.txt', "${prefix}-elsewhere/shallow.txt")
         Files.writeString(opkg.packageDest().resolve(QuiltProduct.README_FILE), 'generated')
 
         when:
@@ -303,7 +306,8 @@ class QuiltPackageTest extends QuiltSpecification {
         Map<String,Entry> entries = pushed.getEntries()
 
         then: 'outputs are referenced where they were published, generated files uploaded'
-        entries.keySet() == [QuiltProduct.README_FILE, 'run/dir/remote.txt', 'run/local.txt'] as Set
+        entries.keySet() == [QuiltProduct.README_FILE, 'run/dir/remote.txt', 'run/local.txt', 'shallow.txt'] as Set
+        s3Key(entries['shallow.txt']) == "${prefix}-elsewhere/shallow.txt"
         s3Key(entries['run/local.txt']) == "${prefix}/run/local.txt"
         s3Key(entries['run/dir/remote.txt']) == "${prefix}/run/dir/remote.txt"
         s3Key(entries[QuiltProduct.README_FILE]) == "${prefix}/${QuiltProduct.README_FILE}"
@@ -329,7 +333,7 @@ class QuiltPackageTest extends QuiltSpecification {
     void 'should fail push when a published output is missing'() {
         given:
         QuiltPackage opkg = writeablePackage("remote-missing-${timestamp}")
-        opkg.addRemoteEntry('run/never-published.txt')
+        opkg.addRemoteEntry('run/never-published.txt', "${opkg.getPackageName()}/run/never-published.txt")
         Files.writeString(opkg.packageDest().resolve(QuiltProduct.README_FILE), 'generated')
 
         when:
@@ -348,7 +352,7 @@ class QuiltPackageTest extends QuiltSpecification {
         QuiltPackage opkg = writeablePackage("remote-wf-${timestamp}", 'missing-workflow')
         String key = "${opkg.getPackageName()}/run/out.txt"
         new S3PhysicalKey(writeBucket, key, null).putBytes('output'.bytes)
-        opkg.addRemoteEntry('run/out.txt')
+        opkg.addRemoteEntry('run/out.txt', key)
         Files.writeString(opkg.packageDest().resolve(QuiltProduct.README_FILE), 'generated')
 
         when:
@@ -360,6 +364,26 @@ class QuiltPackageTest extends QuiltSpecification {
 
         cleanup:
         opkg?.reset()
+    }
+
+    void 'addRemoteEntry stops trusting the local copy when a key is published twice'() {
+        given:
+        QuiltPackage opkg = new QuiltPackage(QuiltParser.forUriString('quilt+s3://bkt#package=pre%2fdup'))
+        Path first = Paths.get('/work/a/out.txt')
+        Path second = Paths.get('/work/b/out.txt')
+
+        when: 'the same file is recorded again (e.g. -resume)'
+        opkg.addRemoteEntry('out.txt', 'pre/dup/out.txt', first)
+        opkg.addRemoteEntry('out.txt', 'pre/dup/out.txt', first)
+
+        then:
+        opkg.getRemoteEntries()['out.txt'].localCopy == first
+
+        when: 'a different file is published to the same key'
+        opkg.addRemoteEntry('out.txt', 'pre/dup/out.txt', second)
+
+        then: 'hash the object itself'
+        opkg.getRemoteEntries()['out.txt'] == new QuiltPackage.RemoteEntry('pre/dup/out.txt', null)
     }
 
     private static String s3Key(Entry entry) {

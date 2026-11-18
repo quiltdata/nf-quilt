@@ -22,6 +22,7 @@ import nextflow.Session
 import spock.lang.IgnoreIf
 import java.nio.file.Files
 import nextflow.quilt.jep.QuiltPackage
+import nextflow.quilt.jep.QuiltPackage.RemoteEntry
 //import spock.lang.Ignore
 
 import java.nio.file.Paths
@@ -125,7 +126,7 @@ class QuiltObserverTest extends QuiltSpecification {
         expect:
         pathify.isOverlay
         new QuiltObserver().addOverlay(pathify, destination, source)
-        pathify.pkg.getRemoteEntries() == ['run/out.txt': source.toAbsolutePath()]
+        pathify.pkg.getRemoteEntries() == ['run/out.txt': new RemoteEntry("pre/${name}/run/out.txt", source.toAbsolutePath())]
         !Files.exists(pathify.pkg.packageDest().resolve('run/out.txt'))
 
         cleanup:
@@ -190,7 +191,7 @@ class QuiltObserverTest extends QuiltSpecification {
 
         then:
         observer.countPublishedPaths() == 1
-        pathify.pkg.getRemoteEntries() == ['run/out.txt': source.toAbsolutePath()]
+        pathify.pkg.getRemoteEntries() == ['run/out.txt': new RemoteEntry("test/${name}/run/out.txt", source.toAbsolutePath())]
 
         cleanup:
         pathify?.pkg?.reset()

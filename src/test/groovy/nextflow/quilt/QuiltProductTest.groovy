@@ -231,10 +231,9 @@ class QuiltProductTest extends QuiltSpecification {
         QuiltProduct product = makeProduct()
         product.pkg.reset()
         QuiltProduct.writeString('local', product.pkg, 'local.md')
-        product.pkg.addRemoteEntry('remote.md')
-        product.pkg.addRemoteEntry('run/report.html')
-        product.pkg.addRemoteEntry('run/qc/nested.html')
-        product.pkg.addRemoteEntry('runner/other.html')
+        ['remote.md', 'run/report.html', 'run/qc/nested.html', 'runner/other.html'].each { String key ->
+            product.pkg.addRemoteEntry(key, "pre/suf/${key}")
+        }
 
         expect:
         product.match('*.md')*.toString() as Set == ['local.md', 'remote.md'] as Set

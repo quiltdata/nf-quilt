@@ -5,7 +5,9 @@
 - Packages for `s3://` outdirs now reference the published outputs in place (pinned to their S3 version IDs) instead of copying every output to the head node's temp dir and uploading it again. Only nf-quilt's generated files (README, summary, metadata) are uploaded
   - Hashes come from the task's local output when it is still there and the same size; otherwise the object is streamed from S3 (still no local disk)
   - Directories are listed when published, so the package has exactly this run's files, not stale files left under that S3 prefix
-  - If a recorded output is missing from S3 at the end of the run, the push fails instead of publishing an incomplete package
+  - Entries point at each output's actual S3 key, so outdirs less than two levels below the bucket (package `<prefix>/default_suffix`) work too
+  - If a recorded output can't be read from S3 at the end of the run, the push fails (listing each output and the reason) instead of publishing an incomplete package; this is checked, and the workflow validated, before any output is hashed
+  - If two different files are published to the same key, the hash comes from the S3 object itself
   - `summarize` globs also match these referenced outputs
   - Workflow validation (`quilt.workflow`) still runs before anything is written
 

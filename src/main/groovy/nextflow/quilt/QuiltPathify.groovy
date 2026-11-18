@@ -41,6 +41,8 @@ import groovy.util.logging.Slf4j
 class QuiltPathify  {
 
     boolean isOverlay = false
+    // overlay mode: the published object's key in its bucket (null if unsafe)
+    String s3Key
     QuiltPath path
     QuiltPackage pkg
     String uri
@@ -118,6 +120,7 @@ class QuiltPathify  {
     }
 
     boolean makeQuiltPath(String s3File) {
+        this.s3Key = s3KeyFromPath(s3File)
         String quiltURI = uriFromS3File(s3File)
         this.path = QuiltPathFactory.parse(quiltURI)
         this.uri = this.path.toUriString()
@@ -138,15 +141,25 @@ class QuiltPathify  {
             return false
         }
         String logicalKey = normalizedKey(path.sub_paths())
-        if (!logicalKey) {
+        if (!logicalKey || !s3Key) {
             log.error("addOverlayEntries: refusing sub-path `${path.sub_paths()}` for ${pkg}")
             return false
         }
         if (!Files.isDirectory(from)) {
-            pkg.addRemoteEntry(logicalKey, localCopy(from))
+            pkg.addRemoteEntry(logicalKey, s3Key, localCopy(from))
             return true
         }
         return addOverlayTree(from, logicalKey)
+    }
+
+    /**
+     * The object key of a published S3 path (`/bucket/key...`). This is where
+     * the object really is, even when the package name had to be padded with
+     * `default_prefix`/`default_suffix` (outdir less than two levels deep).
+     */
+    static String s3KeyFromPath(String s3path) {
+        List<String> parts = (s3path ?: '').split('/').findAll { String seg -> seg }
+        return parts.size() < 2 ? null : normalizedKey(parts.drop(1).join('/'))
     }
 
     /**
@@ -188,7 +201,8 @@ class QuiltPathify  {
                     FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
                         if (attrs.isRegularFile()) {
                             String rel = root.relativize(file).collect { Path seg -> seg.toString() }.join('/')
-                            pkg.addRemoteEntry("${logicalKey}/${rel}".toString(), localCopy(file))
+                            pkg.addRemoteEntry("${logicalKey}/${rel}".toString(), "${s3Key}/${rel}".toString(),
+                                localCopy(file))
                         }
                         return FileVisitResult.CONTINUE
                     }

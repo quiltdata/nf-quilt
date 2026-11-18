@@ -18,6 +18,8 @@
 package nextflow.quilt.jep
 
 import groovy.transform.CompileStatic
+import groovy.transform.EqualsAndHashCode
+import groovy.transform.ToString
 import groovy.util.logging.Slf4j
 import java.nio.file.FileSystems
 import java.nio.file.Files
@@ -72,9 +74,27 @@ class QuiltPackage {
     private final Path folder
     private final Map meta
     private boolean installed
-    // Outputs already published to this package's S3 prefix (overlay mode):
-    // logical key -> the task's local copy, if any (only used to hash cheaply)
-    private final Map<String,Path> remoteEntries = Collections.synchronizedMap(new TreeMap<String,Path>())
+    // Outputs already published to this package's bucket (overlay mode)
+    private final Map<String,RemoteEntry> remoteEntries =
+        Collections.synchronizedMap(new TreeMap<String,RemoteEntry>())
+
+    /**
+     * Where a published output lives in the bucket, and the task's local copy
+     * (if any) to hash cheaply instead of streaming the object back.
+     */
+    @EqualsAndHashCode
+    @ToString(includeNames = true)
+    static class RemoteEntry {
+
+        final String s3Key
+        final Path localCopy
+
+        RemoteEntry(String s3Key, Path localCopy = null) {
+            this.s3Key = s3Key
+            this.localCopy = localCopy
+        }
+
+    }
 
     static String osSep() {
         return FileSystems.getDefault().getSeparator()
@@ -180,16 +200,22 @@ class QuiltPackage {
     }
 
     /**
-     * Include an object already published at s3://bucket/packageName/logicalKey
-     * in the package, in place, instead of copying it into packageDest().
+     * Include the object already published at s3://bucket/s3Key in the package
+     * as {@code logicalKey}, in place, instead of copying it into packageDest().
      */
-    void addRemoteEntry(String logicalKey, Path localCopy = null) {
-        remoteEntries.put(logicalKey, localCopy)
+    void addRemoteEntry(String logicalKey, String s3Key, Path localCopy = null) {
+        synchronized (remoteEntries) {
+            RemoteEntry previous = remoteEntries.get(logicalKey)
+            // Published twice from different files: S3 holds whichever landed
+            // last, so only the object itself can be trusted for the hash
+            Path local = (previous != null && previous.localCopy != localCopy) ? null : localCopy
+            remoteEntries.put(logicalKey, new RemoteEntry(s3Key, local))
+        }
     }
 
-    Map<String,Path> getRemoteEntries() {
+    Map<String,RemoteEntry> getRemoteEntries() {
         synchronized (remoteEntries) {
-            return new TreeMap<String,Path>(remoteEntries)
+            return new TreeMap<String,RemoteEntry>(remoteEntries)
         }
     }
 
@@ -340,15 +366,20 @@ class QuiltPackage {
         String prefix = namespace.getName()
         S3Client s3 = S3ClientStore.getClient(bucket)
         SortedMap<String,Entry> localEntries = local.getEntries()
-        Map<String,Path> remotes = getRemoteEntries().findAll { String key, Path p -> !localEntries.containsKey(key) }
+        Map<String,RemoteEntry> remotes = getRemoteEntries().findAll { String key, RemoteEntry r ->
+            !localEntries.containsKey(key)
+        }
         log.info("push[${prefix}]: ${localEntries.size()} generated file(s), ${remotes.size()} published output(s)")
 
-        SortedMap<String,Entry> entries = new TreeMap<String,Entry>(remoteManifestEntries(s3, prefix, remotes))
+        // 1. Find every output (cheap), 2. validate, 3. only then hash them
+        Map<String,Entry> found = headRemoteEntries(s3, remotes)
+        SortedMap<String,Entry> entries = new TreeMap<String,Entry>(found)
         entries.putAll(localEntries)
         Manifest.Builder draft = Manifest.builder()
         draft.setMetadata(local.getMetadata())
         entries.each { String key, Entry entry -> draft.addEntry(key, entry) }
         JsonNode workflowInfo = validate(draft.build(), namespace, message, workflow)
+        entries.putAll(hashRemoteEntries(found, remotes))
 
         ObjectNode metadata = local.getMetadata()
         metadata.put('message', message)
@@ -369,31 +400,48 @@ class QuiltPackage {
         return manifest
     }
 
-    /** Look up (and hash) each published output, in parallel. */
-    Map<String,Entry> remoteManifestEntries(S3Client s3, String prefix, Map<String,Path> remotes) {
+    /**
+     * Look up every published output (HEAD, in parallel): unhashed entries
+     * pinned to the current object version. Fails listing every output that
+     * can't be found or read, with the reason.
+     */
+    Map<String,Entry> headRemoteEntries(S3Client s3, Map<String,RemoteEntry> remotes) {
         Map<String,Entry> result = [:]
-        if (remotes.isEmpty()) {
-            return result
+        List<String> failed = []
+        Map<String,Future<Entry>> futures = submitAll(remotes) { String key, RemoteEntry remote ->
+            headEntry(s3, remote.s3Key)
         }
-        ExecutorService pool = Executors.newFixedThreadPool(Math.min(REMOTE_THREADS, remotes.size()))
+        futures.each { String key, Future<Entry> future ->
+            try {
+                result[key] = future.get()
+            } catch (ExecutionException e) {
+                String reason = e.cause?.message ?: e.cause?.toString()
+                log.error("push: cannot read published output `${key}` at s3://${bucket}/${remotes[key].s3Key}: ${reason}")
+                failed.add("${key} (${reason})".toString())
+            }
+        }
+        if (failed) {
+            throw new IOException("${failed.size()} published output(s) could not be read from s3://${bucket}: " +
+                failed.take(10).join('; '))
+        }
+        return result
+    }
+
+    /** Hash each output (in parallel), stopping at the first failure. */
+    Map<String,Entry> hashRemoteEntries(Map<String,Entry> found, Map<String,RemoteEntry> remotes) {
+        Map<String,Entry> result = [:]
+        ExecutorService pool = newPool(found.size())
         try {
             Map<String,Future<Entry>> futures = [:]
-            remotes.each { String key, Path localCopy ->
-                String s3Key = "${prefix}/${key}"
-                futures[key] = pool.submit({ -> remoteEntry(s3, s3Key, localCopy) } as Callable<Entry>)
+            found.each { String key, Entry entry ->
+                futures[key] = pool.submit({ -> hashEntry(entry, remotes[key].localCopy) } as Callable<Entry>)
             }
-            List<String> missing = []
             futures.each { String key, Future<Entry> future ->
                 try {
                     result[key] = future.get()
                 } catch (ExecutionException e) {
-                    log.error("push: cannot add published output `${key}`: ${e.cause}")
-                    missing.add(key)
+                    throw new IOException("cannot hash published output `${key}`: ${e.cause}", e.cause)
                 }
-            }
-            if (missing) {
-                throw new IOException("${missing.size()} published output(s) missing from s3://${bucket}/${prefix}: " +
-                    missing.take(10).join(', '))
             }
         } finally {
             pool.shutdownNow()
@@ -401,20 +449,42 @@ class QuiltPackage {
         return result
     }
 
-    /**
-     * Entry for the object at s3://bucket/s3Key, pinned to its current version.
-     * Hashes the task's local copy when it is still there and the same size,
-     * otherwise streams the object (no local disk either way).
-     */
-    Entry remoteEntry(S3Client s3, String s3Key, Path localCopy) {
+    private static ExecutorService newPool(int tasks) {
+        return Executors.newFixedThreadPool(Math.max(1, Math.min(REMOTE_THREADS, tasks)))
+    }
+
+    private static Map<String,Future<Entry>> submitAll(Map<String,RemoteEntry> remotes,
+                                                       Closure<Entry> task) {
+        Map<String,Future<Entry>> futures = [:]
+        ExecutorService pool = newPool(remotes.size())
+        try {
+            remotes.each { String key, RemoteEntry remote ->
+                futures[key] = pool.submit({ -> task.call(key, remote) } as Callable<Entry>)
+            }
+        } finally {
+            pool.shutdown() // runs what was submitted, then exits
+        }
+        return futures
+    }
+
+    /** Unhashed entry for the object at s3://bucket/s3Key, pinned to its current version. */
+    Entry headEntry(S3Client s3, String s3Key) {
         HeadObjectRequest request = HeadObjectRequest.builder().bucket(bucket).key(s3Key).build()
         HeadObjectResponse head = s3.headObject(request)
-        long size = head.contentLength()
         S3PhysicalKey physical = new S3PhysicalKey(bucket, s3Key, head.versionId())
+        return new Entry(physical, head.contentLength(), null, null)
+    }
+
+    /**
+     * Hash the task's local copy when it is still there and the same size,
+     * otherwise stream the (version-pinned) object; no local disk either way.
+     */
+    static Entry hashEntry(Entry entry, Path localCopy) {
+        long size = entry.getSize()
         boolean useLocal = localCopy != null && Files.isRegularFile(localCopy) && Files.size(localCopy) == size
-        PhysicalKey source = useLocal ? new LocalPhysicalKey(localCopy.toAbsolutePath()) : physical
+        PhysicalKey source = useLocal ? new LocalPhysicalKey(localCopy.toAbsolutePath()) : entry.getPhysicalKey()
         Entry.Hash hash = new Entry(source, size, null, null).withHash().getHash()
-        return new Entry(physical, size, hash, null)
+        return new Entry(entry.getPhysicalKey(), size, hash, entry.getMetadata())
     }
 
     Entry uploadEntry(S3Client s3, String s3Key, Entry entry) {

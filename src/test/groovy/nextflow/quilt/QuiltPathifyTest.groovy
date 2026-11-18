@@ -17,6 +17,7 @@
 package nextflow.quilt
 
 import nextflow.quilt.jep.QuiltPackage
+import nextflow.quilt.jep.QuiltPackage.RemoteEntry
 import nextflow.quilt.jep.QuiltParser
 import nextflow.quilt.nio.QuiltPath
 import nextflow.quilt.nio.QuiltPathFactory
@@ -156,7 +157,7 @@ class QuiltPathifyTest extends QuiltSpecification {
         pathify.isOverlay
         pathify.path.sub_paths() == sub_path
         added
-        pathify.pkg.getRemoteEntries() == [(sub_path): source.toAbsolutePath()]
+        pathify.pkg.getRemoteEntries() == [(sub_path): new RemoteEntry("pre/suf/${sub_path}", source.toAbsolutePath())]
         !Files.exists(pathify.pkg.packageDest().resolve(sub_path))
 
         cleanup:
@@ -224,8 +225,10 @@ class QuiltPathifyTest extends QuiltSpecification {
         then:
         added
         pathify.pkg.getRemoteEntries() == [
-            'run/reports/qc/multiqc_report.html': source.resolve('qc/multiqc_report.html').toAbsolutePath(),
-            'run/reports/summary.html': source.resolve('summary.html').toAbsolutePath(),
+            'run/reports/qc/multiqc_report.html': new RemoteEntry('pre/suf/run/reports/qc/multiqc_report.html',
+                source.resolve('qc/multiqc_report.html').toAbsolutePath()),
+            'run/reports/summary.html': new RemoteEntry('pre/suf/run/reports/summary.html',
+                source.resolve('summary.html').toAbsolutePath()),
         ]
 
         cleanup:
@@ -262,6 +265,39 @@ class QuiltPathifyTest extends QuiltSpecification {
         cleanup:
         pathify.pkg.reset()
         QuiltPackage.deleteDirectory(work)
+    }
+
+    @IgnoreIf({ System.getProperty('os.name').toLowerCase().contains('windows') })
+    void 'addOverlayEntries uses the real S3 key when the outdir is shallow'() {
+        given: 'a directory published to s3://bkt/results/fastqc (package results/default_suffix)'
+        QuiltPathify pathify = new QuiltPathify(Paths.get('/bkt/results/fastqc'))
+        pathify.pkg.reset()
+        Path source = Files.createTempDirectory('fastqc')
+        Files.writeString(source.resolve('a.html'), 'report')
+
+        expect:
+        pathify.pkg.packageName == "results/${DS}"
+        pathify.addOverlayEntries(source)
+        pathify.pkg.getRemoteEntries() == [
+            'fastqc/a.html': new RemoteEntry('results/fastqc/a.html', source.resolve('a.html').toAbsolutePath()),
+        ]
+
+        cleanup:
+        pathify.pkg.reset()
+        QuiltPackage.deleteDirectory(source)
+    }
+
+    void 's3KeyFromPath: #s3path -> #key'() {
+        expect:
+        QuiltPathify.s3KeyFromPath(s3path) == key
+
+        where:
+        s3path                          | key
+        '/bkt/pre/suf/run/FILE.md'      | 'pre/suf/run/FILE.md'
+        '/bkt/results/fastqc'           | 'results/fastqc'
+        '/bkt/pre/suf/a/../FILE.md'     | 'pre/suf/FILE.md'
+        '/bkt/../escape'                | null
+        '/bkt'                          | null
     }
 
     void 'addOverlayEntries ignores non-overlay paths'() {
