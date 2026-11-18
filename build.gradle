@@ -18,18 +18,37 @@ version = '1.0.1'
 group = 'io.nextflow'
 
 dependencies {
-    implementation 'com.quiltdata:quiltcore:0.1.7'
-    implementation 'com.fasterxml.jackson.core:jackson-databind:2.19.0'
-    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.19.0'
+    implementation('com.quiltdata:quiltcore:0.1.7') {
+        // quiltcore declares log4j 3.0.0-beta (pre-release, has unpatched CVEs)
+        // but never calls it; it only serves as the SLF4J binding. Replaced
+        // below with the patched log4j 2.x binding.
+        exclude group: 'org.apache.logging.log4j'
+    }
+    runtimeOnly 'org.apache.logging.log4j:log4j-slf4j-impl:2.26.1'
+
+    // Force patched versions of quiltcore's transitive deps (it pins
+    // netty 4.2.0.RC1 and vert.x 5.0.0.CR3).
+    implementation platform('com.fasterxml.jackson:jackson-bom:2.23.0')
+    implementation platform('io.netty:netty-bom:4.2.21.Final')
+    constraints {
+        // Not vertx-stack-depchain: that BOM also manages slf4j/log4j versions.
+        implementation 'io.vertx:vertx-core:5.0.12'
+        implementation 'io.vertx:vertx-core-logging:5.0.12'
+        implementation 'io.vertx:vertx-json-schema:5.0.12'
+    }
+
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
     implementation 'commons-io:commons-io:2.22.0'
 }
 
-// Lock resolved versions in gradle.lockfile so vulnerability scanners
-// (MegaLinter's osv-scanner) can see the full dependency tree, and builds are
-// reproducible. After changing dependencies, run `make lock` (Renovate
-// updates the lockfile automatically).
-dependencyLocking {
-    lockAllConfigurations()
+// Lock the shipped (runtime) classpath in gradle.lockfile so vulnerability
+// scanners (MegaLinter's grype/osv-scanner/trivy) see exactly what the plugin
+// bundles. Compile-only deps (nextflow and its transitive deps) are provided by
+// the user's Nextflow install, not shipped, so they aren't locked or scanned.
+// After changing dependencies, run `make lock` (Renovate updates it automatically).
+configurations.runtimeClasspath {
+    resolutionStrategy.activateDependencyLocking()
 }
 
 // The io.nextflow.nextflow-plugin gradle plugin wires `test` to depend on
