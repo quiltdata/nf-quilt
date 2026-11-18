@@ -9,6 +9,7 @@
 - Add a `make deep-run` smoke test that publishes with an outdir one level below the package
 - Fix `s3://` outdirs pushing packages without the run's outputs: each file (or directory) published to a plain S3 outdir is now copied into the package via `copyToCache`, from the task's output or, if that is gone (`publishDir` mode `'move'`, or no source on older Nextflow), from the published copy
   - Published directories are copied in full, following symlinks (staged inputs are links in the work dir)
+  - If any output can't be copied, that package is not pushed (an error names the count), rather than pushing an incomplete package with a SUCCESS message
   - Overlay file names with `+`, `&`, `=`, `%`, `#` or spaces keep their exact names (previously mangled, or a crash for `%`)
 
 ## [1.0.4] 2026-11-18

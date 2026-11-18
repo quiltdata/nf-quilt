@@ -61,6 +61,11 @@ class QuiltPathify  {
         }
         catch (Exception e) {
             log.error("copyFile: cannot write `$source` to `$dest`\n$e")
+            try {
+                Files.deleteIfExists(dest) // don't leave a partial file to be pushed
+            } catch (Exception ignored) {
+                log.debug("copyFile: could not remove partial `$dest`")
+            }
             return false
         }
     }

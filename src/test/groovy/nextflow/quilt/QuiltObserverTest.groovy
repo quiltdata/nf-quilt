@@ -157,6 +157,25 @@ class QuiltObserverTest extends QuiltSpecification {
         'moved away'    | Paths.get('/nonexistent/work/out.txt')
     }
 
+    @IgnoreIf({ System.getProperty('os.name').toLowerCase().contains('windows') })
+    void 'cacheOverlay records a failed copy and blocks publishing that package'() {
+        given: 'neither the task output nor the published copy can be read'
+        QuiltObserver observer = new QuiltObserver()
+        Path destination = Paths.get("/bkt/pre/overlay${System.nanoTime()}/run/out.txt")
+        QuiltPathify pathify = new QuiltPathify(destination)
+        String key = pathify.pkgKey()
+
+        expect:
+        observer.shouldPublish(key)
+        !observer.cacheOverlay(pathify, destination, Paths.get('/nonexistent/out.txt'))
+        observer.countFailedCopies(key) == 1
+        !observer.shouldPublish(key)
+        !Files.exists(pathify.pkg.packageDest().resolve('run/out.txt'))
+
+        cleanup:
+        pathify.pkg.reset()
+    }
+
     @IgnoreIf({ env.WRITE_BUCKET == null || System.getProperty('os.name').toLowerCase().contains('windows') })
     void 'onFilePublish adds a file published to an s3 outdir to the package'() {
         given:
