@@ -8,6 +8,9 @@
     "workarounds:all",
     "helpers:pinGitHubActionDigests"
   ],
+  "constraints": {
+    "java": "21"
+  },
   "packageRules": [
     {
       "description": "One PR for all minor/patch/digest updates",
