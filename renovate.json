@@ -4,9 +4,21 @@
     ":dependencyDashboard",
     ":semanticPrefixFixDepsChoreOthers",
     ":ignoreModulesAndTests",
-    "group:monorepos",
-    "group:recommended",
     "replacements:all",
     "workarounds:all"
+  ],
+  "packageRules": [
+    {
+      "description": "One PR for all minor/patch/digest updates",
+      "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
+      "groupName": "minor dependencies",
+      "groupSlug": "minor"
+    },
+    {
+      "description": "One PR for all major updates",
+      "matchUpdateTypes": ["major"],
+      "groupName": "major dependencies",
+      "groupSlug": "major"
+    }
   ]
 }
