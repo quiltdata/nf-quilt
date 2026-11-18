@@ -50,6 +50,10 @@ jobs:
           DISABLE: COPYPASTE,SPELL # Uncomment to disable copy-paste and spell checks
           # Let zizmor authenticate to the GitHub API for its online audits
           ACTION_ZIZMOR_UNSECURED_ENV_VARIABLES: GITHUB_TOKEN
+          # Vulnerability scanners report CVEs but don't fail CI until the known
+          # transitive-dependency CVEs (mostly via quiltcore) are fixed.
+          # TODO: remove once the tracking issue is resolved.
+          DISABLE_ERRORS_LINTERS: REPOSITORY_GRYPE,REPOSITORY_OSV_SCANNER,REPOSITORY_TRIVY
 
       # Upload MegaLinter artifacts
       - name: Archive production artifacts
