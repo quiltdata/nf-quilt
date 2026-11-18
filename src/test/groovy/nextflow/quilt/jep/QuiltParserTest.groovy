@@ -68,6 +68,19 @@ class QuiltParserTest extends QuiltSpecification {
         'B#package=q%2Fp%2Frun'           | 'b'      | 'package=q/p/run'          | 'q/p' | 'run'  | null   | null
         'B#package=q%2Fp%2Frun&path=a'    | 'b'      | 'package=q/p/run&path=a'   | 'q/p' | 'run/a' | null  | null
         'B#package=q%2Fp%2Fr%2Fs&path=a%2Fb' | 'b'   | 'package=q/p/r/s&path=a/b' | 'q/p' | 'r/s/a/b' | null | null
+        'B#package=q%2Fp%2Frun@h&path=a'  | 'b'      | 'package=q/p/run@h&path=a' | 'q/p' | 'run/a' | 'h'   | null
+        'B#package=q%2Fp%2Frun:t&path=a'  | 'b'      | 'package=q/p/run:t&path=a' | 'q/p' | 'run/a' | null  | 't'
+        'B#package=q%2Fp%2F%2Frun&path=a' | 'b'      | 'package=q/p//run&path=a'  | 'q/p' | 'run/a' | null  | null
+    }
+
+    void 'should round-trip folded package segments into the path'() {
+        expect:
+        QuiltParser.forBarePath(bare).toString() == expected
+
+        where:
+        bare                              | expected
+        'b#package=q%2fp%2frun&path=a'    | 'b#package=q%2fp&path=run%2fa'
+        'b#package=q%2fp%2frun@h&path=a'  | 'b#package=q%2fp@h&path=run%2fa'
     }
 
     void 'should parse package into components'() {
