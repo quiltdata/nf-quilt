@@ -7,6 +7,7 @@ on:
   push: # Comment this line to trigger action only on pull-requests (not recommended if you don't pay for GH Actions)
 
 permissions:
+  contents: read
   issues: write
   pull-requests: write
 
@@ -29,17 +30,18 @@ jobs:
     steps:
       # Git Checkout
       - name: Checkout Code
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }} # secrets.PAT ||
           fetch-depth: 0 # If you use VALIDATE_ALL_CODEBASE = true, you can remove this line to improve performances
+          persist-credentials: false
 
       # MegaLinter
       - name: MegaLinter
         id: ml
         # You can override MegaLinter flavor used to have faster performances
         # More info at https://megalinter.github.io/flavors/
-        uses: oxsecurity/megalinter/flavors/dotnet@v8.8.0
+        uses: oxsecurity/megalinter/flavors/dotnet@f2fe8c1cba37091848df3e524066c8c23ef353ed # v10.2.0
         env:
           # All available variables are described in documentation
           # https://megalinter.github.io/configuration/
@@ -47,10 +49,16 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # ADD YOUR CUSTOM ENV VARIABLES HERE OR DEFINE THEM IN A FILE .mega-linter.yml AT THE ROOT OF YOUR REPOSITORY
           DISABLE: COPYPASTE,SPELL # Uncomment to disable copy-paste and spell checks
+          # Let zizmor authenticate to the GitHub API for its online audits
+          ACTION_ZIZMOR_UNSECURED_ENV_VARIABLES: GITHUB_TOKEN
+          # Vulnerability scanners report CVEs but don't fail CI until the known
+          # transitive-dependency CVEs (mostly via quiltcore) are fixed.
+          # TODO: remove once the CVE fixes land (PR #351).
+          DISABLE_ERRORS_LINTERS: REPOSITORY_GRYPE,REPOSITORY_OSV_SCANNER,REPOSITORY_TRIVY
 
       # Upload MegaLinter artifacts
       - name: Archive production artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: MegaLinter reports
           path: |

@@ -24,6 +24,14 @@ dependencies {
     implementation 'commons-io:commons-io:2.22.0'
 }
 
+// Lock resolved versions in gradle.lockfile so vulnerability scanners
+// (MegaLinter's osv-scanner) can see the full dependency tree, and builds are
+// reproducible. After changing dependencies, run `make lock` (Renovate
+// updates the lockfile automatically).
+dependencyLocking {
+    lockAllConfigurations()
+}
+
 // The io.nextflow.nextflow-plugin gradle plugin wires `test` to depend on
 // `assemble` (which transitively runs `packagePlugin`). On Windows,
 // `packagePlugin` fails with "character to be escaped is missing" because

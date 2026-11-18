@@ -20,7 +20,7 @@ REPORT ?= ./build/reports/tests/test/index.html
 .PHONY: all assemble clean test test-all check rebuild install package release verify fast \
         coverage verifyCoverage bump tag \
         check-env pkg-test dyn-test s3-overlay s3-test s3-in s3-out \
-        pkg-fail path-input deps refresh
+        pkg-fail path-input deps refresh lock
 
 all: assemble
 
@@ -130,3 +130,6 @@ deps:
 
 refresh:
 	./gradlew --refresh-dependencies dependencies
+
+lock:
+	./gradlew dependencies --write-locks
