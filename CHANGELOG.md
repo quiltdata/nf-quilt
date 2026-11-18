@@ -1,23 +1,27 @@
 # Changelog
 
-## [Unreleased]
+## [1.0.4] 2026-11-18
+
+### Fixes
+
+- Fix publishing to `quilt+s3://` on Nextflow 26.x: drop non-standard copy options (e.g. `SkipDirOption[.fusion]`) before copying into the local package cache, which previously failed every publish with `UnsupportedOperationException` (#346)
+- Fix `QuiltParser` path order when a package URI has extra segments plus `&path=`: `package=ns/name/run&path=sub` now parses to path `run/sub` instead of `sub/run` (#349)
+  - **Behavior change:** outputs published to such a `quilt+s3://` outdir now land under `run/sub/...` instead of `sub/run/...`
+- Fold extra package segments into the path even when the package has an `@hash` or `:tag` (`package=ns/name/run@hash` is now package `ns/name`, path `run`), and drop empty segments from `ns/name//run` (#349)
+- `QuiltPathify.copyToCache` places an overlay file at its package sub-path (e.g. `a_folder/FILE.md`) instead of flattening it to the bare filename, overwrites stale cached copies, and refuses sub-paths outside the package folder. The helper is not yet called during publishing, so this does not change run output (#352)
+
+### Security and dependencies
+
+- Fix all CVEs reported in the bundled (runtime) dependencies: netty 4.2.21.Final, vert.x 5.0.12, jackson 2.23.0, and log4j 2.26.1 as the SLF4J binding in place of log4j 3.0.0-beta3. Vulnerability scanners (grype, osv-scanner, trivy) now block CI (#351)
+- Update vert.x to 5.2.3 and `io.nextflow.nextflow-plugin` to 1.0.0-beta.16 (#353)
+- Build with Gradle 9.9.1 (#353, #354)
+- Lock runtime dependencies in `gradle.lockfile` (run `make lock` after changing dependencies by hand) (#347)
+
+### Build and CI
 
 - Build with `./gradlew` from JDK 25: the Gradle daemon now runs on JDK 21, downloading Temurin 21 when no local JDK 21 is found (#345)
 - Run the CI tests on Java 17, 21 and 25 rather than always on the JDK 21 toolchain; `-PtestJavaVersion=<N>` runs them on an installed JDK N (#348)
-
-## [1.0.4] 2026-11-18
-
-- `QuiltPathify.copyToCache` places an overlay file at its package sub-path (e.g. `a_folder/FILE.md`) instead of flattening it to the bare filename, overwrites stale cached copies, and refuses sub-paths outside the package folder. (The helper is not yet called during publishing, so this does not change run output.)
-
-## [1.0.3] 2026-11-18
-
-- Fix `QuiltParser` path order when a package URI has extra segments plus `&path=`: `package=ns/name/run&path=sub` now parses to path `run/sub` instead of `sub/run`
-  - **Behavior change:** outputs published to such a `quilt+s3://` outdir now land under `run/sub/...` instead of `sub/run/...`
-- Fold extra package segments into the path even when the package has an `@hash` or `:tag` (`package=ns/name/run@hash` is now package `ns/name`, path `run`), and drop empty segments from `ns/name//run`
-
-## [1.0.2] 2026-11-18
-
-- Fix publishing to `quilt+s3://` on Nextflow 26.x: drop non-standard copy options (e.g. `SkipDirOption[.fusion]`) before copying into the local package cache, which previously failed every publish with `UnsupportedOperationException`
+- Upgrade MegaLinter to v10 and make it pass; group Renovate updates into one minor and one major PR (#347), run Renovate's Gradle updates on Java 21 (#355), and update the GitHub Actions used by CI (#354)
 
 ## [1.0.1] 2026-04-30
 
