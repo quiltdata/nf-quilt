@@ -230,7 +230,7 @@ ${nextflow}
         if (outdir instanceof QuiltPath) {
             return quiltOutdir((QuiltPath) outdir)
         }
-        String uri = (outdir instanceof Path) ? ((Path) outdir).toUri().toString() : outdir.toString().trim()
+        String uri = (outdir instanceof Path) ? pathUri((Path) outdir) : outdir.toString().trim()
         try {
             if (uri.startsWith(QuiltParser.PREFIX)) {
                 return quiltOutdir(QuiltPathFactory.parse(uri))
@@ -247,6 +247,12 @@ ${nextflow}
             log.warn("parseOutdir: cannot parse `${uri}`: ${e.message}")
         }
         return null
+    }
+
+    // Decoded form: Path.toUri() percent-encodes (`my run` -> `my%20run`)
+    private static String pathUri(Path outdir) {
+        URI uri = outdir.toUri()
+        return uri.scheme == 's3' ? "${S3_PREFIX}${uri.authority}${uri.path}".toString() : uri.toString()
     }
 
     private static Map<String,String> quiltOutdir(QuiltPath outPath) {

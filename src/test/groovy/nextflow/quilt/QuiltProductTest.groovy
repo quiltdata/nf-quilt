@@ -444,6 +444,8 @@ class QuiltProductTest extends QuiltSpecification {
         './results'                                             | ''
     }
 
+    // Paths.get uses backslashes on Windows; real S3 paths always use '/'
+    @IgnoreIf({ System.getProperty('os.name').toLowerCase().contains('windows') })
     void 'computeOutdirPrefix agrees with how published S3 files map to packages'() {
         given: 'a file published under the outdir, mapped to a package the way onFilePublish does'
         QuiltPathify published = new QuiltPathify(Paths.get("/${dir}/sub/out.txt"))
@@ -457,6 +459,17 @@ class QuiltProductTest extends QuiltSpecification {
         'bkt/ns/pkg'                | ''
         'bkt/ns/pkg/run'            | 'run'
         'bkt/ns/pkg/run/deeper'     | 'run/deeper'
+    }
+
+    void 'computeOutdirPrefix decodes an S3 Path outdir'() {
+        given:
+        QuiltPath target = QuiltPathFactory.parse('quilt+s3://bucket#package=ns%2fpkg')
+        Path outdir = Mock(Path) {
+            toUri() >> new URI('s3://bucket/ns/pkg/my%20run')
+        }
+
+        expect:
+        QuiltProduct.computeOutdirPrefix(outdir, target) == 'my run'
     }
 
     void 'computeOutdirPrefix accepts a QuiltPath outdir'() {
