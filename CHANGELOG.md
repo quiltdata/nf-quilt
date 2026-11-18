@@ -1,5 +1,9 @@
 # Changelog
 
+## [Unreleased]
+
+- Pin the Gradle daemon to JDK 21 via `gradle/gradle-daemon-jvm.properties` (auto-provisioning Temurin 21 when absent), so `./gradlew` works when launched from JDK 25+
+
 ## [1.0.4] 2026-11-18
 
 - `QuiltPathify.copyToCache` places an overlay file at its package sub-path (e.g. `a_folder/FILE.md`) instead of flattening it to the bare filename, overwrites stale cached copies, and refuses sub-paths outside the package folder. (The helper is not yet called during publishing, so this does not change run output.)
