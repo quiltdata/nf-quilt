@@ -16,6 +16,7 @@
  */
 package nextflow.quilt
 
+import nextflow.quilt.jep.QuiltPackage
 import nextflow.quilt.jep.QuiltParser
 import nextflow.quilt.nio.QuiltPath
 import nextflow.quilt.nio.QuiltPathFactory
@@ -139,31 +140,83 @@ class QuiltPathifyTest extends QuiltSpecification {
     }
 
     @IgnoreIf({ System.getProperty('os.name').toLowerCase().contains('windows') })
-    void 'test copyToCache copies overlay file to package folder'() {
+    void 'test copyToCache copies overlay file to its package sub-path'() {
+        given:
+        // Publish destination: bucket/ns/name come from the first three segments
+        QuiltPathify pathify = new QuiltPathify(Paths.get("/bkt/pre/suf/${sub_path}"))
+        Path destDir = pathify.pkg.packageDest()
+        Path dest = destDir.resolve(sub_path)
+        Path tempFolder = Files.createTempDirectory('src')
+        Path source = tempFolder.resolve('source.md')
+        Files.writeString(source, 'hello')
+
         when:
-        Path tempFolder = Files.createTempDirectory('bkt')
-        Path source = Paths.get(tempFolder.toString(), sub_path)
-        Files.createDirectories(source.getParent())
-        Files.createFile(source)
+        boolean copied = pathify.copyToCache(source)
 
         then:
-        Files.exists(source)
+        pathify.isOverlay
+        pathify.path.sub_paths() == sub_path
+        copied
+        Files.readString(dest) == 'hello'
 
-        when:
-        QuiltPathify pathify = new QuiltPathify(source)
-        Path destFolder = pathify.pkg.packageDest()
-        String file = source.getFileName()
-        Path dest = Paths.get(destFolder.toString(), file)
+        when: 'copied again (e.g. -resume)'
+        Files.writeString(source, 'updated')
         pathify.copyToCache(source)
 
         then:
-        pathify.isOverlay == true
-        Files.exists(dest)
-        Files.delete(dest)
-        Files.delete(source)
+        Files.readString(dest) == 'updated'
+
+        cleanup:
+        QuiltPackage.deleteDirectory(destDir.resolve(sub_path.split('/')[0]))
+        QuiltPackage.deleteDirectory(tempFolder)
 
         where:
-        sub_path  << ['FILE.md']
+        sub_path << ['FILE.md', 'a_folder/FILE.md', 'a/b/FILE.md']
+    }
+
+    @IgnoreIf({ System.getProperty('os.name').toLowerCase().contains('windows') })
+    void 'test copyToCache copies to the normalized sub-path'() {
+        given:
+        QuiltPathify pathify = new QuiltPathify(Paths.get('/bkt/pre/suf/missing_dir/../NORM.md'))
+        Path dest = pathify.pkg.packageDest().resolve('NORM.md')
+        Path source = Files.createTempFile('src', '.md')
+
+        expect:
+        pathify.copyToCache(source)
+        Files.exists(dest)
+
+        cleanup:
+        Files.deleteIfExists(dest)
+        Files.deleteIfExists(source)
+    }
+
+    @IgnoreIf({ System.getProperty('os.name').toLowerCase().contains('windows') })
+    void 'test copyToCache reports a failed copy'() {
+        given:
+        QuiltPathify pathify = new QuiltPathify(Paths.get('/bkt/pre/suf/MISSING_SOURCE.md'))
+
+        expect:
+        !pathify.copyToCache(Paths.get('/nonexistent/source.md'))
+    }
+
+    @IgnoreIf({ System.getProperty('os.name').toLowerCase().contains('windows') })
+    void 'test copyToCache refuses sub-paths that escape the package folder'() {
+        given:
+        QuiltPathify pathify = new QuiltPathify(Paths.get('/bkt/pre/suf/../../escape/FILE.md'))
+        Path source = Files.createTempFile('src', '.md')
+
+        expect:
+        !pathify.copyToCache(source)
+        !Files.exists(pathify.pkg.packageDest().resolve('../../escape/FILE.md').normalize())
+
+        cleanup:
+        Files.deleteIfExists(source)
+    }
+
+    void 'test copyToCache ignores non-overlay paths'() {
+        expect:
+        !new QuiltPathify(QuiltPathFactory.parse('quilt+s3://bkt#package=pre%2fsuf&path=FILE.md'))
+            .copyToCache(Paths.get('unused'))
     }
 
 }
