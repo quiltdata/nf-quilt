@@ -175,6 +175,31 @@ class QuiltPathifyTest extends QuiltSpecification {
     }
 
     @IgnoreIf({ System.getProperty('os.name').toLowerCase().contains('windows') })
+    void 'test copyToCache copies to the normalized sub-path'() {
+        given:
+        QuiltPathify pathify = new QuiltPathify(Paths.get('/bkt/pre/suf/missing_dir/../NORM.md'))
+        Path dest = pathify.pkg.packageDest().resolve('NORM.md')
+        Path source = Files.createTempFile('src', '.md')
+
+        expect:
+        pathify.copyToCache(source)
+        Files.exists(dest)
+
+        cleanup:
+        Files.deleteIfExists(dest)
+        Files.deleteIfExists(source)
+    }
+
+    @IgnoreIf({ System.getProperty('os.name').toLowerCase().contains('windows') })
+    void 'test copyToCache reports a failed copy'() {
+        given:
+        QuiltPathify pathify = new QuiltPathify(Paths.get('/bkt/pre/suf/MISSING_SOURCE.md'))
+
+        expect:
+        !pathify.copyToCache(Paths.get('/nonexistent/source.md'))
+    }
+
+    @IgnoreIf({ System.getProperty('os.name').toLowerCase().contains('windows') })
     void 'test copyToCache refuses sub-paths that escape the package folder'() {
         given:
         QuiltPathify pathify = new QuiltPathify(Paths.get('/bkt/pre/suf/../../escape/FILE.md'))

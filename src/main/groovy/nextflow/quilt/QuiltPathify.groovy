@@ -45,14 +45,19 @@ class QuiltPathify  {
     /*
      * Copy a file from source to destRoot/relpath
      */
-    static void copyFile(Path source, String destRoot, String relpath) {
-        Path dest  = Paths.get(destRoot, relpath.split('/') as String[])
+    static boolean copyFile(Path source, String destRoot, String relpath) {
+        return copyFile(source, Paths.get(destRoot, relpath.split('/') as String[]))
+    }
+
+    static boolean copyFile(Path source, Path dest) {
         try {
             dest.getParent().toFile().mkdirs() // ensure directories exist first
             Files.copy(source, dest, StandardCopyOption.REPLACE_EXISTING)
+            return true
         }
         catch (Exception e) {
-            log.error("copyFile: cannot write `$source` to `$dest` in `${destRoot}`\n$e")
+            log.error("copyFile: cannot write `$source` to `$dest`\n$e")
+            return false
         }
     }
 
@@ -136,14 +141,13 @@ class QuiltPathify  {
         // Place the file at its logical path inside the package (the publish
         // destination's sub-path), not just its bare filename
         String localPath = path.sub_paths()
-        Path destDir = pkg.packageDest()
-        Path dest = destDir.resolve(localPath).normalize()
-        if (!localPath || !dest.startsWith(destDir.normalize())) {
+        Path destDir = pkg.packageDest().normalize()
+        Path dest = destDir.resolve(localPath ?: '').normalize()
+        if (dest == destDir || !dest.startsWith(destDir)) {
             log.error("copyToCache: refusing sub-path `$localPath` outside ${destDir}")
             return false
         }
-        copyFile(source, destDir.toString(), localPath)
-        return true
+        return copyFile(source, dest)
     }
 
     boolean isBucketAccessible() {
