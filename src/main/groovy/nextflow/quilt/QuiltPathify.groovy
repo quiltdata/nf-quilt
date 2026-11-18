@@ -24,6 +24,7 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
+import java.util.stream.Stream
 
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
@@ -147,7 +148,29 @@ class QuiltPathify  {
             log.error("copyToCache: refusing sub-path `$localPath` outside ${destDir}")
             return false
         }
-        return copyFile(source, dest)
+        return Files.isDirectory(source) ? copyTree(source, dest) : copyFile(source, dest)
+    }
+
+    /**
+     * Copy every regular file under {@code source} to the same relative path
+     * under {@code dest} (publishDir can publish whole directories).
+     */
+    static boolean copyTree(Path source, Path dest) {
+        boolean ok = true
+        Stream<Path> stream = Files.walk(source)
+        try {
+            Iterator<Path> files = stream.iterator()
+            while (files.hasNext()) {
+                Path file = files.next()
+                if (Files.isRegularFile(file)) {
+                    String rel = source.relativize(file).toString()
+                    ok = copyFile(file, dest.resolve(rel)) && ok
+                }
+            }
+        } finally {
+            stream.close()
+        }
+        return ok
     }
 
     boolean isBucketAccessible() {

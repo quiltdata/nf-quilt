@@ -213,6 +213,29 @@ class QuiltPathifyTest extends QuiltSpecification {
         Files.deleteIfExists(source)
     }
 
+    @IgnoreIf({ System.getProperty('os.name').toLowerCase().contains('windows') })
+    void 'test copyToCache copies a published directory tree'() {
+        given:
+        QuiltPathify pathify = new QuiltPathify(Paths.get('/bkt/pre/suf/run/reports'))
+        Path destDir = pathify.pkg.packageDest()
+        Path source = Files.createTempDirectory('reports')
+        Files.createDirectories(source.resolve('qc'))
+        Files.writeString(source.resolve('summary.html'), 'top')
+        Files.writeString(source.resolve('qc').resolve('multiqc_report.html'), 'nested')
+
+        when:
+        boolean copied = pathify.copyToCache(source)
+
+        then:
+        copied
+        Files.readString(destDir.resolve('run/reports/summary.html')) == 'top'
+        Files.readString(destDir.resolve('run/reports/qc/multiqc_report.html')) == 'nested'
+
+        cleanup:
+        QuiltPackage.deleteDirectory(destDir.resolve('run'))
+        QuiltPackage.deleteDirectory(source)
+    }
+
     void 'test copyToCache ignores non-overlay paths'() {
         expect:
         !new QuiltPathify(QuiltPathFactory.parse('quilt+s3://bkt#package=pre%2fsuf&path=FILE.md'))

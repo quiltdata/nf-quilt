@@ -7,6 +7,7 @@
   - **Behavior change:** `summarize` globs (default or from `quilt.summarize`) are now matched relative to that sub-path, not the package root
   - If `params.outdir` is missing or resolves to a different package, files are written at the package root as before, with a warning
 - Add a `make deep-run` smoke test that publishes with an outdir one level below the package
+- Fix `s3://` outdirs pushing packages without the run's outputs: each file (or directory) published to a plain S3 outdir is now copied into the package via `copyToCache`, from the task's output or, if that is gone (`publishDir` mode `'move'`, or no source on older Nextflow), from the published copy
 
 ## [1.0.4] 2026-11-18
 

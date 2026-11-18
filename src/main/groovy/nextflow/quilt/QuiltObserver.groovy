@@ -18,6 +18,7 @@ package nextflow.quilt
 import nextflow.Session
 import nextflow.trace.TraceObserver
 
+import java.nio.file.Files
 import java.nio.file.Path
 import java.util.concurrent.locks.Lock
 import java.util.concurrent.locks.ReentrantLock
@@ -83,11 +84,24 @@ class QuiltObserver implements TraceObserver {
             log.debug("onFilePublish.isBucketAccessible[false]: $pathify")
             return
         }
-        if (pathify.isOverlay && source == null) {
-            log.error("onFilePublish.isOverlay: no source for $pathify")
-            return
+        if (pathify.isOverlay && !cacheOverlay(pathify, destination, source)) {
+            log.error("onFilePublish.isOverlay: could not add $destination to $pathify")
         }
         checkExtractedPath(pathify)
+    }
+
+    /**
+     * Copy a file published to a plain (non-Quilt) S3 outdir into the local
+     * package folder, so the package pushed at the end of the run contains the
+     * run's outputs, not just nf-quilt's generated files.
+     *
+     * Prefers the task's local output; falls back to the published copy when
+     * there is no source (older Nextflow) or it is gone (publishDir mode 'move').
+     */
+    boolean cacheOverlay(QuiltPathify pathify, Path destination, Path source) {
+        Path from = (source != null && Files.exists(source)) ? source : destination
+        log.debug("cacheOverlay: $from -> $pathify")
+        return pathify.copyToCache(from)
     }
 
     @Override
