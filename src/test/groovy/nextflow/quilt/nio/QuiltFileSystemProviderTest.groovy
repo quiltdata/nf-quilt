@@ -8,6 +8,7 @@ import java.nio.file.Paths
 import java.nio.file.Files
 import java.nio.file.CopyOption
 import java.nio.file.StandardCopyOption
+import java.nio.file.LinkOption
 import java.nio.file.DirectoryStream
 import groovy.util.logging.Slf4j
 import spock.lang.IgnoreIf
@@ -130,6 +131,36 @@ class QuiltFileSystemProviderTest extends QuiltSpecification {
         then:
         Files.exists(remoteFile)
         Files.size(remoteFile) > 0
+    }
+
+    void 'should drop non-standard copy options such as Nextflow SkipDirOption'() {
+        given:
+        CopyOption custom = new CopyOption() {
+            @Override
+            String toString() { return 'SkipDirOption[.fusion]' }
+        }
+
+        expect:
+        QuiltFileSystemProvider.localCopyOptions(null) == [] as CopyOption[]
+        QuiltFileSystemProvider.localCopyOptions(custom) == [] as CopyOption[]
+        QuiltFileSystemProvider.localCopyOptions(
+            StandardCopyOption.REPLACE_EXISTING, custom, LinkOption.NOFOLLOW_LINKS
+        ) == [StandardCopyOption.REPLACE_EXISTING, LinkOption.NOFOLLOW_LINKS] as CopyOption[]
+    }
+
+    void 'should copy a local file with a non-standard copy option'() {
+        given:
+        Path dir = Files.createTempDirectory('quilt')
+        Path src = dir.resolve('src.txt')
+        Path dst = dir.resolve('dst.txt')
+        Files.writeString(src, 'hello')
+        CopyOption custom = new CopyOption() { }
+
+        when:
+        Files.copy(src, dst, QuiltFileSystemProvider.localCopyOptions(custom, StandardCopyOption.REPLACE_EXISTING))
+
+        then:
+        Files.readString(dst) == 'hello'
     }
 
     void 'should fail to upload a file to itself'() {

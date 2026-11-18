@@ -34,6 +34,7 @@ import java.nio.file.NoSuchFileException
 import java.nio.file.OpenOption
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.nio.file.StandardCopyOption
 import java.nio.file.attribute.BasicFileAttributeView
 import java.nio.file.attribute.BasicFileAttributes
 import java.nio.file.attribute.FileAttribute
@@ -144,6 +145,27 @@ class QuiltFileSystemProvider extends FileSystemProvider implements FileSystemTr
         return source instanceof QuiltPath && FileSystems.getDefault() == target.getFileSystem()
     }
 
+    /**
+     * Keep only the copy options the default filesystem understands.
+     *
+     * Nextflow 26.x adds its own options (e.g. `SkipDirOption[.fusion]`) when
+     * publishing; `Files.copy` on the local cache rejects them with
+     * `UnsupportedOperationException`, so drop anything non-standard.
+     */
+    static CopyOption[] localCopyOptions(CopyOption... options) {
+        if (options == null) {
+            return new CopyOption[0]
+        }
+        List<CopyOption> kept = options.findAll { CopyOption opt ->
+            boolean ok = opt instanceof StandardCopyOption || opt instanceof LinkOption
+            if (opt != null && !ok) {
+                log.debug "localCopyOptions: ignoring unsupported copy option ${opt}"
+            }
+            return ok
+        } as List<CopyOption>
+        return kept as CopyOption[]
+    }
+
     void download(Path remoteFile, Path localDestination, CopyOption... options) throws IOException {
         log.debug "QuiltFileSystemProvider.download: ${remoteFile} -> ${localDestination}"
         QuiltPath qPath = asQuiltPath(remoteFile)
@@ -168,7 +190,7 @@ class QuiltFileSystemProvider extends FileSystemProvider implements FileSystemTr
         if (Files.isDirectory(cachedFile)) {
             FileUtils.copyDirectory(cachedFile.toFile(), localDestination.toFile())
         } else {
-            Files.copy(cachedFile, localDestination, options)
+            Files.copy(cachedFile, localDestination, localCopyOptions(options))
         }
     }
 
@@ -192,7 +214,7 @@ class QuiltFileSystemProvider extends FileSystemProvider implements FileSystemTr
         if (!Files.exists(localFile)) {
             throw new NoSuchFileException(localFile.toString())
         }
-        Files.copy(localFile, cachedFile, options)
+        Files.copy(localFile, cachedFile, localCopyOptions(options))
     }
 
     /**
