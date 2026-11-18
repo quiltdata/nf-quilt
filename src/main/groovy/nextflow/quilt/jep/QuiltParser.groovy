@@ -128,8 +128,11 @@ class QuiltParser {
         Map<String,Object> metadata = [:]
     ) {
         this.bucket = bucket
-        this.paths = path ? path.split(SEP) : [] as String[]
-        this.packageName = parsePkg(pkg)
+        // Segments after ns/name in `package=` lead the `&path=` segments
+        List<String> extra = []
+        this.packageName = parsePkg(pkg, extra)
+        List<String> given = path ? (path.split(SEP) as List<String>) : []
+        this.paths = (extra + given) as String[]
         this.workflowName = options.get(P_WORK)
         this.catalogName = options.get(P_CAT)
         this.options = options
@@ -137,31 +140,36 @@ class QuiltParser {
         // log.debug("QuiltParser[${bucket}] for ${packageName} in ${path}")
     }
 
-    String parsePkg(String pkg) {
+    /**
+     * Parse a `package=` value into its `ns/name`, setting any hash or tag.
+     *
+     * Segments beyond `ns/name` (e.g. `ns/name/run`) are not part of the
+     * package; they are added to {@code extra} (if given) for use as the
+     * leading part of the path.
+     */
+    String parsePkg(String pkg, List<String> extra = null) {
         if (!pkg) { return null }
         if (!pkg.contains('/')) {
             log.error("Invalid package[$pkg]")
             return null
         }
-        if (pkg.contains('@')) {
-            def split = pkg.split('@')
+        String name = pkg
+        if (name.contains('@')) {
+            String[] split = name.split('@')
             hash = split[1]
-            return split[0]
-        }
-        if (pkg.contains(':')) {
-            def split = pkg.split(':')
+            name = split[0]
+        } else if (name.contains(':')) {
+            String[] split = name.split(':')
             tag = split[1]
-            return split[0]
+            name = split[0]
         }
-        String new_pkg = pkg
-        String[] split = pkg.split(SEP)
+        String[] split = name.split(SEP)
         if (split.size() > MIN_SIZE) {
-            List<String> head = split[0..1]
-            List<String> tail = split[2..-1]
-            new_pkg = head.join(SEP)
-            paths += tail
+            name = split[0..1].join(SEP)
+            List<String> tail = split[2..-1].findAll { String seg -> seg }
+            extra?.addAll(tail)
         }
-        return new_pkg
+        return name
     }
 
     QuiltParser appendPath(String tail) {
