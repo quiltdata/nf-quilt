@@ -32,6 +32,7 @@ import java.nio.file.attribute.BasicFileAttributes
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
 import java.nio.charset.StandardCharsets
+import java.security.MessageDigest
 import java.util.concurrent.Callable
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.ExecutorService
@@ -113,7 +114,9 @@ class QuiltPackage {
         PKGS.clear()
     }
 
-    static QuiltPackage forParsed(QuiltParser parsed) {
+    // synchronized: publish callbacks run in parallel, and every output of a
+    // package must be recorded on the same instance
+    static synchronized QuiltPackage forParsed(QuiltParser parsed) {
         boolean isNull = parsed.hasNullBucket()
         if (isNull && !PKGS.isEmpty()) {
             return PKGS.values().last()
@@ -366,15 +369,16 @@ class QuiltPackage {
         String prefix = namespace.getName()
         S3Client s3 = S3ClientStore.getClient(bucket)
         SortedMap<String,Entry> localEntries = local.getEntries()
-        Map<String,RemoteEntry> remotes = getRemoteEntries().findAll { String key, RemoteEntry r ->
-            !localEntries.containsKey(key)
-        }
-        log.info("push[${prefix}]: ${localEntries.size()} generated file(s), ${remotes.size()} published output(s)")
+        Map<String,RemoteEntry> remotes = getRemoteEntries()
+        // This run's outputs win over files left in packageDest() from an
+        // installed earlier revision (as when 1.1.0 copied over them)
+        Map<String,Entry> locals = localEntries.findAll { String key, Entry e -> !remotes.containsKey(key) }
+        log.info("push[${prefix}]: ${locals.size()} local file(s), ${remotes.size()} published output(s)")
 
         // 1. Find every output (cheap), 2. validate, 3. only then hash them
-        Map<String,Entry> found = headRemoteEntries(s3, remotes)
-        SortedMap<String,Entry> entries = new TreeMap<String,Entry>(found)
-        entries.putAll(localEntries)
+        Map<String,Found> found = headRemoteEntries(s3, remotes)
+        SortedMap<String,Entry> entries = new TreeMap<String,Entry>(locals)
+        found.each { String key, Found f -> entries[key] = f.entry }
         Manifest.Builder draft = Manifest.builder()
         draft.setMetadata(local.getMetadata())
         entries.each { String key, Entry entry -> draft.addEntry(key, entry) }
@@ -405,13 +409,13 @@ class QuiltPackage {
      * pinned to the current object version. Fails listing every output that
      * can't be found or read, with the reason.
      */
-    Map<String,Entry> headRemoteEntries(S3Client s3, Map<String,RemoteEntry> remotes) {
-        Map<String,Entry> result = [:]
+    Map<String,Found> headRemoteEntries(S3Client s3, Map<String,RemoteEntry> remotes) {
+        Map<String,Found> result = [:]
         List<String> failed = []
-        Map<String,Future<Entry>> futures = submitAll(remotes) { String key, RemoteEntry remote ->
+        Map<String,Future<Found>> futures = submitAll(remotes) { String key, RemoteEntry remote ->
             headEntry(s3, remote.s3Key)
         }
-        futures.each { String key, Future<Entry> future ->
+        futures.each { String key, Future<Found> future ->
             try {
                 result[key] = future.get()
             } catch (ExecutionException e) {
@@ -428,13 +432,13 @@ class QuiltPackage {
     }
 
     /** Hash each output (in parallel), stopping at the first failure. */
-    Map<String,Entry> hashRemoteEntries(Map<String,Entry> found, Map<String,RemoteEntry> remotes) {
+    Map<String,Entry> hashRemoteEntries(Map<String,Found> found, Map<String,RemoteEntry> remotes) {
         Map<String,Entry> result = [:]
         ExecutorService pool = newPool(found.size())
         try {
             Map<String,Future<Entry>> futures = [:]
-            found.each { String key, Entry entry ->
-                futures[key] = pool.submit({ -> hashEntry(entry, remotes[key].localCopy) } as Callable<Entry>)
+            found.each { String key, Found f ->
+                futures[key] = pool.submit({ -> hashEntry(f, remotes[key].localCopy) } as Callable<Entry>)
             }
             futures.each { String key, Future<Entry> future ->
                 try {
@@ -453,13 +457,13 @@ class QuiltPackage {
         return Executors.newFixedThreadPool(Math.max(1, Math.min(REMOTE_THREADS, tasks)))
     }
 
-    private static Map<String,Future<Entry>> submitAll(Map<String,RemoteEntry> remotes,
-                                                       Closure<Entry> task) {
-        Map<String,Future<Entry>> futures = [:]
+    private static Map<String,Future<Found>> submitAll(Map<String,RemoteEntry> remotes,
+                                                       Closure<Found> task) {
+        Map<String,Future<Found>> futures = [:]
         ExecutorService pool = newPool(remotes.size())
         try {
             remotes.each { String key, RemoteEntry remote ->
-                futures[key] = pool.submit({ -> task.call(key, remote) } as Callable<Entry>)
+                futures[key] = pool.submit({ -> task.call(key, remote) } as Callable<Found>)
             }
         } finally {
             pool.shutdown() // runs what was submitted, then exits
@@ -467,24 +471,145 @@ class QuiltPackage {
         return futures
     }
 
+    /** An unhashed entry for a published object, and its ETag. */
+    static class Found {
+
+        final Entry entry
+        final String etag
+
+        Found(Entry entry, String etag) {
+            this.entry = entry
+            this.etag = etag
+        }
+
+    }
+
     /** Unhashed entry for the object at s3://bucket/s3Key, pinned to its current version. */
-    Entry headEntry(S3Client s3, String s3Key) {
+    Found headEntry(S3Client s3, String s3Key) {
         HeadObjectRequest request = HeadObjectRequest.builder().bucket(bucket).key(s3Key).build()
         HeadObjectResponse head = s3.headObject(request)
         S3PhysicalKey physical = new S3PhysicalKey(bucket, s3Key, head.versionId())
-        return new Entry(physical, head.contentLength(), null, null)
+        return new Found(new Entry(physical, head.contentLength(), null, null), head.eTag())
     }
 
     /**
-     * Hash the task's local copy when it is still there and the same size,
-     * otherwise stream the (version-pinned) object; no local disk either way.
+     * Hash the task's local copy when it provably has the same bytes as the
+     * pinned S3 version (its MD5 matches the ETag); otherwise stream the
+     * object itself. No local disk either way.
      */
-    static Entry hashEntry(Entry entry, Path localCopy) {
-        long size = entry.getSize()
-        boolean useLocal = localCopy != null && Files.isRegularFile(localCopy) && Files.size(localCopy) == size
-        PhysicalKey source = useLocal ? new LocalPhysicalKey(localCopy.toAbsolutePath()) : entry.getPhysicalKey()
-        Entry.Hash hash = new Entry(source, size, null, null).withHash().getHash()
-        return new Entry(entry.getPhysicalKey(), size, hash, entry.getMetadata())
+    static Entry hashEntry(Found found, Path localCopy) {
+        Entry entry = found.entry
+        String sha256 = localSha256(localCopy, entry.getSize(), found.etag)
+        Entry.Hash hash = sha256
+            ? new Entry.Hash(Entry.HashType.SHA256, sha256)
+            : entry.withHash().getHash()
+        return new Entry(entry.getPhysicalKey(), entry.getSize(), hash, entry.getMetadata())
+    }
+
+    // Common multipart chunk sizes (MiB): AWS SDK/CLI defaults and Nextflow's
+    // `aws.client.uploadChunkSize`
+    static final List<Integer> PART_SIZES_MIB = [5, 8, 10, 15, 16, 32, 50, 64, 100, 128, 256, 512]
+
+    /**
+     * SHA-256 of {@code file}, read once, or null unless its S3 ETag (MD5 of
+     * the content, or of the part MD5s for a multipart upload) proves the
+     * object has the same bytes. KMS-encrypted objects, whose ETags aren't
+     * MD5s, and unrecognized part sizes simply fall back to hashing from S3.
+     */
+    static String localSha256(Path file, long size, String etag) {
+        if (file == null || etag == null || !Files.isRegularFile(file) || Files.size(file) != size) {
+            return null
+        }
+        String tag = etag.replace('"', '').toLowerCase()
+        int dash = tag.indexOf('-')
+        if (!(tag.substring(0, dash < 0 ? tag.length() : dash) ==~ /[0-9a-f]{32}/)) {
+            return null
+        }
+        List<EtagCandidate> candidates
+        if (dash < 0) {
+            candidates = [new EtagCandidate(Long.MAX_VALUE, false)]
+        } else {
+            String count = tag.substring(dash + 1)
+            if (!(count ==~ /[0-9]{1,5}/)) {
+                return null
+            }
+            candidates = partSizes(size, count as int).collect { Long p -> new EtagCandidate(p, true) }
+            if (!candidates) {
+                return null
+            }
+        }
+
+        MessageDigest sha = MessageDigest.getInstance('SHA-256')
+        byte[] buffer = new byte[1 << 16]
+        Files.newInputStream(file).withCloseable { InputStream input ->
+            int count
+            while ((count = input.read(buffer)) > 0) {
+                sha.update(buffer, 0, count)
+                candidates.each { EtagCandidate c -> c.update(buffer, count) }
+            }
+        }
+        return candidates.any { EtagCandidate c -> c.etag() == tag } ? hex(sha.digest()) : null
+    }
+
+    /** Part sizes (bytes) that split {@code size} into exactly {@code parts} parts. */
+    static List<Long> partSizes(long size, int parts) {
+        long mib = 1L << 20
+        Set<Long> sizes = new LinkedHashSet<Long>()
+        PART_SIZES_MIB.each { Integer m -> sizes.add(m * mib) }
+        // an uploader that splits evenly into whole MiB
+        long even = (long) Math.ceil(size / (double) Math.max(parts, 1))
+        sizes.add(((even + mib - 1L).intdiv(mib) as long) * mib)
+        return sizes.findAll { Long p -> p > 0 && (size + p - 1L).intdiv(p) == parts }.toList()
+    }
+
+    /** Running S3 ETag for one guess of the part size. */
+    static class EtagCandidate {
+
+        final long partSize
+        final boolean multipart
+        final MessageDigest partMd5 = MessageDigest.getInstance('MD5')
+        final ByteArrayOutputStream digests = new ByteArrayOutputStream()
+        long inPart = 0
+        int parts = 0
+
+        EtagCandidate(long partSize, boolean multipart) {
+            this.partSize = partSize
+            this.multipart = multipart
+        }
+
+        void update(byte[] buffer, int count) {
+            int offset = 0
+            while (offset < count) {
+                int take = (int) Math.min((long) (count - offset), partSize - inPart)
+                partMd5.update(buffer, offset, take)
+                offset += take
+                inPart += take
+                if (inPart == partSize) {
+                    finishPart()
+                }
+            }
+        }
+
+        private void finishPart() {
+            digests.write(partMd5.digest())
+            parts++
+            inPart = 0
+        }
+
+        String etag() {
+            if (inPart > 0 || parts == 0) {
+                finishPart()
+            }
+            byte[] all = digests.toByteArray()
+            return multipart
+                ? "${hex(MessageDigest.getInstance('MD5').digest(all))}-${parts}".toString()
+                : hex(all)
+        }
+
+    }
+
+    static String hex(byte[] bytes) {
+        return bytes.encodeHex().toString()
     }
 
     Entry uploadEntry(S3Client s3, String s3Key, Entry entry) {

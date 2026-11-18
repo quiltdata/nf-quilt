@@ -300,6 +300,9 @@ class QuiltPackageTest extends QuiltSpecification {
         opkg.addRemoteEntry('run/dir/remote.txt', "${prefix}/run/dir/remote.txt")
         opkg.addRemoteEntry('shallow.txt', "${prefix}-elsewhere/shallow.txt")
         Files.writeString(opkg.packageDest().resolve(QuiltProduct.README_FILE), 'generated')
+        // a stale copy from an installed earlier revision must not win
+        Files.createDirectories(opkg.packageDest().resolve('run/dir'))
+        Files.writeString(opkg.packageDest().resolve('run/dir/remote.txt'), 'stale cached revision')
 
         when:
         Manifest pushed = opkg.push('remote', [:])
@@ -384,6 +387,72 @@ class QuiltPackageTest extends QuiltSpecification {
 
         then: 'hash the object itself'
         opkg.getRemoteEntries()['out.txt'] == new QuiltPackage.RemoteEntry('pre/dup/out.txt', null)
+    }
+
+    void 'localSha256 trusts the local file only when it matches the ETag'() {
+        given:
+        Path file = Files.createTempFile('etag', '.bin')
+        Files.write(file, 'some output'.bytes)
+        String md5 = md5Hex('some output'.bytes)
+
+        expect:
+        QuiltPackage.localSha256(file, 11, "\"${md5}\"") == sha256('some output')
+        QuiltPackage.localSha256(file, 11, md5.toUpperCase()) == sha256('some output')
+        QuiltPackage.localSha256(file, 11, '"' + md5Hex('other bytes'.bytes) + '"') == null
+        QuiltPackage.localSha256(file, 12, md5) == null   // size differs
+        QuiltPackage.localSha256(file, 11, 'not-an-md5') == null   // e.g. SSE-KMS
+        QuiltPackage.localSha256(file, 11, null) == null
+        QuiltPackage.localSha256(null, 11, md5) == null
+
+        cleanup:
+        Files.deleteIfExists(file)
+    }
+
+    void 'localSha256 verifies multipart ETags with #mib MiB parts'() {
+        given:
+        long partSize = mib * (1L << 20)
+        byte[] data = new byte[(int) (2 * partSize + 12345)]
+        new Random(42).nextBytes(data)
+        Path file = Files.createTempFile('multipart', '.bin')
+        Files.write(file, data)
+        String etag = multipartEtag(data, partSize)
+        String sha = MessageDigest.getInstance('SHA-256').digest(data).encodeHex().toString()
+
+        expect:
+        etag.endsWith('-3"')
+        QuiltPackage.localSha256(file, data.length, etag) == sha
+        QuiltPackage.localSha256(file, data.length, etag.replace('-3', '-4')) == null
+
+        cleanup:
+        Files.deleteIfExists(file)
+
+        where:
+        mib << [5, 8]
+    }
+
+    void 'partSizes only keeps sizes giving the right part count'() {
+        given:
+        long mib = 1L << 20
+
+        expect:
+        QuiltPackage.partSizes(250 * mib, 3).contains(100 * mib)
+        !QuiltPackage.partSizes(250 * mib, 3).contains(8 * mib)
+        QuiltPackage.partSizes(250 * mib, 3).every { Long p -> (250 * mib + p - 1).intdiv(p) == 3 }
+    }
+
+    private static String md5Hex(byte[] bytes) {
+        return MessageDigest.getInstance('MD5').digest(bytes).encodeHex().toString()
+    }
+
+    private static String multipartEtag(byte[] data, long partSize) {
+        ByteArrayOutputStream digests = new ByteArrayOutputStream()
+        int parts = 0
+        for (long start = 0; start < data.length; start += partSize) {
+            int end = (int) Math.min(data.length, start + partSize)
+            digests.write(MessageDigest.getInstance('MD5').digest(Arrays.copyOfRange(data, (int) start, end)))
+            parts++
+        }
+        return "\"${md5Hex(digests.toByteArray())}-${parts}\""
     }
 
     private static String s3Key(Entry entry) {
