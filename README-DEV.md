@@ -37,14 +37,14 @@ cd ./nf-quilt
 
 ### Verifying Java
 
-The build needs JDK 21 (Nextflow 24.10+ requirement), but you can launch
-`./gradlew` with any JDK 17 or newer (including JDK 25).
+The build runs on JDK 21 (Nextflow 24.10+ requirement), but `./gradlew` can be
+launched from another JDK, such as JDK 25:
 [`gradle/gradle-daemon-jvm.properties`](gradle/gradle-daemon-jvm.properties)
-pins the Gradle daemon to JDK 21. If Gradle can't find a local JDK 21, it
-downloads Temurin 21 into `~/.gradle/jdks` on first run.
+pins the Gradle daemon to JDK 21, downloading Temurin 21 into `~/.gradle/jdks`
+if none is found.
 
-To use a JDK 21 you already have instead, point `JAVA_HOME` at it. Gradle
-doesn't auto-detect Homebrew's `openjdk@21`, so use its path directly:
+To use Homebrew's `openjdk@21` instead (Gradle doesn't auto-detect it), point
+`JAVA_HOME` at it:
 
 ```bash
 brew install openjdk@21

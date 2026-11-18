@@ -2,7 +2,7 @@
 
 ## [Unreleased]
 
-- Pin the Gradle daemon to JDK 21 via `gradle/gradle-daemon-jvm.properties` (auto-provisioning Temurin 21 when absent), so `./gradlew` works when launched from JDK 25+
+- Build with `./gradlew` from JDK 25: the Gradle daemon now runs on JDK 21, downloading Temurin 21 when no local JDK 21 is found (#345)
 
 ## [1.0.4] 2026-11-18
 
