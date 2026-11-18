@@ -2,6 +2,7 @@
 package nextflow.quilt.nio
 
 import nextflow.quilt.QuiltSpecification
+import nextflow.quilt.jep.QuiltParser
 import groovy.transform.CompileDynamic
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -144,23 +145,31 @@ class QuiltFileSystemProviderTest extends QuiltSpecification {
         QuiltFileSystemProvider.localCopyOptions(null) == [] as CopyOption[]
         QuiltFileSystemProvider.localCopyOptions(custom) == [] as CopyOption[]
         QuiltFileSystemProvider.localCopyOptions(
-            StandardCopyOption.REPLACE_EXISTING, custom, LinkOption.NOFOLLOW_LINKS
+            StandardCopyOption.REPLACE_EXISTING, custom, StandardCopyOption.ATOMIC_MOVE, LinkOption.NOFOLLOW_LINKS
         ) == [StandardCopyOption.REPLACE_EXISTING, LinkOption.NOFOLLOW_LINKS] as CopyOption[]
     }
 
-    void 'should copy a local file with a non-standard copy option'() {
+    void 'should upload into the package cache when given a non-standard copy option'() {
         given:
-        Path dir = Files.createTempDirectory('quilt')
-        Path src = dir.resolve('src.txt')
-        Path dst = dir.resolve('dst.txt')
-        Files.writeString(src, 'hello')
-        CopyOption custom = new CopyOption() { }
+        QuiltFileSystemProvider provider = new QuiltFileSystemProvider()
+        QuiltPath remoteFile = QuiltPathFactory.parse(
+            "quilt+s3://${QuiltParser.NULL_BUCKET}#package=test%2fcopyopts&path=UPLOAD_${System.nanoTime()}.md"
+        )
+        Path tempFile = Files.createTempDirectory('quilt').resolve('UPLOAD_THIS.md')
+        Files.writeString(tempFile, 'hello')
+        CopyOption skipDir = new CopyOption() {
+            @Override
+            String toString() { return 'SkipDirOption[.fusion]' }
+        }
 
         when:
-        Files.copy(src, dst, QuiltFileSystemProvider.localCopyOptions(custom, StandardCopyOption.REPLACE_EXISTING))
+        provider.upload(tempFile, remoteFile, StandardCopyOption.REPLACE_EXISTING, skipDir)
 
         then:
-        Files.readString(dst) == 'hello'
+        Files.readString(remoteFile.localPath()) == 'hello'
+
+        cleanup:
+        Files.deleteIfExists(remoteFile.localPath())
     }
 
     void 'should fail to upload a file to itself'() {
