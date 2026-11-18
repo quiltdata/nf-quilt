@@ -102,6 +102,23 @@ class QuiltPathify  {
         return uri
     }
 
+    /**
+     * Converts an S3 directory (`bucket/ns/name/sub/dir`, no scheme) to a Quilt URI.
+     *
+     * Uses the same positional rule as {@link #uriFromS3File}: the first three
+     * segments are bucket, namespace and name; the rest is the path.
+     * Returns null when there are fewer than three segments.
+     */
+    static String uriFromS3Dir(String s3dir) {
+        List<String> parts = s3dir.split('/').findAll { String seg -> seg } as List<String>
+        if (parts.size() < 3) {
+            return null
+        }
+        String base = "${QuiltParser.PREFIX}${parts[0]}#package=${parts[1]}%2f${parts[2]}"
+        List<String> rest = parts.size() > 3 ? parts[3..-1] : []
+        return rest ? "${base}&path=${rest.join('%2f')}" : base
+    }
+
     // Constructor takes a Path and finds QuiltPath and QuiltPackage
     QuiltPathify(Path path) {
         if (path in QuiltPath) {

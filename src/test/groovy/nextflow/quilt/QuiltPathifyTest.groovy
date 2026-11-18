@@ -219,4 +219,19 @@ class QuiltPathifyTest extends QuiltSpecification {
             .copyToCache(Paths.get('unused'))
     }
 
+    void 'uriFromS3Dir maps bucket/ns/name/sub positionally'() {
+        expect:
+        QuiltPathify.uriFromS3Dir(dir) == uri
+
+        where:
+        dir                        | uri
+        'bkt/pre/suf'              | 'quilt+s3://bkt#package=pre%2fsuf'
+        'bkt/pre/suf/'             | 'quilt+s3://bkt#package=pre%2fsuf'
+        'bkt/pre/suf/run'          | 'quilt+s3://bkt#package=pre%2fsuf&path=run'
+        'bkt/pre/suf/run/sub/'     | 'quilt+s3://bkt#package=pre%2fsuf&path=run%2fsub'
+        'bkt//pre/suf'             | 'quilt+s3://bkt#package=pre%2fsuf'
+        'bkt/pre'                  | null
+        ''                         | null
+    }
+
 }
