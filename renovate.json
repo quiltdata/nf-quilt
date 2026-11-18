@@ -9,9 +9,15 @@
     "helpers:pinGitHubActionDigests"
   ],
   "constraints": {
-    "java": "25.0.5+8.0.LTS"
+    "java": "21"
   },
   "packageRules": [
+    {
+      "description": "Keep Renovate's own JDK at 21: io.nextflow.nextflow-plugin requires a Java 21 toolchain",
+      "matchFileNames": ["renovate.json"],
+      "matchDepNames": ["java"],
+      "enabled": false
+    },
     {
       "description": "One PR for all minor/patch/digest updates",
       "matchUpdateTypes": ["minor", "patch", "pin", "pinDigest", "digest"],
