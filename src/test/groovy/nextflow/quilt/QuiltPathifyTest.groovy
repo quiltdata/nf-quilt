@@ -213,6 +213,60 @@ class QuiltPathifyTest extends QuiltSpecification {
         Files.deleteIfExists(source)
     }
 
+    @IgnoreIf({ System.getProperty('os.name').toLowerCase().contains('windows') })
+    void 'test copyToCache copies a published directory tree'() {
+        given:
+        QuiltPathify pathify = new QuiltPathify(Paths.get('/bkt/pre/suf/run/reports'))
+        Path destDir = pathify.pkg.packageDest()
+        Path source = Files.createTempDirectory('reports')
+        Files.createDirectories(source.resolve('qc'))
+        Files.writeString(source.resolve('summary.html'), 'top')
+        Files.writeString(source.resolve('qc').resolve('multiqc_report.html'), 'nested')
+
+        when:
+        boolean copied = pathify.copyToCache(source)
+
+        then:
+        copied
+        Files.readString(destDir.resolve('run/reports/summary.html')) == 'top'
+        Files.readString(destDir.resolve('run/reports/qc/multiqc_report.html')) == 'nested'
+
+        cleanup:
+        QuiltPackage.deleteDirectory(destDir.resolve('run'))
+        QuiltPackage.deleteDirectory(source)
+    }
+
+    @IgnoreIf({ System.getProperty('os.name').toLowerCase().contains('windows') })
+    void 'overlay sub-paths keep special characters: #name'() {
+        expect:
+        new QuiltPathify(Paths.get("/bkt/pre/suf/run/${name}")).path.sub_paths() == "run/${name}"
+
+        where:
+        name << ['plain.txt', 'ctrl+treated.bam', 'a&b.txt', '50%.txt', 'my file.txt', 'k=v.txt', 'x#y.txt']
+    }
+
+    @IgnoreIf({ System.getProperty('os.name').toLowerCase().contains('windows') })
+    void 'test copyToCache follows a symlinked output directory'() {
+        given: 'a work-dir output that is a link to a staged folder'
+        QuiltPathify pathify = new QuiltPathify(Paths.get('/bkt/pre/suf/run/staged'))
+        Path destDir = pathify.pkg.packageDest()
+        Path work = Files.createTempDirectory('work')
+        Path real = Files.createDirectories(work.resolve('real/sub'))
+        Files.writeString(real.resolve('data.txt'), 'linked')
+        Path link = Files.createSymbolicLink(work.resolve('staged'), work.resolve('real'))
+
+        when:
+        boolean copied = pathify.copyToCache(link)
+
+        then:
+        copied
+        Files.readString(destDir.resolve('run/staged/sub/data.txt')) == 'linked'
+
+        cleanup:
+        QuiltPackage.deleteDirectory(destDir.resolve('run'))
+        QuiltPackage.deleteDirectory(work)
+    }
+
     void 'test copyToCache ignores non-overlay paths'() {
         expect:
         !new QuiltPathify(QuiltPathFactory.parse('quilt+s3://bkt#package=pre%2fsuf&path=FILE.md'))

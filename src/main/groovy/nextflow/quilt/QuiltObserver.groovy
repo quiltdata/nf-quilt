@@ -18,6 +18,7 @@ package nextflow.quilt
 import nextflow.Session
 import nextflow.trace.TraceObserver
 
+import java.nio.file.Files
 import java.nio.file.Path
 import java.util.concurrent.locks.Lock
 import java.util.concurrent.locks.ReentrantLock
@@ -40,6 +41,8 @@ class QuiltObserver implements TraceObserver {
     final private Lock lock = new ReentrantLock() // Need this because of threads
     // Is this overkill? Do we ever have more than one output URI per run?
     final private Map<String,QuiltPathify> publishedPaths = [:]
+    // package key -> number of published files that could not be added to it
+    final private Map<String,Integer> failedCopies = [:]
 
     boolean checkExtractedPath(QuiltPathify pathify) {
         String key = pathify.pkgKey()
@@ -83,11 +86,53 @@ class QuiltObserver implements TraceObserver {
             log.debug("onFilePublish.isBucketAccessible[false]: $pathify")
             return
         }
-        if (pathify.isOverlay && source == null) {
-            log.error("onFilePublish.isOverlay: no source for $pathify")
-            return
+        if (pathify.isOverlay) {
+            cacheOverlay(pathify, destination, source)
         }
         checkExtractedPath(pathify)
+    }
+
+    /**
+     * Copy a file published to a plain (non-Quilt) S3 outdir into the local
+     * package folder, so the package pushed at the end of the run contains the
+     * run's outputs, not just nf-quilt's generated files.
+     *
+     * Prefers the task's local output; falls back to the published copy when
+     * there is no source (older Nextflow) or it is gone (publishDir mode 'move').
+     */
+    boolean cacheOverlay(QuiltPathify pathify, Path destination, Path source) {
+        Path from = (source != null && Files.exists(source)) ? source : destination
+        log.debug("cacheOverlay: $from -> $pathify")
+        if (pathify.copyToCache(from)) {
+            return true
+        }
+        log.error("cacheOverlay: could not add $destination to $pathify")
+        String key = pathify.pkgKey()
+        lock.lock()
+        try {
+            failedCopies[key] = (failedCopies[key] ?: 0) + 1
+        } finally {
+            lock.unlock()
+        }
+        return false
+    }
+
+    int countFailedCopies(String key) {
+        return failedCopies[key] ?: 0
+    }
+
+    /**
+     * Don't push a package that is missing outputs: a partial package with a
+     * SUCCESS message is worse than none.
+     */
+    boolean shouldPublish(String key) {
+        int failed = countFailedCopies(key)
+        if (failed > 0) {
+            log.error("not publishing ${key}: ${failed} published file(s) could not be added to the package")
+            print("\nNOT PUBLISHED: ${key} is missing ${failed} output(s); see errors above\n")
+            return false
+        }
+        return true
     }
 
     @Override
@@ -96,7 +141,9 @@ class QuiltObserver implements TraceObserver {
         // create a QuiltProduct for each unique package key
         publishedPaths.each { key, path ->
             log.debug("onFlowComplete: $key -> $path")
-            new QuiltProduct(path, session)
+            if (shouldPublish(key)) {
+                new QuiltProduct(path, session)
+            }
         }
     }
 

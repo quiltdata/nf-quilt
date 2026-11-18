@@ -19,6 +19,9 @@ package nextflow.quilt
 import nextflow.quilt.nio.QuiltPath
 import nextflow.quilt.nio.QuiltPathFactory
 import nextflow.Session
+import spock.lang.IgnoreIf
+import java.nio.file.Files
+import nextflow.quilt.jep.QuiltPackage
 //import spock.lang.Ignore
 
 import java.nio.file.Paths
@@ -107,6 +110,92 @@ class QuiltObserverTest extends QuiltSpecification {
         then:
         validPath.pkg().isBucketAccessible()
         observer.countPublishedPaths() == 1
+    }
+
+    @IgnoreIf({ System.getProperty('os.name').toLowerCase().contains('windows') })
+    void 'cacheOverlay copies a published S3 file into the package folder'() {
+        given: 'a file published to s3://bkt/pre/<pkg>/run/out.txt'
+        String name = "overlay${System.nanoTime()}"
+        Path destination = Paths.get("/bkt/pre/${name}/run/out.txt")
+        QuiltPathify pathify = new QuiltPathify(destination)
+        Path cached = pathify.pkg.packageDest().resolve('run/out.txt')
+        Path workDir = Files.createTempDirectory('work')
+        Path source = workDir.resolve('out.txt')
+        Files.writeString(source, 'task output')
+
+        expect:
+        pathify.isOverlay
+        new QuiltObserver().cacheOverlay(pathify, destination, source)
+        Files.readString(cached) == 'task output'
+
+        cleanup:
+        pathify.pkg.reset()
+        QuiltPackage.deleteDirectory(workDir)
+    }
+
+    @IgnoreIf({ System.getProperty('os.name').toLowerCase().contains('windows') })
+    void 'cacheOverlay falls back to the published file when the source is #reason'() {
+        given: 'the published copy exists (stand-in for the S3 object)'
+        Path published = Files.createTempDirectory('s3')
+        Path destination = published.resolve("bkt/pre/overlay${System.nanoTime()}/run/out.txt")
+        Files.createDirectories(destination.parent)
+        Files.writeString(destination, 'published')
+        QuiltPathify pathify = new QuiltPathify(Paths.get('/' + published.relativize(destination).toString()))
+        Path cached = pathify.pkg.packageDest().resolve('run/out.txt')
+
+        expect:
+        new QuiltObserver().cacheOverlay(pathify, destination, source)
+        Files.readString(cached) == 'published'
+
+        cleanup:
+        pathify.pkg.reset()
+        QuiltPackage.deleteDirectory(published)
+
+        where:
+        reason          | source
+        'missing'       | null
+        'moved away'    | Paths.get('/nonexistent/work/out.txt')
+    }
+
+    @IgnoreIf({ System.getProperty('os.name').toLowerCase().contains('windows') })
+    void 'cacheOverlay records a failed copy and blocks publishing that package'() {
+        given: 'neither the task output nor the published copy can be read'
+        QuiltObserver observer = new QuiltObserver()
+        Path destination = Paths.get("/bkt/pre/overlay${System.nanoTime()}/run/out.txt")
+        QuiltPathify pathify = new QuiltPathify(destination)
+        String key = pathify.pkgKey()
+
+        expect:
+        observer.shouldPublish(key)
+        !observer.cacheOverlay(pathify, destination, Paths.get('/nonexistent/out.txt'))
+        observer.countFailedCopies(key) == 1
+        !observer.shouldPublish(key)
+        !Files.exists(pathify.pkg.packageDest().resolve('run/out.txt'))
+
+        cleanup:
+        pathify.pkg.reset()
+    }
+
+    @IgnoreIf({ env.WRITE_BUCKET == null || System.getProperty('os.name').toLowerCase().contains('windows') })
+    void 'onFilePublish adds a file published to an s3 outdir to the package'() {
+        given:
+        QuiltObserver observer = makeObserver()
+        String name = "overlay${System.nanoTime()}"
+        Path destination = Paths.get("/${writeBucket}/test/${name}/run/out.txt")
+        Path source = Files.createTempFile('out', '.txt')
+        Files.writeString(source, 'published output')
+
+        when:
+        observer.onFilePublish(destination, source)
+        QuiltPathify pathify = new QuiltPathify(destination)
+
+        then:
+        observer.countPublishedPaths() == 1
+        Files.readString(pathify.pkg.packageDest().resolve('run/out.txt')) == 'published output'
+
+        cleanup:
+        pathify?.pkg?.reset()
+        Files.deleteIfExists(source)
     }
 
 }
