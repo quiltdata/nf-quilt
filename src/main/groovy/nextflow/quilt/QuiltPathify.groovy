@@ -23,6 +23,7 @@ import nextflow.quilt.nio.QuiltPathFactory
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.nio.file.Files
+import java.nio.file.StandardCopyOption
 
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
@@ -48,10 +49,10 @@ class QuiltPathify  {
         Path dest  = Paths.get(destRoot, relpath.split('/') as String[])
         try {
             dest.getParent().toFile().mkdirs() // ensure directories exist first
-            Files.copy(source, dest)
+            Files.copy(source, dest, StandardCopyOption.REPLACE_EXISTING)
         }
         catch (Exception e) {
-            log.error("writeString: cannot write `$source` to `$dest` in `${destRoot}`\n$e")
+            log.error("copyFile: cannot write `$source` to `$dest` in `${destRoot}`\n$e")
         }
     }
 
@@ -136,6 +137,11 @@ class QuiltPathify  {
         // destination's sub-path), not just its bare filename
         String localPath = path.sub_paths()
         Path destDir = pkg.packageDest()
+        Path dest = destDir.resolve(localPath).normalize()
+        if (!localPath || !dest.startsWith(destDir.normalize())) {
+            log.error("copyToCache: refusing sub-path `$localPath` outside ${destDir}")
+            return false
+        }
         copyFile(source, destDir.toString(), localPath)
         return true
     }

@@ -2,7 +2,7 @@
 
 ## [1.0.4] 2026-11-18
 
-- `QuiltPathify.copyToCache` now places an overlay file at its package sub-path (e.g. `a_folder/FILE.md`) instead of flattening it to the bare filename
+- `QuiltPathify.copyToCache` places an overlay file at its package sub-path (e.g. `a_folder/FILE.md`) instead of flattening it to the bare filename, overwrites stale cached copies, and refuses sub-paths outside the package folder. (The helper is not yet called during publishing, so this does not change run output.)
 
 ## [1.0.3] 2026-11-18
 
