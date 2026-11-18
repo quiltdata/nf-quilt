@@ -1,5 +1,9 @@
 # Changelog
 
+## [Unreleased]
+
+- Build with `./gradlew` from JDK 25: the Gradle daemon now runs on JDK 21, downloading Temurin 21 when no local JDK 21 is found (#345)
+
 ## [1.0.4] 2026-11-18
 
 - `QuiltPathify.copyToCache` places an overlay file at its package sub-path (e.g. `a_folder/FILE.md`) instead of flattening it to the bare filename, overwrites stale cached copies, and refuses sub-paths outside the package folder. (The helper is not yet called during publishing, so this does not change run output.)
