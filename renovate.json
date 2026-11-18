@@ -5,12 +5,13 @@
     ":semanticPrefixFixDepsChoreOthers",
     ":ignoreModulesAndTests",
     "replacements:all",
-    "workarounds:all"
+    "workarounds:all",
+    "helpers:pinGitHubActionDigests"
   ],
   "packageRules": [
     {
       "description": "One PR for all minor/patch/digest updates",
-      "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
+      "matchUpdateTypes": ["minor", "patch", "pin", "pinDigest", "digest"],
       "groupName": "minor dependencies",
       "groupSlug": "minor"
     },
