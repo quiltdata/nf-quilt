@@ -113,20 +113,20 @@ class QuiltObserverTest extends QuiltSpecification {
     }
 
     @IgnoreIf({ System.getProperty('os.name').toLowerCase().contains('windows') })
-    void 'cacheOverlay copies a published S3 file into the package folder'() {
+    void 'addOverlay references a published S3 file from the package'() {
         given: 'a file published to s3://bkt/pre/<pkg>/run/out.txt'
         String name = "overlay${System.nanoTime()}"
         Path destination = Paths.get("/bkt/pre/${name}/run/out.txt")
         QuiltPathify pathify = new QuiltPathify(destination)
-        Path cached = pathify.pkg.packageDest().resolve('run/out.txt')
         Path workDir = Files.createTempDirectory('work')
         Path source = workDir.resolve('out.txt')
         Files.writeString(source, 'task output')
 
         expect:
         pathify.isOverlay
-        new QuiltObserver().cacheOverlay(pathify, destination, source)
-        Files.readString(cached) == 'task output'
+        new QuiltObserver().addOverlay(pathify, destination, source)
+        pathify.pkg.getRemoteEntries() == ['run/out.txt': source.toAbsolutePath()]
+        !Files.exists(pathify.pkg.packageDest().resolve('run/out.txt'))
 
         cleanup:
         pathify.pkg.reset()
@@ -134,18 +134,17 @@ class QuiltObserverTest extends QuiltSpecification {
     }
 
     @IgnoreIf({ System.getProperty('os.name').toLowerCase().contains('windows') })
-    void 'cacheOverlay falls back to the published file when the source is #reason'() {
-        given: 'the published copy exists (stand-in for the S3 object)'
+    void 'addOverlay lists a directory from the published copy when the source is #reason'() {
+        given: 'the published directory exists (stand-in for the S3 prefix)'
         Path published = Files.createTempDirectory('s3')
-        Path destination = published.resolve("bkt/pre/overlay${System.nanoTime()}/run/out.txt")
-        Files.createDirectories(destination.parent)
-        Files.writeString(destination, 'published')
+        Path destination = published.resolve("bkt/pre/overlay${System.nanoTime()}/run/reports")
+        Files.createDirectories(destination)
+        Files.writeString(destination.resolve('a.txt'), 'published')
         QuiltPathify pathify = new QuiltPathify(Paths.get('/' + published.relativize(destination).toString()))
-        Path cached = pathify.pkg.packageDest().resolve('run/out.txt')
 
         expect:
-        new QuiltObserver().cacheOverlay(pathify, destination, source)
-        Files.readString(cached) == 'published'
+        new QuiltObserver().addOverlay(pathify, destination, source)
+        pathify.pkg.getRemoteEntries().keySet() == ['run/reports/a.txt'] as Set
 
         cleanup:
         pathify.pkg.reset()
@@ -154,23 +153,23 @@ class QuiltObserverTest extends QuiltSpecification {
         where:
         reason          | source
         'missing'       | null
-        'moved away'    | Paths.get('/nonexistent/work/out.txt')
+        'moved away'    | Paths.get('/nonexistent/work/reports')
     }
 
     @IgnoreIf({ System.getProperty('os.name').toLowerCase().contains('windows') })
-    void 'cacheOverlay records a failed copy and blocks publishing that package'() {
-        given: 'neither the task output nor the published copy can be read'
+    void 'addOverlay records a failure and blocks publishing that package'() {
+        given: 'a published path that cannot be placed inside its package'
         QuiltObserver observer = new QuiltObserver()
-        Path destination = Paths.get("/bkt/pre/overlay${System.nanoTime()}/run/out.txt")
+        Path destination = Paths.get("/bkt/pre/overlay${System.nanoTime()}/../../escape/out.txt")
         QuiltPathify pathify = new QuiltPathify(destination)
         String key = pathify.pkgKey()
 
         expect:
         observer.shouldPublish(key)
-        !observer.cacheOverlay(pathify, destination, Paths.get('/nonexistent/out.txt'))
+        !observer.addOverlay(pathify, destination, Paths.get('/nonexistent/out.txt'))
         observer.countFailedCopies(key) == 1
         !observer.shouldPublish(key)
-        !Files.exists(pathify.pkg.packageDest().resolve('run/out.txt'))
+        pathify.pkg.getRemoteEntries().isEmpty()
 
         cleanup:
         pathify.pkg.reset()
@@ -191,7 +190,7 @@ class QuiltObserverTest extends QuiltSpecification {
 
         then:
         observer.countPublishedPaths() == 1
-        Files.readString(pathify.pkg.packageDest().resolve('run/out.txt')) == 'published output'
+        pathify.pkg.getRemoteEntries() == ['run/out.txt': source.toAbsolutePath()]
 
         cleanup:
         pathify?.pkg?.reset()

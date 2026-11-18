@@ -450,35 +450,48 @@ ${nextflow}
 
     /**
      * Files under {@code base} (package-relative, '' for the root) whose path
-     * relative to {@code base} matches {@code glob}.
+     * relative to {@code base} matches {@code glob}: both the files in the
+     * package folder and the published outputs it references (overlay mode).
      */
     List<Path> match(String glob, String base = '') throws IOException {
         String dir = pkg.packageDest()
         Path folder = base ? Paths.get(dir, base.split('/') as String[]) : Paths.get(dir)
         FileSystem fs = FileSystems.getDefault()
         PathMatcher pathMatcher = fs.getPathMatcher("glob:${glob}")
-        List<Path> matches = []
+        Set<Path> matches = new LinkedHashSet<Path>()
 
-        Files.walkFileTree(folder, new SimpleFileVisitor<Path>() {
+        if (Files.isDirectory(folder)) {
+            Files.walkFileTree(folder, new SimpleFileVisitor<Path>() {
 
-            @Override
-            FileVisitResult visitFile(Path path,
-                    BasicFileAttributes attrs) throws IOException {
-                Path rel = folder.relativize(path)
+                @Override
+                FileVisitResult visitFile(Path path,
+                        BasicFileAttributes attrs) throws IOException {
+                    Path rel = folder.relativize(path)
+                    if (pathMatcher.matches(rel)) {
+                        matches.add(rel)
+                    }
+                    return FileVisitResult.CONTINUE
+                        }
+
+                @Override
+                FileVisitResult visitFileFailed(Path file, IOException exc)
+                        throws IOException {
+                    return FileVisitResult.CONTINUE
+                        }
+
+            })
+        }
+
+        String keyPrefix = base ? "${base}/" : ''
+        pkg.getRemoteEntries().keySet().each { String key ->
+            if (key.startsWith(keyPrefix)) {
+                Path rel = Paths.get('', key.substring(keyPrefix.length()).split('/'))
                 if (pathMatcher.matches(rel)) {
                     matches.add(rel)
                 }
-                return FileVisitResult.CONTINUE
-                    }
-
-            @Override
-            FileVisitResult visitFileFailed(Path file, IOException exc)
-                    throws IOException {
-                return FileVisitResult.CONTINUE
-                    }
-
-        })
-        return matches
+            }
+        }
+        return matches.toList()
     }
 
     List<Map> writeSummarize() {

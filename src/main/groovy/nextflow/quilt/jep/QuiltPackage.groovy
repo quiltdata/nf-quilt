@@ -27,13 +27,33 @@ import java.nio.file.Paths
 import java.nio.file.SimpleFileVisitor
 import java.nio.file.FileVisitResult
 import java.nio.file.attribute.BasicFileAttributes
+import java.lang.reflect.InvocationTargetException
+import java.lang.reflect.Method
+import java.nio.charset.StandardCharsets
+import java.util.concurrent.Callable
+import java.util.concurrent.ExecutionException
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
+import java.util.concurrent.Future
 import java.util.stream.Collectors
 import java.time.LocalDate
 
+import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.databind.node.ObjectNode
+import com.quiltdata.quiltcore.Entry
 import com.quiltdata.quiltcore.Registry
 import com.quiltdata.quiltcore.Namespace
 import com.quiltdata.quiltcore.Manifest
+import com.quiltdata.quiltcore.S3ClientStore
+import com.quiltdata.quiltcore.key.LocalPhysicalKey
+import com.quiltdata.quiltcore.key.PhysicalKey
 import com.quiltdata.quiltcore.key.S3PhysicalKey
+import software.amazon.awssdk.core.sync.RequestBody
+import software.amazon.awssdk.services.s3.S3Client
+import software.amazon.awssdk.services.s3.model.HeadObjectRequest
+import software.amazon.awssdk.services.s3.model.HeadObjectResponse
+import software.amazon.awssdk.services.s3.model.PutObjectRequest
+import software.amazon.awssdk.services.s3.model.PutObjectResponse
 
 @Slf4j
 @CompileStatic
@@ -42,6 +62,8 @@ class QuiltPackage {
     private static final Map<String,QuiltPackage> PKGS = [:]
     private static final String INSTALL_PREFIX = 'QuiltPackage'
     static final Path INSTALL_ROOT = Files.createTempDirectory(INSTALL_PREFIX)
+    // concurrent HEAD/hash requests when referencing published outputs
+    static final int REMOTE_THREADS = 16
 
     private final String packageName
     private final String bucket
@@ -50,6 +72,9 @@ class QuiltPackage {
     private final Path folder
     private final Map meta
     private boolean installed
+    // Outputs already published to this package's S3 prefix (overlay mode):
+    // logical key -> the task's local copy, if any (only used to hash cheaply)
+    private final Map<String,Path> remoteEntries = Collections.synchronizedMap(new TreeMap<String,Path>())
 
     static String osSep() {
         return FileSystems.getDefault().getSeparator()
@@ -150,7 +175,22 @@ class QuiltPackage {
 
     void reset() {
         deleteDirectory(this.folder)
+        remoteEntries.clear()
         setup()
+    }
+
+    /**
+     * Include an object already published at s3://bucket/packageName/logicalKey
+     * in the package, in place, instead of copying it into packageDest().
+     */
+    void addRemoteEntry(String logicalKey, Path localCopy = null) {
+        remoteEntries.put(logicalKey, localCopy)
+    }
+
+    Map<String,Path> getRemoteEntries() {
+        synchronized (remoteEntries) {
+            return new TreeMap<String,Path>(remoteEntries)
+        }
     }
 
     void setup() {
@@ -273,7 +313,10 @@ class QuiltPackage {
         Manifest m = Manifest.BuildFromDir(packageDest(), user_meta, null)
         log.debug("push[${pkgName}]: ${m}")
         try {
-            Manifest manifest = m.push(namespace, "nf-quilt:${today()}-${msg}", parsed.workflowName)
+            String message = "nf-quilt:${today()}-${msg}"
+            Manifest manifest = remoteEntries.isEmpty()
+                ? m.push(namespace, message, parsed.workflowName)
+                : pushWithRemote(namespace, m, message, parsed.workflowName)
             log.debug("pushed[${pkgName}]: ${manifest}")
             return manifest
         } catch (Exception e) {
@@ -284,6 +327,127 @@ class QuiltPackage {
             throw new RuntimeException(e)
         }
         // return m
+    }
+
+    /**
+     * Push a package whose outputs are already in S3 (overlay mode). The
+     * manifest references the published objects where they are; only the files
+     * in packageDest() (README, metadata, summary) are uploaded.
+     *
+     * Mirrors quiltcore's Manifest.push, which only accepts local files.
+     */
+    Manifest pushWithRemote(Namespace namespace, Manifest local, String message, String workflow) {
+        String prefix = namespace.getName()
+        S3Client s3 = S3ClientStore.getClient(bucket)
+        SortedMap<String,Entry> localEntries = local.getEntries()
+        Map<String,Path> remotes = getRemoteEntries().findAll { String key, Path p -> !localEntries.containsKey(key) }
+        log.info("push[${prefix}]: ${localEntries.size()} generated file(s), ${remotes.size()} published output(s)")
+
+        SortedMap<String,Entry> entries = new TreeMap<String,Entry>(remoteManifestEntries(s3, prefix, remotes))
+        entries.putAll(localEntries)
+        Manifest.Builder draft = Manifest.builder()
+        draft.setMetadata(local.getMetadata())
+        entries.each { String key, Entry entry -> draft.addEntry(key, entry) }
+        JsonNode workflowInfo = validate(draft.build(), namespace, message, workflow)
+
+        ObjectNode metadata = local.getMetadata()
+        metadata.put('message', message)
+        if (workflowInfo == null) {
+            metadata.remove('workflow')
+        } else {
+            metadata.set('workflow', workflowInfo)
+        }
+        Manifest.Builder builder = Manifest.builder()
+        builder.setMetadata(metadata)
+        entries.each { String key, Entry entry ->
+            builder.addEntry(key, entry.getPhysicalKey() in LocalPhysicalKey
+                ? uploadEntry(s3, "${prefix}/${key}", entry)
+                : entry)
+        }
+        Manifest manifest = builder.build()
+        writeRevision(namespace, manifest)
+        return manifest
+    }
+
+    /** Look up (and hash) each published output, in parallel. */
+    Map<String,Entry> remoteManifestEntries(S3Client s3, String prefix, Map<String,Path> remotes) {
+        Map<String,Entry> result = [:]
+        if (remotes.isEmpty()) {
+            return result
+        }
+        ExecutorService pool = Executors.newFixedThreadPool(Math.min(REMOTE_THREADS, remotes.size()))
+        try {
+            Map<String,Future<Entry>> futures = [:]
+            remotes.each { String key, Path localCopy ->
+                String s3Key = "${prefix}/${key}"
+                futures[key] = pool.submit({ -> remoteEntry(s3, s3Key, localCopy) } as Callable<Entry>)
+            }
+            List<String> missing = []
+            futures.each { String key, Future<Entry> future ->
+                try {
+                    result[key] = future.get()
+                } catch (ExecutionException e) {
+                    log.error("push: cannot add published output `${key}`: ${e.cause}")
+                    missing.add(key)
+                }
+            }
+            if (missing) {
+                throw new IOException("${missing.size()} published output(s) missing from s3://${bucket}/${prefix}: " +
+                    missing.take(10).join(', '))
+            }
+        } finally {
+            pool.shutdownNow()
+        }
+        return result
+    }
+
+    /**
+     * Entry for the object at s3://bucket/s3Key, pinned to its current version.
+     * Hashes the task's local copy when it is still there and the same size,
+     * otherwise streams the object (no local disk either way).
+     */
+    Entry remoteEntry(S3Client s3, String s3Key, Path localCopy) {
+        HeadObjectRequest request = HeadObjectRequest.builder().bucket(bucket).key(s3Key).build()
+        HeadObjectResponse head = s3.headObject(request)
+        long size = head.contentLength()
+        S3PhysicalKey physical = new S3PhysicalKey(bucket, s3Key, head.versionId())
+        boolean useLocal = localCopy != null && Files.isRegularFile(localCopy) && Files.size(localCopy) == size
+        PhysicalKey source = useLocal ? new LocalPhysicalKey(localCopy.toAbsolutePath()) : physical
+        Entry.Hash hash = new Entry(source, size, null, null).withHash().getHash()
+        return new Entry(physical, size, hash, null)
+    }
+
+    Entry uploadEntry(S3Client s3, String s3Key, Entry entry) {
+        Entry hashed = entry.withHash()
+        Path file = Paths.get(((LocalPhysicalKey) entry.getPhysicalKey()).getPath())
+        PutObjectRequest request = PutObjectRequest.builder().bucket(bucket).key(s3Key).build()
+        PutObjectResponse response = s3.putObject(request, RequestBody.fromFile(file))
+        S3PhysicalKey physical = new S3PhysicalKey(bucket, s3Key, response.versionId())
+        return new Entry(physical, hashed.getSize(), hashed.getHash(), hashed.getMetadata())
+    }
+
+    /** Run quiltcore's (private) workflow validation, as Manifest.push does. */
+    static JsonNode validate(Manifest manifest, Namespace namespace, String message, String workflow) {
+        Method method = Manifest.getDeclaredMethod('validate', Namespace, String, String)
+        method.setAccessible(true)
+        try {
+            return (JsonNode) method.invoke(manifest, namespace, message, workflow)
+        } catch (InvocationTargetException e) {
+            throw e.getCause()
+        }
+    }
+
+    /** Write the manifest and point `latest` (and a timestamp tag) at it, as Manifest.push does. */
+    static void writeRevision(Namespace namespace, Manifest manifest) {
+        String topHash = manifest.calculateTopHash()
+        log.info("push: writing manifest ${topHash}")
+        ByteArrayOutputStream out = new ByteArrayOutputStream()
+        manifest.serializeToOutputStream(out)
+        namespace.getVersions().resolve(topHash).putBytes(out.toByteArray())
+        byte[] hashBytes = topHash.getBytes(StandardCharsets.UTF_8)
+        String timestamp = (System.currentTimeMillis().intdiv(1000L)).toString()
+        namespace.getPath().resolve(timestamp).putBytes(hashBytes)
+        namespace.getPath().resolve('latest').putBytes(hashBytes)
     }
 
     @Override

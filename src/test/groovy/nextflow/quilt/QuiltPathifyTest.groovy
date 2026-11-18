@@ -140,99 +140,96 @@ class QuiltPathifyTest extends QuiltSpecification {
     }
 
     @IgnoreIf({ System.getProperty('os.name').toLowerCase().contains('windows') })
-    void 'test copyToCache copies overlay file to its package sub-path'() {
+    void 'addOverlayEntries records a published file at its package sub-path'() {
         given:
         // Publish destination: bucket/ns/name come from the first three segments
         QuiltPathify pathify = new QuiltPathify(Paths.get("/bkt/pre/suf/${sub_path}"))
-        Path destDir = pathify.pkg.packageDest()
-        Path dest = destDir.resolve(sub_path)
+        pathify.pkg.reset()
         Path tempFolder = Files.createTempDirectory('src')
         Path source = tempFolder.resolve('source.md')
         Files.writeString(source, 'hello')
 
         when:
-        boolean copied = pathify.copyToCache(source)
+        boolean added = pathify.addOverlayEntries(source)
 
-        then:
+        then: 'nothing is copied; the package references the published object'
         pathify.isOverlay
         pathify.path.sub_paths() == sub_path
-        copied
-        Files.readString(dest) == 'hello'
-
-        when: 'copied again (e.g. -resume)'
-        Files.writeString(source, 'updated')
-        pathify.copyToCache(source)
-
-        then:
-        Files.readString(dest) == 'updated'
+        added
+        pathify.pkg.getRemoteEntries() == [(sub_path): source.toAbsolutePath()]
+        !Files.exists(pathify.pkg.packageDest().resolve(sub_path))
 
         cleanup:
-        QuiltPackage.deleteDirectory(destDir.resolve(sub_path.split('/')[0]))
+        pathify.pkg.reset()
         QuiltPackage.deleteDirectory(tempFolder)
 
         where:
         sub_path << ['FILE.md', 'a_folder/FILE.md', 'a/b/FILE.md']
     }
 
+    void 'normalizedKey: #subPath -> #key'() {
+        expect:
+        QuiltPathify.normalizedKey(subPath) == key
+
+        where:
+        subPath                     | key
+        'FILE.md'                   | 'FILE.md'
+        'a//b/./FILE.md'            | 'a/b/FILE.md'
+        'missing_dir/../NORM.md'    | 'NORM.md'
+        '../../escape/FILE.md'      | null
+        'a/../../FILE.md'           | null
+        'a/..'                      | null
+        ''                          | null
+        null                        | null
+    }
+
     @IgnoreIf({ System.getProperty('os.name').toLowerCase().contains('windows') })
-    void 'test copyToCache copies to the normalized sub-path'() {
+    void 'addOverlayEntries records the normalized sub-path'() {
         given:
         QuiltPathify pathify = new QuiltPathify(Paths.get('/bkt/pre/suf/missing_dir/../NORM.md'))
-        Path dest = pathify.pkg.packageDest().resolve('NORM.md')
-        Path source = Files.createTempFile('src', '.md')
+        pathify.pkg.reset()
 
         expect:
-        pathify.copyToCache(source)
-        Files.exists(dest)
+        pathify.addOverlayEntries(Paths.get('/nonexistent/NORM.md'))
+        pathify.pkg.getRemoteEntries().keySet() == ['NORM.md'] as Set
 
         cleanup:
-        Files.deleteIfExists(dest)
-        Files.deleteIfExists(source)
+        pathify.pkg.reset()
     }
 
     @IgnoreIf({ System.getProperty('os.name').toLowerCase().contains('windows') })
-    void 'test copyToCache reports a failed copy'() {
-        given:
-        QuiltPathify pathify = new QuiltPathify(Paths.get('/bkt/pre/suf/MISSING_SOURCE.md'))
-
-        expect:
-        !pathify.copyToCache(Paths.get('/nonexistent/source.md'))
-    }
-
-    @IgnoreIf({ System.getProperty('os.name').toLowerCase().contains('windows') })
-    void 'test copyToCache refuses sub-paths that escape the package folder'() {
+    void 'addOverlayEntries refuses sub-paths that escape the package'() {
         given:
         QuiltPathify pathify = new QuiltPathify(Paths.get('/bkt/pre/suf/../../escape/FILE.md'))
-        Path source = Files.createTempFile('src', '.md')
+        pathify.pkg.reset()
 
         expect:
-        !pathify.copyToCache(source)
-        !Files.exists(pathify.pkg.packageDest().resolve('../../escape/FILE.md').normalize())
-
-        cleanup:
-        Files.deleteIfExists(source)
+        !pathify.addOverlayEntries(Paths.get('/nonexistent/FILE.md'))
+        pathify.pkg.getRemoteEntries().isEmpty()
     }
 
     @IgnoreIf({ System.getProperty('os.name').toLowerCase().contains('windows') })
-    void 'test copyToCache copies a published directory tree'() {
+    void 'addOverlayEntries records every file in a published directory'() {
         given:
         QuiltPathify pathify = new QuiltPathify(Paths.get('/bkt/pre/suf/run/reports'))
-        Path destDir = pathify.pkg.packageDest()
+        pathify.pkg.reset()
         Path source = Files.createTempDirectory('reports')
         Files.createDirectories(source.resolve('qc'))
         Files.writeString(source.resolve('summary.html'), 'top')
         Files.writeString(source.resolve('qc').resolve('multiqc_report.html'), 'nested')
 
         when:
-        boolean copied = pathify.copyToCache(source)
+        boolean added = pathify.addOverlayEntries(source)
 
         then:
-        copied
-        Files.readString(destDir.resolve('run/reports/summary.html')) == 'top'
-        Files.readString(destDir.resolve('run/reports/qc/multiqc_report.html')) == 'nested'
+        added
+        pathify.pkg.getRemoteEntries() == [
+            'run/reports/qc/multiqc_report.html': source.resolve('qc/multiqc_report.html').toAbsolutePath(),
+            'run/reports/summary.html': source.resolve('summary.html').toAbsolutePath(),
+        ]
 
         cleanup:
-        QuiltPackage.deleteDirectory(destDir.resolve('run'))
+        pathify.pkg.reset()
         QuiltPackage.deleteDirectory(source)
     }
 
@@ -246,31 +243,37 @@ class QuiltPathifyTest extends QuiltSpecification {
     }
 
     @IgnoreIf({ System.getProperty('os.name').toLowerCase().contains('windows') })
-    void 'test copyToCache follows a symlinked output directory'() {
+    void 'addOverlayEntries follows a symlinked output directory'() {
         given: 'a work-dir output that is a link to a staged folder'
         QuiltPathify pathify = new QuiltPathify(Paths.get('/bkt/pre/suf/run/staged'))
-        Path destDir = pathify.pkg.packageDest()
+        pathify.pkg.reset()
         Path work = Files.createTempDirectory('work')
         Path real = Files.createDirectories(work.resolve('real/sub'))
         Files.writeString(real.resolve('data.txt'), 'linked')
         Path link = Files.createSymbolicLink(work.resolve('staged'), work.resolve('real'))
 
         when:
-        boolean copied = pathify.copyToCache(link)
+        boolean added = pathify.addOverlayEntries(link)
 
         then:
-        copied
-        Files.readString(destDir.resolve('run/staged/sub/data.txt')) == 'linked'
+        added
+        pathify.pkg.getRemoteEntries().keySet() == ['run/staged/sub/data.txt'] as Set
 
         cleanup:
-        QuiltPackage.deleteDirectory(destDir.resolve('run'))
+        pathify.pkg.reset()
         QuiltPackage.deleteDirectory(work)
     }
 
-    void 'test copyToCache ignores non-overlay paths'() {
+    void 'addOverlayEntries ignores non-overlay paths'() {
         expect:
         !new QuiltPathify(QuiltPathFactory.parse('quilt+s3://bkt#package=pre%2fsuf&path=FILE.md'))
-            .copyToCache(Paths.get('unused'))
+            .addOverlayEntries(Paths.get('unused'))
+    }
+
+    void 'localCopy only keeps files on local disk'() {
+        expect:
+        QuiltPathify.localCopy(Paths.get('/tmp/x.txt')) == Paths.get('/tmp/x.txt').toAbsolutePath()
+        QuiltPathify.localCopy(QuiltPathFactory.parse('quilt+s3://bkt#package=pre%2fsuf&path=x.txt')) == null
     }
 
 }

@@ -27,6 +27,10 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import java.nio.file.attribute.BasicFileAttributes
 import groovy.util.logging.Slf4j
+import com.quiltdata.quiltcore.Entry
+import com.quiltdata.quiltcore.Manifest
+import com.quiltdata.quiltcore.key.S3PhysicalKey
+import java.security.MessageDigest
 import groovy.transform.CompileDynamic
 
 /**
@@ -277,6 +281,93 @@ class QuiltPackageTest extends QuiltSpecification {
 
         expect:
         good_wf.push('my-workflow', meta)
+    }
+
+
+    @IgnoreIf({ env.WRITE_BUCKET ==  null })
+    void 'should push published S3 outputs in place'() {
+        given: 'two outputs already published under the package prefix'
+        String suffix = "remote-${timestamp}"
+        QuiltPackage opkg = writeablePackage(suffix)
+        String prefix = opkg.getPackageName()
+        Path local = Files.createTempFile('out', '.txt')
+        Files.writeString(local, 'hashed locally')
+        new S3PhysicalKey(writeBucket, "${prefix}/run/local.txt", null).putBytes('hashed locally'.bytes)
+        new S3PhysicalKey(writeBucket, "${prefix}/run/dir/remote.txt", null).putBytes('hashed remotely'.bytes)
+        opkg.addRemoteEntry('run/local.txt', local)
+        opkg.addRemoteEntry('run/dir/remote.txt')
+        Files.writeString(opkg.packageDest().resolve(QuiltProduct.README_FILE), 'generated')
+
+        when:
+        Manifest pushed = opkg.push('remote', [:])
+        Map<String,Entry> entries = pushed.getEntries()
+
+        then: 'outputs are referenced where they were published, generated files uploaded'
+        entries.keySet() == [QuiltProduct.README_FILE, 'run/dir/remote.txt', 'run/local.txt'] as Set
+        s3Key(entries['run/local.txt']) == "${prefix}/run/local.txt"
+        s3Key(entries['run/dir/remote.txt']) == "${prefix}/run/dir/remote.txt"
+        s3Key(entries[QuiltProduct.README_FILE]) == "${prefix}/${QuiltProduct.README_FILE}"
+        entries['run/local.txt'].hash.value == sha256('hashed locally')
+        entries['run/dir/remote.txt'].hash.value == sha256('hashed remotely')
+        entries['run/dir/remote.txt'].size == 'hashed remotely'.length()
+        ((S3PhysicalKey) entries['run/dir/remote.txt'].physicalKey).versionId
+
+        when: 'installing the pushed revision'
+        opkg.reset()
+        opkg.install()
+
+        then:
+        Files.readString(opkg.packageDest().resolve('run/dir/remote.txt')) == 'hashed remotely'
+        Files.readString(opkg.packageDest().resolve(QuiltProduct.README_FILE)) == 'generated'
+
+        cleanup:
+        Files.deleteIfExists(local)
+        opkg?.reset()
+    }
+
+    @IgnoreIf({ env.WRITE_BUCKET ==  null })
+    void 'should fail push when a published output is missing'() {
+        given:
+        QuiltPackage opkg = writeablePackage("remote-missing-${timestamp}")
+        opkg.addRemoteEntry('run/never-published.txt')
+        Files.writeString(opkg.packageDest().resolve(QuiltProduct.README_FILE), 'generated')
+
+        when:
+        opkg.push('missing', [:])
+
+        then:
+        thrown(RuntimeException)
+
+        cleanup:
+        opkg?.reset()
+    }
+
+    @IgnoreIf({ env.WRITE_BUCKET ==  null })
+    void 'should validate workflows when pushing published outputs'() {
+        given:
+        QuiltPackage opkg = writeablePackage("remote-wf-${timestamp}", 'missing-workflow')
+        String key = "${opkg.getPackageName()}/run/out.txt"
+        new S3PhysicalKey(writeBucket, key, null).putBytes('output'.bytes)
+        opkg.addRemoteEntry('run/out.txt')
+        Files.writeString(opkg.packageDest().resolve(QuiltProduct.README_FILE), 'generated')
+
+        when:
+        opkg.push('bad workflow', [:])
+
+        then:
+        RuntimeException e = thrown()
+        e.cause.class.simpleName == 'WorkflowException'
+
+        cleanup:
+        opkg?.reset()
+    }
+
+    private static String s3Key(Entry entry) {
+        return ((S3PhysicalKey) entry.physicalKey).key
+    }
+
+    private static String sha256(String text) {
+        return MessageDigest.getInstance('SHA-256').digest(text.bytes).encodeHex().toString()
     }
 
 }

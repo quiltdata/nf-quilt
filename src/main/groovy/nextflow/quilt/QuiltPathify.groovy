@@ -20,10 +20,9 @@ import nextflow.quilt.jep.QuiltPackage
 import nextflow.quilt.nio.QuiltPath
 import nextflow.quilt.nio.QuiltPathFactory
 
+import java.nio.file.FileSystems
 import java.nio.file.Path
-import java.nio.file.Paths
 import java.nio.file.Files
-import java.nio.file.StandardCopyOption
 import java.nio.file.FileVisitOption
 import java.nio.file.FileVisitResult
 import java.nio.file.SimpleFileVisitor
@@ -45,30 +44,6 @@ class QuiltPathify  {
     QuiltPath path
     QuiltPackage pkg
     String uri
-
-    /*
-     * Copy a file from source to destRoot/relpath
-     */
-    static boolean copyFile(Path source, String destRoot, String relpath) {
-        return copyFile(source, Paths.get(destRoot, relpath.split('/') as String[]))
-    }
-
-    static boolean copyFile(Path source, Path dest) {
-        try {
-            dest.getParent().toFile().mkdirs() // ensure directories exist first
-            Files.copy(source, dest, StandardCopyOption.REPLACE_EXISTING)
-            return true
-        }
-        catch (Exception e) {
-            log.error("copyFile: cannot write `$source` to `$dest`\n$e")
-            try {
-                Files.deleteIfExists(dest) // don't leave a partial file to be pushed
-            } catch (Exception ignored) {
-                log.debug("copyFile: could not remove partial `$dest`")
-            }
-            return false
-        }
-    }
 
     /**
      * Converts an S3 path to a Quilt URI.
@@ -150,57 +125,85 @@ class QuiltPathify  {
         return true
     }
 
-    boolean copyToCache(Path source) {
+    /**
+     * Add a file (or every file under a directory) published to a plain S3
+     * outdir to the package, as entries that reference the published objects
+     * in place. Nothing is copied: the package is pushed from S3 at the end.
+     *
+     * @param from the task's output if it still exists, else the published copy
+     * @return false if the output cannot be added (so the push should be blocked)
+     */
+    boolean addOverlayEntries(Path from) {
         if (!this.isOverlay) {
             return false
         }
-        // Place the file at its logical path inside the package (the publish
-        // destination's sub-path), not just its bare filename
-        String localPath = path.sub_paths()
-        Path destDir = pkg.packageDest().normalize()
-        Path dest = destDir.resolve(localPath ?: '').normalize()
-        if (dest == destDir || !dest.startsWith(destDir)) {
-            log.error("copyToCache: refusing sub-path `$localPath` outside ${destDir}")
+        String logicalKey = normalizedKey(path.sub_paths())
+        if (!logicalKey) {
+            log.error("addOverlayEntries: refusing sub-path `${path.sub_paths()}` for ${pkg}")
             return false
         }
-        return Files.isDirectory(source) ? copyTree(source, dest) : copyFile(source, dest)
+        if (!Files.isDirectory(from)) {
+            pkg.addRemoteEntry(logicalKey, localCopy(from))
+            return true
+        }
+        return addOverlayTree(from, logicalKey)
     }
 
     /**
-     * Copy every regular file under {@code source} to the same relative path
-     * under {@code dest} (publishDir can publish whole directories). Follows
-     * symlinks, since staged inputs and their folders are links in the work dir.
-     * Returns false if anything could not be copied.
+     * A safe, '/'-separated logical key, or null for the package root or a
+     * path that tries to climb out of the package.
      */
-    static boolean copyTree(Path source, Path dest) {
+    static String normalizedKey(String subPath) {
+        List<String> segments = []
+        for (String seg : (subPath ?: '').split('/')) {
+            if (seg == '..') {
+                if (segments.isEmpty()) {
+                    return null
+                }
+                segments.remove(segments.size() - 1)
+            } else if (seg && seg != '.') {
+                segments.add(seg)
+            }
+        }
+        return segments ? segments.join('/') : null
+    }
+
+    /** The task's own file on local disk, if that's where it is (for cheap hashing). */
+    static Path localCopy(Path file) {
+        return file.getFileSystem() == FileSystems.getDefault() ? file.toAbsolutePath() : null
+    }
+
+    /**
+     * Record every regular file under {@code root} (publishDir can publish whole
+     * directories). Follows symlinks, since staged inputs and their folders are
+     * links in the work dir. Returns false if any part could not be read.
+     */
+    boolean addOverlayTree(Path root, String logicalKey) {
         final List<Path> failed = []
         try {
-            Files.walkFileTree(source, EnumSet.of(FileVisitOption.FOLLOW_LINKS), Integer.MAX_VALUE,
+            Files.walkFileTree(root, EnumSet.of(FileVisitOption.FOLLOW_LINKS), Integer.MAX_VALUE,
                 new SimpleFileVisitor<Path>() {
 
                     @Override
                     FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
-                        Path target = dest.resolve(source.relativize(file).toString())
-                        if (attrs.isRegularFile() && !QuiltPathify.copyFile(file, target)) {
-                            failed.add(file)
+                        if (attrs.isRegularFile()) {
+                            String rel = root.relativize(file).collect { Path seg -> seg.toString() }.join('/')
+                            pkg.addRemoteEntry("${logicalKey}/${rel}".toString(), localCopy(file))
                         }
                         return FileVisitResult.CONTINUE
                     }
 
                     @Override
                     FileVisitResult visitFileFailed(Path file, IOException exc) {
-                        QuiltPathify.log.error("copyTree: cannot read `$file`: $exc")
+                        QuiltPathify.log.error("addOverlayTree: cannot read `$file`: $exc")
                         failed.add(file)
                         return FileVisitResult.CONTINUE
                     }
 
                 })
         } catch (IOException | UncheckedIOException e) {
-            log.error("copyTree: cannot copy `$source` to `$dest`: $e")
+            log.error("addOverlayTree: cannot list `$root`: $e")
             return false
-        }
-        if (failed) {
-            log.error("copyTree: ${failed.size()} file(s) under `$source` not copied: ${failed}")
         }
         return failed.isEmpty()
     }

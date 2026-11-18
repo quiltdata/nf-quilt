@@ -87,26 +87,28 @@ class QuiltObserver implements TraceObserver {
             return
         }
         if (pathify.isOverlay) {
-            cacheOverlay(pathify, destination, source)
+            addOverlay(pathify, destination, source)
         }
         checkExtractedPath(pathify)
     }
 
     /**
-     * Copy a file published to a plain (non-Quilt) S3 outdir into the local
-     * package folder, so the package pushed at the end of the run contains the
-     * run's outputs, not just nf-quilt's generated files.
+     * Add a file published to a plain (non-Quilt) S3 outdir to its package, so
+     * the package pushed at the end of the run contains the run's outputs, not
+     * just nf-quilt's generated files. The package references the published
+     * objects in place; nothing is copied.
      *
-     * Prefers the task's local output; falls back to the published copy when
-     * there is no source (older Nextflow) or it is gone (publishDir mode 'move').
+     * Lists directories from the task's output; falls back to the published
+     * copy when there is no source (older Nextflow) or it is gone (publishDir
+     * mode 'move').
      */
-    boolean cacheOverlay(QuiltPathify pathify, Path destination, Path source) {
+    boolean addOverlay(QuiltPathify pathify, Path destination, Path source) {
         Path from = (source != null && Files.exists(source)) ? source : destination
-        log.debug("cacheOverlay: $from -> $pathify")
-        if (pathify.copyToCache(from)) {
+        log.debug("addOverlay: $from -> $pathify")
+        if (pathify.addOverlayEntries(from)) {
             return true
         }
-        log.error("cacheOverlay: could not add $destination to $pathify")
+        log.error("addOverlay: could not add $destination to $pathify")
         String key = pathify.pkgKey()
         lock.lock()
         try {
