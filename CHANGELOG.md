@@ -3,7 +3,7 @@
 ## [Unreleased]
 
 - Build with `./gradlew` from JDK 25: the Gradle daemon now runs on JDK 21, downloading Temurin 21 when no local JDK 21 is found (#345)
-- Run the CI tests on Java 17, 21 and 25 rather than always on the JDK 21 toolchain; `-PtestJavaVersion=<N>` runs them on an installed JDK N
+- Run the CI tests on Java 17, 21 and 25 rather than always on the JDK 21 toolchain; `-PtestJavaVersion=<N>` runs them on an installed JDK N (#348)
 
 ## [1.0.4] 2026-11-18
 
