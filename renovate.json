@@ -9,7 +9,7 @@
     "helpers:pinGitHubActionDigests"
   ],
   "constraints": {
-    "java": "21"
+    "java": "25.0.5+8.0.LTS"
   },
   "packageRules": [
     {
