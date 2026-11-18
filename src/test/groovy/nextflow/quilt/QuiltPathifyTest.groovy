@@ -152,18 +152,19 @@ class QuiltPathifyTest extends QuiltSpecification {
         when:
         QuiltPathify pathify = new QuiltPathify(source)
         Path destFolder = pathify.pkg.packageDest()
-        String file = source.getFileName()
-        Path dest = Paths.get(destFolder.toString(), file)
+        String subPath = pathify.path.sub_paths()
+        Path dest = Paths.get(destFolder.toString(), subPath.split('/') as String[])
         pathify.copyToCache(source)
 
         then:
         pathify.isOverlay == true
+        subPath.endsWith(sub_path)
         Files.exists(dest)
         Files.delete(dest)
         Files.delete(source)
 
         where:
-        sub_path  << ['FILE.md']
+        sub_path  << ['FILE.md', 'a_folder/FILE.md', 'a/b/FILE.md']
     }
 
 }

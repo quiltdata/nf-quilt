@@ -132,7 +132,9 @@ class QuiltPathify  {
         if (!this.isOverlay) {
             return false
         }
-        String localPath = source.getFileName() // FIXME: should be relative to workdir
+        // Place the file at its logical path inside the package (the publish
+        // destination's sub-path), not just its bare filename
+        String localPath = path.sub_paths()
         Path destDir = pkg.packageDest()
         copyFile(source, destDir.toString(), localPath)
         return true
