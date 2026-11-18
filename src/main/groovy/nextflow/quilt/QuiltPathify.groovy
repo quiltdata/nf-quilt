@@ -24,7 +24,10 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
-import java.util.stream.Stream
+import java.nio.file.FileVisitOption
+import java.nio.file.FileVisitResult
+import java.nio.file.SimpleFileVisitor
+import java.nio.file.attribute.BasicFileAttributes
 
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
@@ -94,13 +97,20 @@ class QuiltPathify  {
         String bucket = parts.size() > 0 ? parts.remove(0) : QuiltParser.NULL_BUCKET
         String prefix = parts.size() > 0 ? parts.remove(0) : 'default_prefix'
         String suffix = parts.size() > 0 ? parts.remove(0) : 'default_suffix'
-        String folder = parts.join('/')
-        String sub_path = folder.length() > 0 ? folder + '/' + file : file
+        // Encode each segment twice: URI.getFragment() decodes once, and
+        // QuiltParser.parseQuery decodes the `path=` value again
+        List<String> subParts = parts + [file]
+        String sub_path = subParts.collect { String seg -> fragmentEncode(seg) }.join('/')
 
         log.debug("uriFromS3File: $bucket/$prefix/$suffix/$sub_path")
         String base = "quilt+s3://${bucket}#package=${prefix}%2f${suffix}"
         String uri = base + '&path=' + sub_path
         return uri
+    }
+
+    static String fragmentEncode(String segment) {
+        String once = URLEncoder.encode(segment, 'UTF-8').replace('+', '%20')
+        return once.replace('%', '%25')
     }
 
     // Constructor takes a Path and finds QuiltPath and QuiltPackage
@@ -153,24 +163,41 @@ class QuiltPathify  {
 
     /**
      * Copy every regular file under {@code source} to the same relative path
-     * under {@code dest} (publishDir can publish whole directories).
+     * under {@code dest} (publishDir can publish whole directories). Follows
+     * symlinks, since staged inputs and their folders are links in the work dir.
+     * Returns false if anything could not be copied.
      */
     static boolean copyTree(Path source, Path dest) {
-        boolean ok = true
-        Stream<Path> stream = Files.walk(source)
+        final List<Path> failed = []
         try {
-            Iterator<Path> files = stream.iterator()
-            while (files.hasNext()) {
-                Path file = files.next()
-                if (Files.isRegularFile(file)) {
-                    String rel = source.relativize(file).toString()
-                    ok = copyFile(file, dest.resolve(rel)) && ok
-                }
-            }
-        } finally {
-            stream.close()
+            Files.walkFileTree(source, EnumSet.of(FileVisitOption.FOLLOW_LINKS), Integer.MAX_VALUE,
+                new SimpleFileVisitor<Path>() {
+
+                    @Override
+                    FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
+                        Path target = dest.resolve(source.relativize(file).toString())
+                        if (attrs.isRegularFile() && !QuiltPathify.copyFile(file, target)) {
+                            failed.add(file)
+                        }
+                        return FileVisitResult.CONTINUE
+                    }
+
+                    @Override
+                    FileVisitResult visitFileFailed(Path file, IOException exc) {
+                        QuiltPathify.log.error("copyTree: cannot read `$file`: $exc")
+                        failed.add(file)
+                        return FileVisitResult.CONTINUE
+                    }
+
+                })
+        } catch (IOException | UncheckedIOException e) {
+            log.error("copyTree: cannot copy `$source` to `$dest`: $e")
+            return false
         }
-        return ok
+        if (failed) {
+            log.error("copyTree: ${failed.size()} file(s) under `$source` not copied: ${failed}")
+        }
+        return failed.isEmpty()
     }
 
     boolean isBucketAccessible() {

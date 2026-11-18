@@ -157,4 +157,26 @@ class QuiltObserverTest extends QuiltSpecification {
         'moved away'    | Paths.get('/nonexistent/work/out.txt')
     }
 
+    @IgnoreIf({ env.WRITE_BUCKET == null || System.getProperty('os.name').toLowerCase().contains('windows') })
+    void 'onFilePublish adds a file published to an s3 outdir to the package'() {
+        given:
+        QuiltObserver observer = makeObserver()
+        String name = "overlay${System.nanoTime()}"
+        Path destination = Paths.get("/${writeBucket}/test/${name}/run/out.txt")
+        Path source = Files.createTempFile('out', '.txt')
+        Files.writeString(source, 'published output')
+
+        when:
+        observer.onFilePublish(destination, source)
+        QuiltPathify pathify = new QuiltPathify(destination)
+
+        then:
+        observer.countPublishedPaths() == 1
+        Files.readString(pathify.pkg.packageDest().resolve('run/out.txt')) == 'published output'
+
+        cleanup:
+        pathify?.pkg?.reset()
+        Files.deleteIfExists(source)
+    }
+
 }
