@@ -9,7 +9,7 @@
  */
 
 plugins {
-    id 'io.nextflow.nextflow-plugin' version '1.0.0-beta.15'
+    id 'io.nextflow.nextflow-plugin' version '1.0.0-beta.16'
     id 'jacoco'
 }
 
@@ -32,9 +32,9 @@ dependencies {
     implementation platform('io.netty:netty-bom:4.2.21.Final')
     constraints {
         // Not vertx-stack-depchain: that BOM also manages slf4j/log4j versions.
-        implementation 'io.vertx:vertx-core:5.0.12'
-        implementation 'io.vertx:vertx-core-logging:5.0.12'
-        implementation 'io.vertx:vertx-json-schema:5.0.12'
+        implementation 'io.vertx:vertx-core:5.2.3'
+        implementation 'io.vertx:vertx-core-logging:5.2.3'
+        implementation 'io.vertx:vertx-json-schema:5.2.3'
     }
 
     implementation 'com.fasterxml.jackson.core:jackson-databind'
