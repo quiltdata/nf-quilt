@@ -27,6 +27,10 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import java.nio.file.attribute.BasicFileAttributes
 import groovy.util.logging.Slf4j
+import com.quiltdata.quiltcore.Entry
+import com.quiltdata.quiltcore.Manifest
+import com.quiltdata.quiltcore.key.S3PhysicalKey
+import java.security.MessageDigest
 import groovy.transform.CompileDynamic
 
 /**
@@ -277,6 +281,186 @@ class QuiltPackageTest extends QuiltSpecification {
 
         expect:
         good_wf.push('my-workflow', meta)
+    }
+
+
+    @IgnoreIf({ env.WRITE_BUCKET ==  null })
+    void 'should push published S3 outputs in place'() {
+        given: 'two outputs already published under the package prefix'
+        String suffix = "remote-${timestamp}"
+        QuiltPackage opkg = writeablePackage(suffix)
+        String prefix = opkg.getPackageName()
+        Path local = Files.createTempFile('out', '.txt')
+        Files.writeString(local, 'hashed locally')
+        new S3PhysicalKey(writeBucket, "${prefix}/run/local.txt", null).putBytes('hashed locally'.bytes)
+        new S3PhysicalKey(writeBucket, "${prefix}/run/dir/remote.txt", null).putBytes('hashed remotely'.bytes)
+        // e.g. a shallow outdir: the object is not under the package name
+        new S3PhysicalKey(writeBucket, "${prefix}-elsewhere/shallow.txt", null).putBytes('shallow'.bytes)
+        opkg.addRemoteEntry('run/local.txt', "${prefix}/run/local.txt", local)
+        opkg.addRemoteEntry('run/dir/remote.txt', "${prefix}/run/dir/remote.txt")
+        opkg.addRemoteEntry('shallow.txt', "${prefix}-elsewhere/shallow.txt")
+        Files.writeString(opkg.packageDest().resolve(QuiltProduct.README_FILE), 'generated')
+        // a stale copy from an installed earlier revision must not win
+        Files.createDirectories(opkg.packageDest().resolve('run/dir'))
+        Files.writeString(opkg.packageDest().resolve('run/dir/remote.txt'), 'stale cached revision')
+
+        when:
+        Manifest pushed = opkg.push('remote', [:])
+        Map<String,Entry> entries = pushed.getEntries()
+
+        then: 'outputs are referenced where they were published, generated files uploaded'
+        entries.keySet() == [QuiltProduct.README_FILE, 'run/dir/remote.txt', 'run/local.txt', 'shallow.txt'] as Set
+        s3Key(entries['shallow.txt']) == "${prefix}-elsewhere/shallow.txt"
+        s3Key(entries['run/local.txt']) == "${prefix}/run/local.txt"
+        s3Key(entries['run/dir/remote.txt']) == "${prefix}/run/dir/remote.txt"
+        s3Key(entries[QuiltProduct.README_FILE]) == "${prefix}/${QuiltProduct.README_FILE}"
+        entries['run/local.txt'].hash.value == sha256('hashed locally')
+        entries['run/dir/remote.txt'].hash.value == sha256('hashed remotely')
+        entries['run/dir/remote.txt'].size == 'hashed remotely'.length()
+        ((S3PhysicalKey) entries['run/dir/remote.txt'].physicalKey).versionId
+
+        when: 'installing the pushed revision'
+        opkg.reset()
+        opkg.install()
+
+        then:
+        Files.readString(opkg.packageDest().resolve('run/dir/remote.txt')) == 'hashed remotely'
+        Files.readString(opkg.packageDest().resolve(QuiltProduct.README_FILE)) == 'generated'
+
+        cleanup:
+        Files.deleteIfExists(local)
+        opkg?.reset()
+    }
+
+    @IgnoreIf({ env.WRITE_BUCKET ==  null })
+    void 'should fail push when a published output is missing'() {
+        given:
+        QuiltPackage opkg = writeablePackage("remote-missing-${timestamp}")
+        opkg.addRemoteEntry('run/never-published.txt', "${opkg.getPackageName()}/run/never-published.txt")
+        Files.writeString(opkg.packageDest().resolve(QuiltProduct.README_FILE), 'generated')
+
+        when:
+        opkg.push('missing', [:])
+
+        then:
+        thrown(RuntimeException)
+
+        cleanup:
+        opkg?.reset()
+    }
+
+    @IgnoreIf({ env.WRITE_BUCKET ==  null })
+    void 'should validate workflows when pushing published outputs'() {
+        given:
+        QuiltPackage opkg = writeablePackage("remote-wf-${timestamp}", 'missing-workflow')
+        String key = "${opkg.getPackageName()}/run/out.txt"
+        new S3PhysicalKey(writeBucket, key, null).putBytes('output'.bytes)
+        opkg.addRemoteEntry('run/out.txt', key)
+        Files.writeString(opkg.packageDest().resolve(QuiltProduct.README_FILE), 'generated')
+
+        when:
+        opkg.push('bad workflow', [:])
+
+        then:
+        RuntimeException e = thrown()
+        e.cause.class.simpleName == 'WorkflowException'
+
+        cleanup:
+        opkg?.reset()
+    }
+
+    void 'addRemoteEntry stops trusting the local copy when a key is published twice'() {
+        given:
+        QuiltPackage opkg = new QuiltPackage(QuiltParser.forUriString('quilt+s3://bkt#package=pre%2fdup'))
+        Path first = Paths.get('/work/a/out.txt')
+        Path second = Paths.get('/work/b/out.txt')
+
+        when: 'the same file is recorded again (e.g. -resume)'
+        opkg.addRemoteEntry('out.txt', 'pre/dup/out.txt', first)
+        opkg.addRemoteEntry('out.txt', 'pre/dup/out.txt', first)
+
+        then:
+        opkg.getRemoteEntries()['out.txt'].localCopy == first
+
+        when: 'a different file is published to the same key'
+        opkg.addRemoteEntry('out.txt', 'pre/dup/out.txt', second)
+
+        then: 'hash the object itself'
+        opkg.getRemoteEntries()['out.txt'] == new QuiltPackage.RemoteEntry('pre/dup/out.txt', null)
+    }
+
+    void 'localSha256 trusts the local file only when it matches the ETag'() {
+        given:
+        Path file = Files.createTempFile('etag', '.bin')
+        Files.write(file, 'some output'.bytes)
+        String md5 = md5Hex('some output'.bytes)
+
+        expect:
+        QuiltPackage.localSha256(file, 11, "\"${md5}\"") == sha256('some output')
+        QuiltPackage.localSha256(file, 11, md5.toUpperCase()) == sha256('some output')
+        QuiltPackage.localSha256(file, 11, '"' + md5Hex('other bytes'.bytes) + '"') == null
+        QuiltPackage.localSha256(file, 12, md5) == null   // size differs
+        QuiltPackage.localSha256(file, 11, 'not-an-md5') == null   // e.g. SSE-KMS
+        QuiltPackage.localSha256(file, 11, null) == null
+        QuiltPackage.localSha256(null, 11, md5) == null
+
+        cleanup:
+        Files.deleteIfExists(file)
+    }
+
+    void 'localSha256 verifies multipart ETags with #mib MiB parts'() {
+        given:
+        long partSize = mib * (1L << 20)
+        byte[] data = new byte[(int) (2 * partSize + 12345)]
+        new Random(42).nextBytes(data)
+        Path file = Files.createTempFile('multipart', '.bin')
+        Files.write(file, data)
+        String etag = multipartEtag(data, partSize)
+        String sha = MessageDigest.getInstance('SHA-256').digest(data).encodeHex().toString()
+
+        expect:
+        etag.endsWith('-3"')
+        QuiltPackage.localSha256(file, data.length, etag) == sha
+        QuiltPackage.localSha256(file, data.length, etag.replace('-3', '-4')) == null
+
+        cleanup:
+        Files.deleteIfExists(file)
+
+        where:
+        mib << [5, 8]
+    }
+
+    void 'partSizes only keeps sizes giving the right part count'() {
+        given:
+        long mib = 1L << 20
+
+        expect:
+        QuiltPackage.partSizes(250 * mib, 3).contains(100 * mib)
+        !QuiltPackage.partSizes(250 * mib, 3).contains(8 * mib)
+        QuiltPackage.partSizes(250 * mib, 3).every { Long p -> (250 * mib + p - 1).intdiv(p) == 3 }
+    }
+
+    private static String md5Hex(byte[] bytes) {
+        return MessageDigest.getInstance('MD5').digest(bytes).encodeHex().toString()
+    }
+
+    private static String multipartEtag(byte[] data, long partSize) {
+        ByteArrayOutputStream digests = new ByteArrayOutputStream()
+        int parts = 0
+        for (long start = 0; start < data.length; start += partSize) {
+            int end = (int) Math.min(data.length, start + partSize)
+            digests.write(MessageDigest.getInstance('MD5').digest(Arrays.copyOfRange(data, (int) start, end)))
+            parts++
+        }
+        return "\"${md5Hex(digests.toByteArray())}-${parts}\""
+    }
+
+    private static String s3Key(Entry entry) {
+        return ((S3PhysicalKey) entry.physicalKey).key
+    }
+
+    private static String sha256(String text) {
+        return MessageDigest.getInstance('SHA-256').digest(text.bytes).encodeHex().toString()
     }
 
 }

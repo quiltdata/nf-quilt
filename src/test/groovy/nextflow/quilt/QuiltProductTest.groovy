@@ -225,6 +225,25 @@ class QuiltProductTest extends QuiltSpecification {
         !product.match('temp.txt')
     }
 
+    @IgnoreIf({ System.getProperty('os.name').toLowerCase().contains('windows') })
+    void 'match includes published outputs referenced in place'() {
+        given:
+        QuiltProduct product = makeProduct()
+        product.pkg.reset()
+        QuiltProduct.writeString('local', product.pkg, 'local.md')
+        ['remote.md', 'run/report.html', 'run/qc/nested.html', 'runner/other.html'].each { String key ->
+            product.pkg.addRemoteEntry(key, "pre/suf/${key}")
+        }
+
+        expect:
+        product.match('*.md')*.toString() as Set == ['local.md', 'remote.md'] as Set
+        product.match('*.html', 'run')*.toString() == ['report.html']
+        product.match('**.html', 'run')*.toString() as Set == ['report.html', 'qc/nested.html'] as Set
+
+        cleanup:
+        product.pkg.reset()
+    }
+
     void 'writeSummarize empty if no files are present'() {
         given:
         QuiltProduct product = makeProduct('readme=SKIP')

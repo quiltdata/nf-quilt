@@ -34,6 +34,11 @@ nextflow run nf-core/sarek -profile test,docker -plugins nf-quilt --outdir "s3:/
 This will automatically create a nicely-formmated Quilt package with all the
 metadata from that run.
 
+The package references your outputs where Nextflow published them (pinned to
+their S3 object versions), so nothing is copied to local disk or uploaded
+twice. Only the files nf-quilt generates (README, summary, metadata) are
+uploaded at the end of the run.
+
 The package is named after the first two path components below the bucket
 (here, `nf_quilt/sarek`). If `--outdir` points deeper than that, for example
 `s3://$WRITE_BUCKET/nf_quilt/sarek/run-1`, the generated `README_NF_QUILT.md`,
